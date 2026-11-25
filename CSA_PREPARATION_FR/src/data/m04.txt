@@ -1,0 +1,161 @@
+# MODULE 4 – THREAT INTELLIGENCE
+
+## F|Threat Intelligence / IOC
+Lequel de ces éléments est un indicateur de compromission (IOC) ?
++ Le hash SHA-256 d'un fichier malveillant identifié lors d'une campagne.
+- La politique de mots de passe de l'entreprise et la liste des comptes à privilèges.
+- Le nombre d'employés du service informatique.
+- La version du navigateur imposée par la DSI.
+> Un IOC est un artefact technique observé qui indique avec une forte probabilité une intrusion : hash de fichier, adresse IP ou domaine malveillant, URL, clé de registre, nom de mutex. Les IOC sont surtout utiles pour la détection rétrospective et le blocage, mais leur durée de vie est souvent courte.
+
+## F|Threat Intelligence / Types de renseignement
+Quel type de threat intelligence s'adresse principalement à la direction générale et décrit les tendances, les motivations des acteurs et les risques métier ?
++ Le renseignement stratégique.
+- Le renseignement technique.
+- Le renseignement tactique.
+- Le renseignement opérationnel à destination du Tier 1.
+> Le renseignement stratégique est non technique et de long terme ; il éclaire les décisions d'investissement et de gestion des risques. Le renseignement tactique décrit les TTP, le renseignement opérationnel les campagnes et attaques spécifiques, et le renseignement technique les IOC exploitables directement par les outils.
+
+## F|Threat Intelligence / TLP
+Selon le Traffic Light Protocol (TLP 2.0), quelle étiquette autorise une diffusion publique sans restriction ?
++ TLP:CLEAR.
+- TLP:RED.
+- TLP:AMBER+STRICT.
+- TLP:GREEN.
+> Avec TLP 2.0 (FIRST, 2022), TLP:CLEAR remplace TLP:WHITE et permet la diffusion publique. TLP:GREEN limite la diffusion à la communauté, TLP:AMBER à l'organisation et à ses clients ayant besoin d'en connaître, TLP:AMBER+STRICT à l'organisation uniquement, et TLP:RED aux seuls participants nommés.
+
+## F|Threat Intelligence / Cycle du renseignement
+Quel est l'ordre correct du cycle du renseignement sur les menaces ?
++ Planification et orientation, collecte, traitement, analyse, diffusion, retour (feedback).
+- Collecte, traitement, analyse, planification, orientation, diffusion, retour (feedback).
+- Analyse, collecte, traitement, planification, diffusion, retour.
+- Traitement, analyse, collecte, diffusion, planification, retour.
+> Le cycle commence par la définition des besoins (Priority Intelligence Requirements), puis la collecte des données, leur traitement (normalisation, traduction, dédoublonnage), l'analyse pour produire du renseignement, la diffusion aux consommateurs et le retour d'expérience pour réorienter les besoins.
+
+## F|Threat Intelligence / OSINT
+Quel outil est principalement utilisé pour identifier des équipements et services exposés sur Internet à partir de bannières collectées ?
++ Shodan.
+- Mimikatz.
+- Volatility.
+- Hashcat.
+> Shodan (comme Censys) indexe les services exposés sur Internet : ports, bannières, certificats, versions logicielles. Le SOC l'utilise pour évaluer la surface d'attaque externe et pour qualifier une infrastructure suspecte. Mimikatz est un outil de vol d'identifiants, Volatility un framework d'analyse mémoire et Hashcat un outil de cassage de mots de passe.
+
+## F|Threat Intelligence / Standards de partage
+Quel couple de standards est utilisé pour représenter et échanger automatiquement de la threat intelligence ?
++ STIX pour la représentation et TAXII pour le transport.
+- SAML pour la représentation et OAuth pour le transport.
+- CVSS pour la représentation et CVE pour le transport.
+- JSON pour la représentation et SMTP pour le transport.
+> STIX (Structured Threat Information Expression) décrit des objets de renseignement (indicateurs, malwares, acteurs, relations) et TAXII (Trusted Automated Exchange of Intelligence Information) définit le protocole d'échange sur HTTPS. Ces standards sont pris en charge par MISP, OpenCTI et Microsoft Sentinel.
+
+## I|Threat Intelligence / Pyramid of Pain
+Selon la Pyramid of Pain de David Bianco, quel type d'indicateur est le plus coûteux à modifier pour un attaquant lorsqu'il est détecté ?
++ Les TTP (tactiques, techniques et procédures).
+- Les valeurs de hash des outils (SHA-256, imphash).
+- Les adresses IP.
+- Les noms de domaine.
+> La pyramide classe les indicateurs du plus facile au plus difficile à changer pour l'attaquant : hash, IP, domaines, artefacts réseau et hôte, outils, puis TTP au sommet. Détecter des comportements plutôt que des IOC atomiques impose à l'adversaire de changer sa façon d'opérer, ce qui est très coûteux.
+
+## I|Threat Intelligence / IOA vs IOC
+Quelle affirmation décrit correctement un indicateur d'attaque (IOA) par rapport à un IOC ?
++ L'IOA décrit un comportement d'attaque en cours (ex. Office lançant PowerShell encodé), quel que soit l'outil utilisé.
+- L'IOA est toujours un hash de fichier, contrairement à l'IOC.
+- L'IOA est un artefact technique observé après la compromission (hash, IP, domaine), alors que l'IOC décrit le comportement en cours de l'attaquant.
+- L'IOA et l'IOC sont des termes strictement équivalents.
+> Les IOC sont des artefacts statiques, souvent observés a posteriori. Les IOA, popularisés notamment par CrowdStrike, décrivent des séquences comportementales révélatrices d'une attaque en cours, quel que soit l'outil utilisé. Ils permettent de détecter des menaces inconnues ou polymorphes.
+
+## I|Threat Intelligence / VirusTotal
+Un analyste doit vérifier un document Word confidentiel suspecté de contenir une macro malveillante. Quelle pratique est la plus appropriée avec VirusTotal ?
++ Rechercher d'abord le hash du fichier plutôt que de téléverser le document, car les fichiers soumis sont accessibles aux abonnés de la plateforme.
+- Téléverser systématiquement le document, puisque VirusTotal garantit la confidentialité.
+- Téléverser le document en mode privé, puisque VirusTotal ne partage jamais les fichiers soumis par des comptes d'entreprise avec d'autres utilisateurs.
+- Ouvrir le document sur son poste pour vérifier la macro.
+> Les fichiers soumis à VirusTotal peuvent être téléchargés par les abonnés premium, y compris des attaquants. Pour un document potentiellement sensible, on recherche d'abord le hash (SHA-256) ; si nécessaire, on utilise un sandbox privé interne. Un résultat « 0 détection » ne prouve pas l'innocuité d'un fichier.
+
+## I|Threat Intelligence / Analyse de domaine
+Un domaine contacté par un poste a été enregistré il y a 2 jours, utilise un certificat Let's Encrypt et imite le nom d'un fournisseur (micr0soft-update[.]com). Quelle est la conclusion la plus prudente ?
++ Le domaine présente de forts indicateurs de malveillance (typosquatting, création récente) et justifie une investigation et un blocage préventif.
+- Le domaine est légitime, car il utilise un certificat TLS valide.
+- Le domaine est légitime, car il contient le mot « microsoft ».
+- Aucune conclusion n'est possible : le certificat Let's Encrypt prouve la validation du domaine par une autorité, donc l'absence de risque immédiat.
+> La date d'enregistrement récente (WHOIS), le typosquatting et la présence d'un certificat gratuit, qui n'est pas une garantie de légitimité, sont des signaux classiques de phishing ou de C2. L'analyste peut enrichir avec le passive DNS, urlscan.io et la réputation, puis bloquer et rechercher d'autres victimes.
+
+## I|Threat Intelligence / Defanging
+Pourquoi les analystes écrivent-ils les IOC sous la forme hxxps://malicious[.]com dans leurs rapports ?
++ Pour « désamorcer » les indicateurs et éviter un clic accidentel ou une résolution automatique par les outils.
+- Pour respecter la norme STIX 2.1.
+- Pour signaler que l'indicateur a été vérifié par l'équipe CTI et qu'il peut être importé tel quel dans les outils de blocage.
+- Pour indiquer que le domaine a été mis en sinkhole.
+> Le defanging remplace http par hxxp et le point par [.] afin d'empêcher la création automatique de liens cliquables ou des requêtes involontaires par des clients de messagerie ou des aperçus. Les plateformes de CTI acceptent généralement le refanging automatique lors de l'import.
+
+## I|Threat Intelligence / Diamond Model
+Quels sont les quatre sommets du Diamond Model of Intrusion Analysis ?
++ Adversaire, capacité, infrastructure et victime.
+- Reconnaissance, armement, livraison et exploitation.
+- Identifier, protéger, détecter et répondre.
+- Confidentialité, intégrité, disponibilité et traçabilité.
+> Le Diamond Model relie l'adversaire, ses capacités (malware, exploits), l'infrastructure utilisée (IP, domaines) et la victime. Il permet le « pivoting » : à partir d'une infrastructure connue, on peut découvrir d'autres victimes ou capacités du même adversaire.
+
+## I|Threat Intelligence / Évaluation des sources
+Un rapport de renseignement indique la cotation « B2 » selon le système Admiralty (NATO). Que signifie-t-elle ?
++ La source est généralement fiable et l'information est probablement vraie.
+- La source est totalement fiable et l'information confirmée.
+- La source est non fiable et l'information improbable.
+- La fiabilité de la source ne peut être évaluée et l'information est fausse.
+> Le système Admiralty évalue séparément la fiabilité de la source (A complètement fiable à F non évaluable) et la crédibilité de l'information (1 confirmée à 6 non évaluable). B correspond à « généralement fiable » et 2 à « probablement vraie ». Ce système aide à pondérer les renseignements avant d'agir.
+
+## I|Threat Intelligence / Plateformes
+Quel est l'intérêt principal d'une Threat Intelligence Platform (TIP) comme MISP ou OpenCTI pour un SOC ?
++ Centraliser, dédoublonner, contextualiser et partager les IOC et rapports, puis les pousser vers les outils de détection.
+- Remplacer l'EDR sur les postes de travail.
+- Collecter les journaux Windows de tous les serveurs.
+- Remplacer le SIEM en collectant directement les journaux des terminaux et en générant les alertes de corrélation.
+> Une TIP agrège des flux multiples, corrèle les indicateurs, gère leur cycle de vie (score, expiration) et les relations avec les acteurs et campagnes. Elle alimente ensuite le SIEM, l'EDR ou le pare-feu via des API ou TAXII. Microsoft Sentinel, par exemple, peut importer les indicateurs dans la table ThreatIntelligenceIndicator.
+
+## I|Threat Intelligence / Qualité des flux
+Un SOC importe un flux gratuit de 500 000 adresses IP malveillantes et voit exploser le nombre d'alertes, majoritairement des faux positifs liés à des CDN. Quelle est la meilleure action ?
++ Évaluer la qualité du flux, appliquer un vieillissement (expiration) des indicateurs et exclure les plages d'infrastructures partagées comme les CDN.
+- Désactiver définitivement toute utilisation de threat intelligence.
+- Bloquer l'ensemble des 500 000 adresses sur le pare-feu et conserver les alertes en sévérité maximale, car un flux réputé ne peut contenir de faux positifs.
+- Augmenter la sévérité de toutes les alertes issues du flux.
+> La qualité d'un flux se mesure à sa pertinence, sa fraîcheur, sa précision et son contexte. Les IP sont des indicateurs volatils, souvent partagées (CDN, hébergeurs, NAT). Un vieillissement automatique, un score de confiance et des listes d'exclusion sont indispensables pour limiter les faux positifs.
+
+## A|Threat Intelligence / Pivot et attribution
+En pivotant sur un domaine C2 via le passive DNS, un analyste découvre 15 autres domaines résolvant vers la même IP, partageant le même registrant et le même certificat TLS. Quelle approche est la plus rigoureuse ?
++ Traiter ces éléments comme des pistes à valider par d'autres sources, sans attribution hâtive (hébergement mutualisé possible).
+- Attribuer l'attaque à l'acteur étatique associé au registrant dans les rapports publics, puis diffuser cette attribution en TLP:CLEAR.
+- Bloquer tout l'hébergeur concerné au niveau du pare-feu de façon permanente.
+- Ignorer ces domaines, car seul le domaine initial est pertinent.
+> Le pivoting est puissant mais sujet aux faux liens : hébergements mutualisés, certificats génériques, services de protection WHOIS. L'analyse doit croiser plusieurs sources et exprimer un niveau de confiance. L'attribution à un acteur exige des preuves solides et relève de l'analyse stratégique, pas d'une conclusion opérationnelle rapide.
+
+## A|Threat Intelligence / Intelligence-driven detection
+Un rapport de CTI indique qu'un groupe ciblant votre secteur utilise rundll32.exe pour exécuter des DLL depuis C:\ProgramData et des tâches planifiées pour la persistance. Quelle exploitation est la plus efficace pour le SOC ?
++ Traduire ces TTP en chasses et en détections comportementales mappées sur ATT&CK, puis vérifier la couverture.
+- Importer uniquement les hashs du rapport dans l'EDR.
+- Archiver le rapport pour une lecture ultérieure.
+- Bloquer immédiatement rundll32.exe et schtasks.exe sur l'ensemble du parc par AppLocker, sans phase d'audit préalable.
+> Les TTP sont la partie la plus durable du renseignement. Les convertir en détections (T1218.011 Rundll32, T1053.005 Scheduled Task) et en chasses permet de détecter l'adversaire même s'il change d'outils ou d'infrastructure. Bloquer un binaire système sans analyse peut casser des applications légitimes.
+
+## A|Threat Intelligence / Indicateur de faible confiance
+Une IP figure dans un flux CTI avec un score de confiance de 30/100, vue pour la dernière fois il y a 9 mois. Un serveur web a reçu une requête de cette IP. Quelle décision est la plus appropriée ?
++ La traiter comme un signal faible à contextualiser (requête, réponse du serveur, activité ultérieure).
+- Déclarer immédiatement un incident majeur, isoler le serveur et bloquer l'IP, car toute IP listée dans un flux CTI prouve une attaque.
+- Supprimer l'IP de tous les journaux.
+- Considérer que la présence dans un flux prouve la compromission du serveur.
+> La valeur d'un indicateur diminue avec le temps et dépend de sa confiance. Une ancienne IP peut avoir été réattribuée. L'analyste doit examiner le comportement réel : requête bénigne ou tentative d'exploitation, code de réponse, activité post-requête. La CTI enrichit la décision, elle ne la remplace pas.
+
+## A|Threat Intelligence / Mesure de la CTI
+Comment un SOC peut-il mesurer objectivement la valeur de son programme de threat intelligence ?
++ En mesurant les détections attribuables à la CTI, leur taux de faux positifs et la couverture des TTP prioritaires.
+- En suivant le nombre total d'IOC importés chaque mois, le nombre de flux souscrits et la taille de la base de la TIP.
+- En mesurant la taille de la base de données de la TIP.
+- En comptant le nombre d'abonnements à des flux payants.
+> Le volume d'IOC n'est pas un indicateur de valeur. Les mesures pertinentes concernent l'impact opérationnel : détections générées, incidents évités ou accélérés, qualité des indicateurs, satisfaction des PIR et amélioration de la couverture de détection face aux adversaires pertinents.
+
+## A|Threat Intelligence / Renseignement et vulnérabilités
+La CISA ajoute une CVE affectant votre VPN à son catalogue KEV (Known Exploited Vulnerabilities). Quelle est la réponse la plus appropriée du SOC ?
++ Prioriser le correctif, chercher rétroactivement des traces d'exploitation dans les journaux VPN et renforcer la surveillance.
+- Attendre que le score CVSS soit révisé avant d'agir.
+- Ignorer l'information si le VPN n'a déclenché aucune alerte.
+- Attendre la publication d'une signature IDS par l'éditeur, puis l'appliquer, car l'équipement n'a déclenché aucune alerte jusqu'ici.
+> Le catalogue KEV recense des vulnérabilités activement exploitées : c'est un signal fort de priorisation, supérieur au seul score CVSS. Le SOC doit à la fois soutenir la remédiation et chasser des traces d'exploitation antérieure, car l'équipement a pu être compromis avant la publication.

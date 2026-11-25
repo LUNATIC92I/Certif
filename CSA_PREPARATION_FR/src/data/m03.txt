@@ -1,0 +1,161 @@
+# MODULE 3 – NETWORK SECURITY MONITORING
+
+## F|Network Security Monitoring / TCP
+Quelle séquence de flags TCP correspond à l'établissement normal d'une connexion (three-way handshake) ?
++ SYN, SYN-ACK, ACK.
+- SYN, FIN, RST.
+- ACK, SYN, FIN.
+- FIN, ACK, PSH.
+> Le client envoie un SYN, le serveur répond par un SYN-ACK et le client confirme par un ACK. Comprendre cette séquence est indispensable pour identifier les scans (SYN sans ACK final), les connexions refusées (RST) ou les anomalies protocolaires.
+
+## F|Network Security Monitoring / Ports
+Un analyste observe un trafic entrant important depuis Internet vers le port TCP 3389 d'un serveur interne. Quel service est exposé ?
++ RDP (Remote Desktop Protocol).
+- SMB (Server Message Block).
+- LDAP (Lightweight Directory Access Protocol).
+- SSH (Secure Shell).
+> Le port TCP 3389 est utilisé par RDP. Son exposition directe sur Internet est un vecteur d'attaque majeur (brute force, exploitation de vulnérabilités, accès initial des groupes ransomware). SMB utilise TCP 445, LDAP TCP/UDP 389 et SSH TCP 22.
+
+## F|Network Security Monitoring / IDS vs IPS
+Quelle est la différence fondamentale entre un IDS et un IPS ?
++ L'IPS est positionné en coupure (inline) et peut bloquer le trafic, alors que l'IDS analyse une copie du trafic et génère des alertes.
+- L'IDS chiffre le trafic, alors que l'IPS le déchiffre.
+- L'IPS fonctionne uniquement avec des signatures sur le poste de travail, alors que l'IDS analyse le réseau uniquement par détection d'anomalies statistiques.
+- L'IDS est un pare-feu applicatif, l'IPS un proxy web.
+> Un IDS (Intrusion Detection System) fonctionne en mode passif, souvent via un port SPAN ou un TAP, et alerte. Un IPS (Intrusion Prevention System) est inline et peut rejeter les paquets malveillants. Les deux peuvent utiliser des signatures et/ou de la détection d'anomalies.
+
+## F|Network Security Monitoring / NIDS et HIDS
+Quel type de système de détection analyse les journaux, l'intégrité des fichiers et l'activité d'un serveur spécifique ?
++ Un HIDS (Host-based Intrusion Detection System).
+- Un NIDS (Network-based Intrusion Detection System).
+- Un NAC (Network Access Control).
+- Un DNS sinkhole.
+> Un HIDS, comme Wazuh/OSSEC, s'exécute sur l'hôte et surveille ses journaux, l'intégrité des fichiers (FIM), les processus et la configuration. Un NIDS, comme Snort, Suricata ou Zeek, analyse le trafic réseau. Ils sont complémentaires : le NIDS ne voit pas le contenu chiffré, le HIDS ne voit pas le trafic des hôtes non équipés.
+
+## F|Network Security Monitoring / DNS
+Quel port est utilisé par le protocole DNS ?
++ Le port 53, en UDP et en TCP (réponses volumineuses, transferts de zone).
+- Le port 25 en TCP uniquement.
+- Le port 853 en UDP pour les requêtes, et le port 443 en TCP pour les transferts de zone entre serveurs.
+- Le port 123 en UDP uniquement.
+> Le DNS utilise le port 53. L'UDP est utilisé pour la majorité des requêtes ; le TCP sert aux réponses dépassant la taille UDP et aux transferts de zone (AXFR). Un transfert de zone vers une IP externe non autorisée est un indicateur de reconnaissance.
+
+## F|Network Security Monitoring / Wireshark
+Quel filtre d'affichage Wireshark permet d'afficher uniquement les requêtes HTTP de type POST ?
++ http.request.method == "POST"
+- tcp.port == 53
+- dns.flags.response == 1
+- ip.ttl < 10
+> Le filtre http.request.method == "POST" isole les requêtes POST, souvent utilisées pour l'exfiltration de données ou l'envoi de résultats vers un serveur C2. Wireshark distingue les filtres de capture (syntaxe BPF, ex. port 80) et les filtres d'affichage (ex. http.request).
+
+## I|Network Security Monitoring / Scan SYN
+Dans une capture, un hôte externe envoie des paquets SYN vers des centaines de ports d'un serveur ; pour les ports ouverts, il répond par un RST après le SYN-ACK. De quelle activité s'agit-il ?
++ Un scan SYN (half-open), typique de nmap -sS.
+- Une attaque par déni de service distribué réussie.
+- Un transfert de zone DNS.
+- Une session TLS normale.
+> Le scan SYN n'achève jamais le three-way handshake : il envoie un RST après réception du SYN-ACK. Cela permet d'identifier les ports ouverts tout en limitant la journalisation applicative. Le filtre Wireshark tcp.flags.syn == 1 && tcp.flags.ack == 0 aide à repérer ce type de comportement.
+
+## I|Network Security Monitoring / Beaconing C2
+L'analyse NDR montre qu'un poste contacte le même domaine toutes les 60 secondes (± 5 s) avec des requêtes HTTPS de taille quasi identique, 24 h/24. Quelle hypothèse est la plus probable ?
++ Un beaconing vers une infrastructure de Command and Control.
+- Une synchronisation Windows Update normale, qui interroge son serveur à intervalle fixe et vérifie l'état des correctifs.
+- Une navigation web classique de l'utilisateur.
+- Une attaque par brute force sur le domaine.
+> La régularité temporelle, la faible variation (jitter) et la taille constante des requêtes sont caractéristiques d'un implant qui interroge son serveur C2 (Cobalt Strike, Sliver, etc.). L'analyste doit vérifier la réputation du domaine, sa date de création, le processus émetteur via l'EDR, et rechercher d'autres hôtes contactant ce domaine.
+
+## I|Network Security Monitoring / DNS Tunneling
+Quels indicateurs suggèrent un tunnel DNS utilisé pour l'exfiltration ?
++ Un volume élevé de requêtes vers un même domaine avec des sous-domaines longs, aléatoires et de forte entropie, souvent de type TXT.
+- Des requêtes de type A vers des domaines populaires comme microsoft.com, avec des réponses contenant plusieurs adresses IP et des TTL courts.
+- Des réponses DNS avec un TTL de 3 600 secondes.
+- L'utilisation du port 53 par le serveur DNS interne.
+> Le tunneling DNS encode des données dans les noms de sous-domaines (ex. a8f3k2...exfil.example.com). Les indicateurs incluent une forte entropie des noms, des longueurs inhabituelles, un nombre élevé de sous-domaines uniques vers un même domaine parent et l'usage fréquent des enregistrements TXT ou NULL. Des outils comme iodine ou dnscat2 utilisent cette technique.
+
+## I|Network Security Monitoring / Zeek
+Un analyste utilise Zeek pour investiguer une connexion suspecte. Quel fichier consulter pour obtenir le SNI et les informations de certificat d'une session chiffrée ?
++ ssl.log (et x509.log pour les détails du certificat).
+- conn.log uniquement, qui contient le contenu déchiffré.
+- dhcp.log.
+- weird.log.
+> Zeek produit des journaux par protocole : conn.log pour les métadonnées de connexion, dns.log, http.log, ssl.log pour les handshakes TLS (version, SNI, établissement) et x509.log pour les certificats. Ces métadonnées permettent d'investiguer le trafic chiffré sans le déchiffrer.
+
+## I|Network Security Monitoring / Signatures Snort
+Quel est le rôle du mot-clé « content » dans une règle Snort ou Suricata ?
++ Rechercher une chaîne d'octets ou de caractères spécifique dans la charge utile du paquet.
+- Définir l'adresse IP et le port de destination à surveiller dans l'en-tête de la règle.
+- Spécifier l'identifiant unique de la règle.
+- Indiquer le message affiché lorsque la règle se déclenche.
+> Dans une règle comme alert tcp any any -> $HOME_NET 80 (msg:"..."; content:"cmd.exe"; sid:1000001; rev:1;), le mot-clé content recherche un motif dans la charge utile. msg définit le message, sid l'identifiant unique et l'en-tête de la règle précise les adresses et les ports.
+
+## I|Network Security Monitoring / NetFlow
+Quelle limite principale présentent les données NetFlow/IPFIX pour une investigation ?
++ Elles ne contiennent que des métadonnées (IP, ports, volumes, durée), sans le contenu des paquets.
+- Elles ne contiennent aucune adresse IP.
+- Elles ne sont exportées que par les pare-feux et ne couvrent donc jamais le trafic interne entre deux postes d'un même VLAN.
+- Elles ne sont compatibles qu'avec le protocole UDP.
+> NetFlow fournit des enregistrements de flux : qui a parlé à qui, quand, combien d'octets. C'est très utile pour repérer l'exfiltration volumineuse, le beaconing ou les mouvements latéraux, mais il ne permet pas d'analyser la charge utile, contrairement à une capture PCAP complète.
+
+## I|Network Security Monitoring / Exfiltration
+Un poste de comptabilité a transféré 8 Go vers une adresse IP d'un hébergeur cloud inconnu à 3 h du matin via HTTPS. Quelle action d'investigation est prioritaire ?
++ Identifier le processus à l'origine du transfert via l'EDR et vérifier la réputation et la nature de la destination.
+- Ignorer l'événement, car le trafic est chiffré donc sûr.
+- Réinstaller immédiatement le poste et tous ceux de la comptabilité, puis restaurer les données depuis la dernière sauvegarde.
+- Bloquer définitivement le port 443 sur tout le réseau.
+> Un volume sortant anormal, à une heure inhabituelle, vers une destination inconnue est un indicateur d'exfiltration (MITRE TA0010). L'analyste doit corréler avec l'EDR (processus, ligne de commande, utilisateur), le proxy et la CTI. Le chiffrement ne garantit pas la légitimité du trafic.
+
+## I|Network Security Monitoring / ARP
+Dans une capture, plusieurs réponses ARP non sollicitées associent l'adresse IP de la passerelle à l'adresse MAC d'un poste utilisateur. Quelle attaque est probable ?
++ Un ARP spoofing visant une interception Man-in-the-Middle.
+- Une attaque par amplification DNS visant à saturer la passerelle.
+- Un scan de ports TCP SYN.
+- Une attaque par injection SQL.
+> L'ARP spoofing consiste à envoyer de fausses associations IP/MAC pour se positionner entre la victime et la passerelle. Les « gratuitous ARP » répétés et les doublons d'adresses IP sont des indicateurs. Les contre-mesures incluent le Dynamic ARP Inspection (DAI) sur les commutateurs.
+
+## I|Network Security Monitoring / TLS fingerprinting
+Pourquoi les empreintes JA3/JA4 sont-elles utiles en surveillance réseau ?
++ Elles identifient un client TLS d'après son Client Hello, ce qui aide à repérer un malware sans déchiffrement.
+- Elles permettent de déchiffrer le contenu des sessions TLS sans la clé privée du serveur, en rejouant les paramètres du Client Hello.
+- Elles remplacent les certificats X.509 des serveurs.
+- Elles mesurent uniquement la latence réseau.
+> JA3 (et son successeur JA4) calcule une empreinte à partir de la version TLS, des suites de chiffrement, des extensions et des courbes proposées dans le Client Hello. Certaines familles de malwares ou frameworks C2 ont des empreintes connues, ce qui offre une capacité de détection sans déchiffrement, à corréler toutefois avec d'autres indicateurs.
+
+## A|Network Security Monitoring / DGA
+Le SIEM signale qu'un poste a généré 1 500 requêtes DNS NXDOMAIN en une heure vers des domaines tels que « qxv7tzp3kd.info » et « mzr0wq8yla.biz ». Quelle conclusion est la plus pertinente ?
++ Le poste est probablement infecté par un malware utilisant un algorithme de génération de domaines (DGA) pour trouver son serveur C2.
+- Le serveur DNS interne est en panne ou mal configuré : ses redirecteurs renvoient des NXDOMAIN, ce qui impose un redémarrage du service.
+- L'utilisateur fait des fautes de frappe dans son navigateur.
+- Il s'agit d'un comportement normal du protocole DHCP.
+> Les malwares DGA génèrent de nombreux domaines pseudo-aléatoires ; seuls quelques-uns sont enregistrés par l'attaquant. Le taux élevé de NXDOMAIN et la forte entropie des noms sont des indicateurs classiques (MITRE T1568.002). Il faut isoler le poste, identifier le processus émetteur et rechercher d'autres hôtes présentant le même schéma.
+
+## A|Network Security Monitoring / Fronting et C2
+Un implant communique en HTTPS avec un CDN légitime, mais l'en-tête HTTP Host interne (visible après déchiffrement TLS sur le proxy) diffère du SNI. Quelle technique d'évasion est utilisée ?
++ Le domain fronting, qui masque le C2 derrière un domaine réputé.
+- Le DNS tunneling, pour faire transiter le C2 dans des requêtes TXT vers le CDN.
+- L'ARP spoofing.
+- Le port knocking.
+> Le domain fronting (MITRE T1090.004) exploite certains CDN : le SNI et la résolution DNS désignent un domaine légitime, tandis que l'en-tête Host désigne le domaine de l'attaquant hébergé sur le même CDN. La détection passe par l'inspection TLS et la comparaison SNI/Host. De nombreux CDN ont depuis restreint cette pratique.
+
+## A|Network Security Monitoring / Mouvement latéral réseau
+L'IDS signale des connexions SMB (TCP 445) d'un poste utilisateur vers 40 autres postes en 10 minutes, suivies de la création de services distants. Quelle interprétation est la plus probable ?
++ Un mouvement latéral, par exemple via PsExec ou un outil similaire utilisant les partages administratifs.
+- Une synchronisation normale de fichiers OneDrive.
+- Une application de stratégie de groupe (GPO) déclenchée depuis ce poste, qui copie des scripts sur les autres postes via SMB.
+- Une découverte DHCP légitime.
+> Les postes utilisateurs communiquent rarement en SMB entre eux. Un balayage SMB suivi de créations de services (Event ID 7045, service PSEXESVC) correspond à T1021.002 (SMB/Windows Admin Shares) et T1569.002 (Service Execution). Il faut contenir l'hôte source et vérifier les hôtes cibles.
+
+## A|Network Security Monitoring / Trafic chiffré
+Une organisation n'effectue pas d'inspection TLS. Quelle combinaison permet néanmoins de détecter un C2 dans du trafic HTTPS ?
++ L'analyse des métadonnées TLS (SNI, JA3/JA4, certificats), du beaconing et des volumes, corrélée à l'EDR.
+- Les signatures « content » de Snort appliquées à la charge utile chiffrée, complétées par la liste des ports autorisés sur le pare-feu.
+- Le blocage de tout le trafic HTTPS sortant.
+- La lecture des journaux DHCP.
+> Sans déchiffrement, les signatures de contenu sont inefficaces. Les métadonnées TLS, l'analyse comportementale (beaconing), la réputation de l'infrastructure et la corrélation avec le processus émetteur sur l'endpoint restent des moyens de détection robustes.
+
+## A|Network Security Monitoring / ICMP
+Une capture montre des paquets ICMP Echo Request de 1 400 octets avec des charges utiles variables et non répétitives, échangés régulièrement entre un serveur interne et une IP externe. Que suspecter ?
++ Un tunnel ICMP utilisé pour du C2 ou de l'exfiltration de données.
+- Une commande ping standard de diagnostic Windows.
+- Une découverte de MTU (Path MTU Discovery) normale, qui envoie des paquets de taille variable.
+- Un échange de clés IPsec.
+> Les pings standards ont des charges utiles fixes et prévisibles (ex. la séquence alphabétique de Windows ou un motif fixe sous Linux). Des charges volumineuses, variables et régulières vers l'extérieur suggèrent un tunnel ICMP (ex. icmpsh, ptunnel), associé à la technique T1095 (Non-Application Layer Protocol).

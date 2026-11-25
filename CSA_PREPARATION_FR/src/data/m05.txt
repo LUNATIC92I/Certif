@@ -1,0 +1,201 @@
+# MODULE 5 – INCIDENT DETECTION AND RESPONSE
+
+## F|Incident Response / NIST SP 800-61
+Selon le guide NIST SP 800-61 Rev. 2, quelles sont les quatre phases du cycle de réponse aux incidents ?
++ Préparation ; Détection et analyse ; Confinement, éradication et restauration ; Post-incident.
+- Identification ; Protection ; Détection et analyse ; Réponse et récupération ; Gouvernance.
+- Reconnaissance ; Exploitation ; Installation ; Exfiltration.
+- Planification ; Exécution ; Contrôle ; Clôture.
+> Le NIST SP 800-61 Rev. 2 définit ces quatre phases, avec des boucles entre la détection et le confinement. La Rev. 3 (2025) réaligne la réponse aux incidents sur les fonctions du NIST CSF 2.0, mais le modèle en quatre phases reste la référence pédagogique la plus utilisée, notamment dans les supports de certification.
+
+## F|Incident Response / Préparation
+Quelle activité appartient à la phase de préparation ?
++ Rédiger les playbooks, constituer la trousse d'intervention et former l'équipe de réponse.
+- Isoler un poste infecté du réseau.
+- Supprimer un malware d'un serveur.
+- Restaurer les données d'un serveur depuis une sauvegarde saine après un incident de chiffrement.
+> La préparation regroupe tout ce qui est mis en place avant un incident : politique de réponse, rôles, contacts, outils, playbooks, exercices, sauvegardes et durcissement. Les autres actions citées relèvent du confinement, de l'éradication et de la restauration.
+
+## F|Incident Response / Confinement
+Quel est l'objectif principal de la phase de confinement ?
++ Limiter la propagation et l'impact de l'incident tout en préservant les preuves.
+- Identifier la cause racine de l'incident et rédiger le rapport final destiné à la direction.
+- Restaurer tous les systèmes à partir des sauvegardes.
+- Communiquer l'incident à la presse.
+> Le confinement vise à arrêter l'extension des dégâts : isolement réseau d'un hôte, blocage d'IP, désactivation de comptes. Il doit être réalisé de manière à préserver les preuves (par exemple, isoler via l'EDR plutôt qu'éteindre une machine dont la mémoire contient des artefacts).
+
+## F|Incident Response / Éradication
+Quelle action correspond à la phase d'éradication ?
++ Supprimer les malwares, la persistance et les comptes créés par l'attaquant.
+- Déconnecter le câble réseau du poste compromis.
+- Remettre en production un serveur après validation et surveillance renforcée.
+- Organiser la réunion de retour d'expérience.
+> L'éradication élimine la présence de l'attaquant : malwares, tâches planifiées, services, clés de registre, comptes illégitimes, web shells, et correction de la vulnérabilité exploitée. Une éradication incomplète conduit fréquemment à une réinfection.
+
+## F|Incident Response / Lessons learned
+Quel est l'objectif de la réunion de retour d'expérience (lessons learned) après un incident ?
++ Identifier les axes d'amélioration et mettre à jour processus, détections et contrôles.
+- Désigner le responsable de l'incident et définir les mesures disciplinaires applicables.
+- Supprimer les preuves collectées.
+- Clore le ticket sans documentation.
+> Le retour d'expérience, idéalement « blameless », vise l'amélioration continue : lacunes de détection, délais, communication, outillage. Ses conclusions alimentent les playbooks, les règles SIEM, la formation et la gestion des risques.
+
+## F|Incident Response / Chaîne de possession
+Pourquoi la chaîne de possession (chain of custody) est-elle essentielle lors de la collecte de preuves ?
++ Elle documente qui a manipulé la preuve, quand et comment, afin de garantir son intégrité et sa recevabilité.
+- Elle accélère la copie des disques durs.
+- Elle permet de chiffrer automatiquement les preuves.
+- Elle remplace le calcul des empreintes cryptographiques, en garantissant à elle seule l'intégrité technique du support.
+> La chaîne de possession trace chaque transfert et manipulation d'une preuve (date, heure, personne, motif). Associée au calcul d'empreintes (SHA-256) à l'acquisition et à chaque vérification, elle démontre que la preuve n'a pas été altérée, ce qui est indispensable en cas de procédure judiciaire.
+
+## F|Incident Response / Triage
+Lors du triage d'une alerte, quelle est la première question que l'analyste doit trancher ?
++ S'agit-il d'un vrai positif (activité malveillante) ou d'un faux positif (activité légitime) ?
+- Quel est le budget nécessaire pour remplacer le poste ?
+- La règle SIEM qui a déclenché l'alerte est-elle mappée sur une technique MITRE ATT&CK et documentée ?
+- Combien d'employés travaillent dans le service concerné ?
+> Le triage consiste à valider ou infirmer l'alerte, puis à évaluer sa sévérité et son urgence pour décider de la suite : clôture documentée, escalade ou déclenchement de la réponse. Une qualification rigoureuse évite à la fois le gaspillage de ressources et l'ignorance d'une vraie menace.
+
+## I|Incident Response / Priorisation
+Trois alertes arrivent simultanément. Laquelle doit être traitée en priorité ?
++ Une exécution de Mimikatz détectée sur un contrôleur de domaine.
+- Un échec de connexion unique sur un poste de test.
+- Un scan de ports externe bloqué par le pare-feu périmétrique.
+- Une alerte de mise à jour de signature antivirus.
+> La priorisation combine la sévérité de la menace et la criticité de l'actif. Un outil de vol d'identifiants sur un contrôleur de domaine indique une compromission potentielle de tout l'Active Directory : impact maximal. Les scans bloqués sont fréquents et à faible risque.
+
+## I|Incident Response / Ordre de volatilité
+Selon la RFC 3227, dans quel ordre collecter les preuves sur un système compromis encore allumé ?
++ Mémoire, processus et connexions réseau, puis fichiers temporaires, disque, journaux distants et archives.
+- Image du disque dur d'abord, car elle est la plus complète, puis mémoire vive, connexions réseau et journaux distants.
+- Sauvegardes d'abord, puis disque, puis mémoire vive.
+- Peu importe l'ordre, car toutes les preuves ont la même durée de vie.
+> La RFC 3227 recommande de collecter du plus volatil au moins volatil : registres et cache, table de routage, cache ARP, table des processus et mémoire, fichiers temporaires, disque, journaux distants, configuration physique et médias d'archivage. La mémoire peut contenir des clés, des processus injectés et des connexions disparaissant à l'arrêt.
+
+## I|Incident Response / Isolement EDR
+Un poste exécute un ransomware en cours de chiffrement. L'EDR est CrowdStrike Falcon. Quelle action de confinement est la plus appropriée ?
++ Utiliser la fonction « Network Contain » pour isoler l'hôte tout en conservant la communication avec la console Falcon.
+- Éteindre immédiatement tous les serveurs de l'entreprise.
+- Arrêter le poste à distance via la console Falcon, puis le redémarrer en mode sans échec pour lancer une analyse complète.
+- Attendre la fin du chiffrement pour analyser le malware.
+> L'isolation réseau via l'EDR (Network Contain dans Falcon, « Isolate device » dans Defender for Endpoint) coupe les communications, sauf vers la console, ce qui stoppe la propagation tout en permettant l'investigation à distance (Real Time Response) et la préservation de la mémoire.
+
+## I|Incident Response / Escalade
+Selon la matrice d'escalade, quand un analyste Tier 1 doit-il escalader un incident ?
++ Lorsque l'incident dépasse son périmètre de compétence ou d'autorité, ou qu'il atteint un critère de sévérité défini dans la procédure.
+- Uniquement après avoir terminé lui-même l'investigation complète et l'éradication, afin de ne transmettre que des incidents résolus.
+- Jamais : le Tier 1 doit résoudre seul tous les incidents.
+- Seulement si l'utilisateur concerné le demande.
+> La matrice d'escalade définit les critères (sévérité, type d'actif, données sensibles, VIP), les interlocuteurs et les délais. Elle garantit une prise en charge au bon niveau et dans les temps. Une escalade tardive allonge le MTTR et augmente l'impact.
+
+## I|Incident Response / Analyse d'alerte phishing
+Un utilisateur signale un e-mail suspect. Quelle première analyse est la plus pertinente ?
++ Examiner les en-têtes (Received, SPF, DKIM, DMARC), puis les URL et pièces jointes en environnement isolé.
+- Cliquer sur le lien pour vérifier s'il fonctionne.
+- Ouvrir la pièce jointe sur son poste d'analyste protégé par l'EDR et transférer l'e-mail aux employés pour les sensibiliser.
+- Supprimer l'e-mail sans analyse.
+> L'analyse des en-têtes révèle l'origine réelle et l'usurpation éventuelle. Les URL et pièces jointes sont analysées par réputation et en sandbox. Ensuite, l'analyste recherche les autres destinataires (ex. via la table EmailEvents dans Defender XDR) et vérifie si quelqu'un a cliqué ou saisi ses identifiants.
+
+## I|Incident Response / Périmètre d'incident
+Après confirmation d'un malware sur un poste, quelle étape permet de déterminer le périmètre de l'incident ?
++ Rechercher les IOC et comportements observés sur tout le parc via le SIEM et l'EDR.
+- Nettoyer le poste concerné avec l'antivirus, réinitialiser le mot de passe de l'utilisateur et clore l'incident.
+- Changer le mot de passe de l'administrateur du SIEM.
+- Restaurer le poste sans investigation complémentaire.
+> Le scoping consiste à identifier tous les systèmes et comptes affectés. Les IOC et TTP du premier hôte servent de pivots pour une recherche globale. Remédier sans scoping laisse souvent l'attaquant présent sur d'autres machines.
+
+## I|Incident Response / Defender XDR
+Dans Microsoft Defender XDR, quel est l'intérêt de la vue « Incident » par rapport à une alerte isolée ?
++ Elle regroupe les alertes liées de plusieurs produits (endpoint, identité, messagerie) en une seule attaque.
+- Elle supprime automatiquement les alertes de faible sévérité.
+- Elle classe les alertes par produit (endpoint, identité, messagerie) dans des files distinctes afin que chaque équipe les traite séparément.
+- Elle remplace la nécessité d'investigation humaine.
+> Defender XDR corrèle les alertes issues de Defender for Endpoint, for Identity, for Office 365 et for Cloud Apps en incidents. L'analyste dispose d'un graphe d'attaque, des entités impliquées et des preuves, ce qui accélère la compréhension du scénario complet.
+
+## I|Incident Response / Documentation
+Quelles informations doivent figurer dans un ticket d'incident bien documenté ?
++ Chronologie, sources consultées, indicateurs, actifs impactés, actions, décisions et justifications.
+- Uniquement le nom de l'analyste et le statut « clos ».
+- Une capture d'écran de la console sans explication.
+- Le nombre d'alertes traitées pendant le poste, le nom de l'analyste et le statut final, sans détail des actions.
+> Une documentation complète permet la continuité entre analystes, l'escalade, la conformité, l'éventuelle action judiciaire et le retour d'expérience. La justification des décisions est particulièrement importante lors de la clôture d'un faux positif.
+
+## I|Incident Response / Notification réglementaire
+Un incident confirmé implique la fuite de données personnelles de clients européens. Quelle obligation réglementaire le SOC doit-il signaler à la gouvernance ?
++ Une notification à l'autorité de contrôle sous 72 heures (RGPD), sauf risque improbable pour les personnes.
+- Aucune obligation, car l'incident est technique.
+- Une notification uniquement si la presse en parle.
+- Une notification aux personnes concernées sous 30 jours ouvrés, uniquement si les données étaient chiffrées et que la clé a été compromise.
+> L'article 33 du RGPD impose de notifier une violation de données personnelles à l'autorité de contrôle (la CNIL en France) dans les 72 heures, sauf si elle est peu susceptible d'engendrer un risque. Le SOC fournit les faits ; la décision et la notification relèvent du DPO et de la direction.
+
+## I|Incident Response / Restauration
+Lors de la phase de restauration, quelle précaution est indispensable avant de remettre un serveur en production ?
++ Vérifier que la sauvegarde est saine et antérieure à la compromission, corriger, puis surveiller de près.
+- Restaurer la sauvegarde la plus récente afin de minimiser la perte de données, puis réactiver immédiatement les accès des utilisateurs.
+- Remettre le serveur en production sans changer les identifiants compromis.
+- Désactiver la journalisation pour améliorer les performances.
+> Une restauration à partir d'une sauvegarde contenant déjà la porte dérobée réintroduit l'attaquant. Il faut identifier la date de compromission initiale, restaurer un état sain, corriger la vulnérabilité, réinitialiser les identifiants et surveiller attentivement le système.
+
+## I|Digital Forensics / Analyse mémoire
+Un analyste dispose d'un dump mémoire d'un poste Windows. Quel plugin Volatility 3 permet de repérer des régions mémoire injectées potentiellement malveillantes ?
++ windows.malfind.
+- windows.pslist uniquement.
+- windows.info.
+- windows.envars.
+> windows.malfind identifie les zones mémoire exécutables et inscriptibles (PAGE_EXECUTE_READWRITE) non associées à un fichier sur disque, ce qui est typique de l'injection de code. windows.pslist liste les processus, windows.pstree leur hiérarchie et windows.netscan les connexions réseau.
+
+## A|Incident Response / Arbitrage confinement
+Un serveur de production critique (ERP) présente une connexion C2 active. La direction refuse l'arrêt du serveur en période de clôture comptable. Quelle stratégie est la plus appropriée ?
++ Un confinement ciblé (blocage du C2, flux sortants restreints, comptes désactivés) et une décision de risque documentée.
+- Ignorer l'alerte jusqu'à la fin de la clôture comptable.
+- Éteindre le serveur malgré le refus de la direction, car le SOC dispose toujours de l'autorité finale pour arrêter un actif compromis, quel que soit l'impact.
+- Supprimer immédiatement l'application ERP du serveur.
+> Le confinement doit être proportionné à l'impact métier. Des mesures ciblées réduisent le risque tout en maintenant le service. La décision d'acceptation du risque appartient à la direction et doit être tracée. Le SOC conseille et documente, il ne décide pas seul d'arrêts majeurs, sauf procédure d'urgence prévue.
+
+## A|Incident Response / Ne pas alerter l'attaquant
+Lors d'une intrusion avancée (APT) en cours, pourquoi l'équipe de réponse peut-elle choisir de différer les actions de confinement visibles ?
++ Pour cartographier toute la compromission et évincer l'attaquant en une fois, sans le pousser à réagir.
+- Parce que le confinement n'est jamais utile face à une APT.
+- Pour laisser l'attaquant terminer l'exfiltration, afin d'identifier précisément les données volées avant de couper ses accès et de notifier les autorités.
+- Pour éviter de devoir rédiger un rapport d'incident.
+> Face à un adversaire sophistiqué, un confinement partiel et précipité peut l'alerter : il active alors des portes dérobées secondaires ou détruit des preuves. La stratégie consiste à observer discrètement, identifier tous les points d'ancrage, puis exécuter une éviction coordonnée. Cette décision implique un arbitrage de risque validé par la direction.
+
+## A|Digital Forensics / Timeline
+Pour reconstituer l'activité d'un attaquant sur un poste Windows, quelle combinaison d'artefacts permet de prouver l'exécution d'un programme ?
++ Prefetch, Amcache, ShimCache, événements 4688/Sysmon 1 et UserAssist.
+- Uniquement l'historique du navigateur web.
+- Uniquement la date de modification du fichier exécutable.
+- Les journaux DHCP, l'historique des connexions VPN et la liste des imprimantes installées par l'utilisateur.
+> Les fichiers Prefetch (C:\Windows\Prefetch) indiquent les exécutions et leur nombre, l'Amcache conserve des métadonnées et hashs, le ShimCache des traces de compatibilité, UserAssist les programmes lancés via l'interface graphique. Croiser ces artefacts avec les journaux renforce la fiabilité de la timeline. Les horodatages de fichiers peuvent être falsifiés (timestomping).
+
+## A|Incident Response / Ransomware
+Un SOC détecte, sur un serveur, la commande vssadmin delete shadows /all /quiet suivie de nombreuses modifications de fichiers avec une nouvelle extension. Quelle séquence de réponse est la plus adaptée ?
++ Isoler l'hôte via l'EDR, identifier compte et vecteur, chasser sur le parc, protéger les sauvegardes, activer la crise.
+- Redémarrer le serveur pour arrêter le processus.
+- Payer immédiatement la rançon pour récupérer les fichiers.
+- Redémarrer le serveur en mode sans échec, restaurer les clichés instantanés depuis le serveur lui-même, puis le reconnecter au réseau pour reprendre l'activité.
+> La suppression des clichés instantanés (T1490 – Inhibit System Recovery) précède souvent le chiffrement (T1486). Le confinement rapide limite la propagation ; l'identification du compte et du vecteur permet de bloquer l'attaquant ; la protection des sauvegardes hors ligne ou immuables est vitale. Le redémarrage peut détruire des preuves en mémoire sans nécessairement arrêter la propagation.
+
+## A|Digital Forensics / Acquisition à distance
+Un poste compromis se trouve dans une filiale à l'étranger, sans intervenant sur place. Quelle approche permet une collecte forensique rapide et fiable ?
++ Collecter mémoire et artefacts à distance (Live Response, KAPE, Velociraptor), avec hashs et documentation.
+- Demander à l'utilisateur de copier ses fichiers et journaux sur une clé USB et de l'envoyer par courrier, puis réinstaller le poste pour éliminer la menace sans délai.
+- Attendre le déplacement d'un analyste sur site plusieurs semaines plus tard.
+- Réinstaller le poste à distance pour éliminer la menace.
+> Les outils de collecte à distance permettent de récupérer rapidement les artefacts volatils et non volatils de manière reproductible. La documentation (commandes, horodatages, hashs) maintient l'intégrité de la preuve. Attendre ou réinstaller entraînerait la perte de preuves cruciales.
+
+## A|Incident Response / Comptes compromis AD
+L'investigation révèle que l'attaquant a obtenu le hash du compte KRBTGT. Quelle mesure d'éradication est indispensable ?
++ Réinitialiser deux fois le mot de passe du compte KRBTGT, en respectant un délai de réplication entre les deux, pour invalider les Golden Tickets.
+- Réinitialiser le mot de passe de l'utilisateur initialement compromis et de tous les administrateurs du domaine, ce qui invalide automatiquement les tickets forgés.
+- Supprimer le compte KRBTGT de l'annuaire.
+- Redémarrer les contrôleurs de domaine sans autre action.
+> Avec le hash KRBTGT, un attaquant peut forger des Golden Tickets (T1558.001) valides pour n'importe quel compte. Comme l'AD conserve l'ancien et le nouveau mot de passe, une double réinitialisation espacée est nécessaire pour invalider les tickets forgés. Le compte KRBTGT ne doit jamais être supprimé.
+
+## A|Incident Response / Communication de crise
+Pendant un incident majeur, quelle pratique de communication est recommandée ?
++ Utiliser un canal de communication hors bande (out-of-band), indépendant de l'infrastructure potentiellement compromise.
+- Communiquer exclusivement via la messagerie interne chiffrée de l'entreprise, afin de garder une trace centralisée des échanges.
+- Publier les détails techniques de l'incident sur les réseaux sociaux en temps réel.
+- Informer l'attaquant des mesures prises pour négocier.
+> Si la messagerie ou l'annuaire est compromis, l'attaquant peut lire les échanges de l'équipe de réponse. Un canal hors bande (téléphones dédiés, messagerie sécurisée externe préparée en amont) protège la confidentialité de la réponse. Ce canal doit être prévu dans la phase de préparation.

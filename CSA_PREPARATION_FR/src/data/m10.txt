@@ -1,0 +1,121 @@
+# MODULE 10 – SOC REPORTING AND OPERATIONAL EXCELLENCE
+
+## F|SOC Reporting / MTTD
+Que mesure le MTTD (Mean Time To Detect) ?
++ Le délai moyen entre le début d'une activité malveillante et sa détection.
+- Le délai moyen de remplacement d'un disque défectueux.
+- Le délai moyen entre la détection d'un incident et la fin de son confinement.
+- Le nombre moyen d'alertes traitées par analyste.
+> Le MTTD reflète l'efficacité de la détection. Un MTTD élevé signifie que l'attaquant opère longtemps sans être repéré (dwell time). Le MTTR mesure quant à lui le délai de réponse ou de résolution, selon la définition retenue par l'organisation.
+
+## F|SOC Reporting / SLA
+Qu'est-ce qu'un SLA dans le contexte d'un SOC ?
++ Un engagement fixant notamment les délais de prise en charge et de notification par sévérité.
+- Un document interne listant les sources de journaux, leurs formats et la durée de rétention associée à chacune.
+- Une signature antivirale.
+- Un protocole de transfert de fichiers.
+> Le Service Level Agreement fixe des engagements mesurables : par exemple, prise en charge d'un incident critique en 15 minutes et notification au client en 30 minutes. Il est particulièrement important dans les relations avec un MSSP et doit être suivi par des KPI.
+
+## F|SOC Reporting / Playbook
+Quelle est la fonction d'un playbook dans un SOC ?
++ Décrire le traitement standardisé d'un type d'incident : analyse, décisions, escalade et réponse.
+- Lister les mots de passe des comptes administrateurs.
+- Définir la stratégie de détection de l'entreprise, la liste des cas d'usage du SIEM et le budget annuel du SOC.
+- Stocker les journaux pendant la durée légale.
+> Les playbooks garantissent un traitement cohérent et reproductible, quel que soit l'analyste. Ils peuvent être en partie automatisés dans un SOAR. Le runbook désigne souvent une procédure plus technique et détaillée pour une tâche précise.
+
+## F|SOC Reporting / Shift handover
+Quel est l'objectif principal de la passation de poste (shift handover) ?
++ Assurer la continuité du traitement en transmettant les incidents en cours, les actions en attente et les points de vigilance à l'équipe suivante.
+- Changer les mots de passe de la console SIEM.
+- Supprimer les alertes non traitées.
+- Réaliser l'inventaire du matériel et réattribuer automatiquement toutes les alertes non traitées à l'analyste le plus expérimenté de l'équipe suivante.
+> Dans un SOC 24/7, une mauvaise passation peut entraîner l'oubli d'un incident ou d'un délai SLA. Un rapport de passation structuré (incidents ouverts, escalades, changements, problèmes d'outillage, alertes à surveiller) et un échange oral sont recommandés.
+
+## F|SOC Reporting / Tableau de bord
+Quel tableau de bord est le plus adapté à un comité de direction ?
++ Une synthèse des tendances de risque, des incidents majeurs, de leur impact métier et des KPI.
+- La liste détaillée des alertes du SIEM classées par règle, avec le temps de traitement de chaque analyste.
+- Les journaux Windows bruts des contrôleurs de domaine.
+- Les requêtes KQL utilisées par les analystes.
+> Chaque public a besoin d'un niveau d'information adapté : opérationnel pour les analystes (files d'attente, alertes), tactique pour le management du SOC (KPI, charge), stratégique pour la direction (risque, tendances, impact, investissements).
+
+## I|SOC Reporting / MTTR
+Un SOC a traité 4 incidents avec des délais de résolution de 2 h, 4 h, 6 h et 12 h. Quel est le MTTR ?
++ 6 heures.
+- 4 heures.
+- 12 heures.
+- 24 heures.
+> Le MTTR est la moyenne des délais : (2 + 4 + 6 + 12) / 4 = 24 / 4 = 6 heures. En pratique, il est utile de compléter la moyenne par la médiane et les percentiles, car quelques incidents très longs peuvent fausser la perception.
+
+## I|SOC Reporting / KPI vs métriques
+Quel indicateur reflète le mieux la qualité des détections du SOC ?
++ Le ratio de vrais positifs par rapport au total des alertes, suivi par règle de détection.
+- Le nombre total de journaux collectés par jour.
+- Le nombre total d'alertes générées par jour, car un volume élevé démontre une couverture de détection étendue.
+- La taille de l'écran de la salle SOC.
+> Le taux de vrais positifs par règle permet d'identifier les règles bruyantes à optimiser et celles qui apportent de la valeur. Les volumes de journaux ou de tickets mesurent l'activité mais pas la qualité ni l'efficacité.
+
+## I|SOC Reporting / Rapport d'incident
+Quelle structure est recommandée pour un rapport d'incident destiné à la direction et aux équipes techniques ?
++ Résumé exécutif, chronologie, impact, cause racine, réponse, recommandations et annexes techniques.
+- Uniquement les captures d'écran des consoles.
+- Une liste chronologique exhaustive des commandes exécutées par les analystes et des requêtes SIEM, sans résumé pour la direction.
+- Une copie de la politique de sécurité de l'entreprise.
+> Le résumé exécutif permet aux décideurs de comprendre rapidement la situation et les risques. Le corps du rapport détaille les faits vérifiés et les conclusions, et les annexes fournissent les éléments techniques. Il faut distinguer clairement les faits avérés des hypothèses.
+
+## I|SOC Reporting / Matrice d'escalade
+Qu'est-ce qu'une matrice d'escalade dans un SOC ?
++ Un document définissant, selon la sévérité et le type d'incident, qui doit être contacté, par quel moyen et dans quels délais.
+- Un graphique des performances des serveurs.
+- Un tableau croisant les types d'incidents et les outils de détection, indiquant quel produit doit générer chaque alerte.
+- Une matrice de chiffrement des mots de passe.
+> La matrice d'escalade précise les niveaux fonctionnels (Tier 1, 2, 3, management du SOC, RSSI) et hiérarchiques (direction, juridique, communication), avec les coordonnées et délais associés. Elle évite les hésitations en situation de crise.
+
+## I|SOC Reporting / Sévérité
+Comment définir la sévérité d'un incident de manière cohérente ?
++ En combinant impact et urgence selon une grille documentée et partagée.
+- En fonction uniquement de l'heure à laquelle l'alerte a été reçue.
+- Selon la sévérité attribuée par l'outil de détection, qui ne doit jamais être réévaluée au cours de l'investigation.
+- En fonction du nom de l'outil qui a généré l'alerte.
+> Une grille de sévérité documentée (par exemple de P1 à P4) garantit la cohérence entre analystes et équipes, et pilote les SLA et l'escalade. Elle combine généralement l'impact métier et l'urgence, éventuellement réévalués au cours de l'investigation.
+
+## I|SOC Reporting / RACI
+Lors de la définition des processus de réponse, à quoi sert une matrice RACI ?
++ À préciser, pour chaque activité, qui réalise, qui est redevable, qui est consulté et qui est informé.
+- À calculer le score CVSS des vulnérabilités.
+- À classer les incidents par niveau de risque, d'impact et d'urgence afin de déterminer les délais de réponse applicables à chacun.
+- À chiffrer les communications du SOC.
+> La matrice RACI clarifie les rôles entre le SOC, l'IT, le juridique, la communication et la direction. Elle réduit les zones d'ombre lors des incidents, par exemple pour savoir qui décide d'isoler un serveur critique.
+
+## I|SOC Reporting / Amélioration continue
+Quel mécanisme garantit l'amélioration continue des opérations SOC ?
++ Un cycle régulier d'analyse (incidents, KPI, RETEX) débouchant sur tuning, détections, formation et playbooks.
+- Le gel complet de toutes les règles et procédures existantes.
+- Le remplacement régulier des outils de détection par les solutions les mieux classées par les analystes, sans revue des processus existants.
+- La réduction du nombre d'analystes chaque trimestre.
+> L'amélioration continue suit un cycle de type PDCA (Plan-Do-Check-Act). Les retours d'expérience, les exercices (tabletop, purple team) et les métriques permettent d'identifier les lacunes et de prioriser les améliorations.
+
+## A|SOC Reporting / Interprétation des métriques
+Le MTTR d'un SOC a fortement baissé ce trimestre, mais le nombre d'incidents rouverts a triplé. Quelle est l'interprétation la plus pertinente ?
++ Les incidents sont probablement clôturés trop rapidement, sans éradication complète : la qualité doit être mesurée en plus de la rapidité.
+- Le SOC est devenu plus efficace sur tous les plans : un MTTR en baisse démontre à lui seul l'amélioration de la qualité de la réponse.
+- Les attaquants ont cessé de cibler l'organisation.
+- Le SIEM ne génère plus d'alertes.
+> Optimiser un seul indicateur peut produire des effets pervers (loi de Goodhart). Des indicateurs complémentaires, comme le taux de réouverture, la qualité de la documentation ou les revues de tickets par échantillonnage, équilibrent la mesure de la performance.
+
+## A|SOC Reporting / Capacité et effectifs
+Un SOC constate que 70 % des alertes Tier 1 concernent des phishings signalés, traités manuellement en 20 minutes chacun. Quelle mesure apporte le meilleur gain opérationnel ?
++ Automatiser l'analyse des signalements via un playbook SOAR, l'humain ne traitant que les cas douteux.
+- Recruter des analystes supplémentaires dédiés au phishing et allonger le délai de traitement prévu dans le SLA, sans modifier le processus existant.
+- Demander aux utilisateurs de ne plus signaler les e-mails suspects.
+- Désactiver la boîte de signalement de phishing.
+> L'automatisation des tâches répétitives à fort volume (extraction des URL et pièces jointes, réputation, sandbox, recherche des autres destinataires, purge) libère du temps pour l'analyse à valeur ajoutée et réduit le MTTR. Décourager les signalements réduirait au contraire la capacité de détection.
+
+## A|SOC Reporting / Exercice de crise
+Quel est l'intérêt principal d'un exercice sur table (tabletop exercise) simulant une attaque par ransomware ?
++ Tester la coordination, les rôles et les décisions entre SOC, IT, direction et juridique, sans impact.
+- Tester la vitesse de chiffrement des disques.
+- Vérifier la compatibilité des imprimantes réseau.
+- Valider techniquement la restauration des sauvegardes et mesurer la vitesse de chiffrement d'un ransomware réel dans l'environnement de production.
+> Les exercices sur table révèlent les lacunes organisationnelles : décisions d'isolement, contact avec les autorités et l'assureur, communication externe, posture face à une demande de rançon. Leurs conclusions alimentent le plan de réponse et les playbooks.

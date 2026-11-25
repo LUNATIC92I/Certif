@@ -1,0 +1,121 @@
+# MODULE 9 – CLOUD SECURITY AND IDENTITY MONITORING
+
+## F|Cloud Security / Responsabilité partagée
+Dans le modèle de responsabilité partagée d'un service IaaS, qui est responsable de la configuration du système d'exploitation des machines virtuelles et de leurs journaux ?
++ Le client.
+- Uniquement le fournisseur cloud.
+- L'éditeur du système d'exploitation.
+- Le fournisseur d'accès à Internet.
+> En IaaS, le fournisseur sécurise l'infrastructure physique et l'hyperviseur ; le client gère le système d'exploitation, les applications, les identités, la configuration réseau et la journalisation de ses ressources. En SaaS, la part du client se réduit principalement aux identités, aux données et à la configuration.
+
+## F|Identity Monitoring / Impossible travel
+Qu'est-ce qu'une alerte « impossible travel » ?
++ Deux connexions d'un même compte depuis des localisations géographiques trop éloignées pour être parcourues dans l'intervalle de temps observé.
+- Une connexion depuis un pays figurant sur la liste des pays interdits par la politique de voyage de l'entreprise, détectée par l'accès conditionnel.
+- Une tentative de connexion pendant un vol en avion.
+- Une connexion depuis un appareil mobile.
+> L'impossible travel compare les géolocalisations et horodatages successifs d'un compte. Il peut indiquer l'usage d'identifiants volés, mais génère des faux positifs liés aux VPN, proxys et sorties Internet d'entreprise. Le contexte (appareil, IP connue, MFA) aide à qualifier l'alerte.
+
+## F|Identity Monitoring / MFA fatigue
+En quoi consiste une attaque par « MFA fatigue » ?
++ Multiplier les demandes MFA vers un compte dont le mot de passe est volé, jusqu'à une acceptation par lassitude.
+- Intercepter le code MFA envoyé par SMS grâce à un transfert de ligne (SIM swapping), puis l'utiliser avec le mot de passe compromis.
+- Saturer le serveur d'authentification par un déni de service.
+- Voler le téléphone de l'utilisateur.
+> Cette technique (T1621 – Multi-Factor Authentication Request Generation) a été utilisée dans plusieurs compromissions médiatisées. Les contre-mesures incluent le « number matching » de Microsoft Authenticator, l'affichage du contexte géographique, la limitation des demandes et les méthodes résistantes au phishing.
+
+## F|Cloud Security / Journaux Azure
+Quel journal Azure enregistre les opérations de gestion (plan de contrôle) sur les ressources, comme la création d'une machine virtuelle ou la modification d'un groupe de sécurité réseau ?
++ Le journal d'activité Azure (Azure Activity Log).
+- Le journal de connexion Entra ID (Sign-in logs).
+- Le journal Windows Security de la machine virtuelle.
+- Le journal DNS du poste de l'administrateur.
+> L'Activity Log trace les opérations Azure Resource Manager : qui a fait quoi, sur quelle ressource et quand. Les Sign-in logs d'Entra ID tracent les authentifications et les Audit logs les modifications de l'annuaire. L'équivalent est AWS CloudTrail chez AWS et Cloud Audit Logs chez Google Cloud.
+
+## I|Identity Monitoring / Codes d'erreur Entra ID
+Dans les journaux de connexion Entra ID, un analyste observe de nombreux ResultType 50126 pour des comptes différents depuis une même IP, puis un ResultType 0. Quelle interprétation est la plus probable ?
++ Une attaque par password spraying ayant abouti à au moins une authentification réussie.
+- Une maintenance planifiée d'Entra ID.
+- Une synchronisation normale d'Entra Connect, dont le compte de service s'authentifie successivement pour chaque utilisateur synchronisé.
+- Une erreur de configuration DNS.
+> Le code 50126 indique un nom d'utilisateur ou un mot de passe invalide ; le code 0 indique un succès. Des échecs répartis sur de nombreux comptes depuis une même source, suivis d'un succès, caractérisent un password spraying réussi. Il faut investiguer le compte compromis : sessions, MFA, règles de boîte aux lettres, consentements.
+
+## I|Identity Monitoring / Legacy authentication
+Pourquoi le SOC recommande-t-il de bloquer l'authentification héritée (legacy authentication, ex. IMAP, POP, SMTP AUTH basique) dans Entra ID ?
++ Parce que ces protocoles ne prennent pas en charge le MFA et sont massivement utilisés pour le password spraying.
+- Parce qu'ils transmettent les mots de passe en clair sur Internet, ce qui permet leur interception, alors qu'ils prennent en charge le MFA.
+- Parce qu'ils empêchent la synchronisation des calendriers.
+- Parce qu'ils chiffrent trop fortement les échanges.
+> L'authentification basique permet de contourner le MFA. Microsoft a largement désactivé l'authentification basique dans Exchange Online, mais le blocage par Conditional Access et la surveillance du champ ClientAppUsed dans SigninLogs restent des bonnes pratiques.
+
+## I|Identity Monitoring / Comptes privilégiés
+Quel mécanisme Microsoft permet d'attribuer des rôles privilégiés Entra ID de manière temporaire et à la demande, avec approbation et justification ?
++ Privileged Identity Management (PIM).
+- Self-Service Password Reset (SSPR).
+- Azure Front Door.
+- Microsoft Intune Company Portal.
+> PIM permet l'accès « just-in-time » : les rôles sont « éligibles » et activés pour une durée limitée, avec MFA, justification et éventuellement approbation. Le SOC surveille les activations hors horaires, les attributions permanentes et les ajouts directs à des rôles comme Global Administrator.
+
+## I|Cloud Security / Conditional Access
+Un compte de direction se connecte depuis un appareil non géré dans un pays inhabituel. Quelle fonctionnalité Entra ID permet de bloquer ou d'exiger un MFA renforcé selon ces signaux ?
++ L'accès conditionnel (Conditional Access), éventuellement combiné aux niveaux de risque d'Entra ID Protection.
+- Les groupes dynamiques basés sur la localisation et le type d'appareil, qui retirent automatiquement les droits d'accès.
+- Le portail Mes applications.
+- Les unités administratives.
+> Le Conditional Access évalue des signaux (utilisateur, appareil, localisation, application, risque de connexion) et applique des décisions : bloquer, exiger le MFA, exiger un appareil conforme. Entra ID Protection fournit les niveaux de risque de connexion et d'utilisateur utilisables dans ces politiques.
+
+## I|Cloud Security / Consentement OAuth
+Un utilisateur a accordé à une application tierce inconnue les permissions Mail.ReadWrite et offline_access. Quelle attaque est suspectée ?
++ Un consentement illicite (illicit consent grant) offrant un accès durable sans le mot de passe.
+- Une attaque par force brute ayant permis d'obtenir le mot de passe, l'application servant uniquement à synchroniser la messagerie sur mobile.
+- Une mise à jour légitime de Microsoft Outlook.
+- Une attaque DDoS contre Exchange Online.
+> Les applications OAuth malveillantes obtiennent des jetons d'accès et de rafraîchissement : la réinitialisation du mot de passe ne suffit pas à couper l'accès. Il faut révoquer le consentement, supprimer le service principal, révoquer les sessions et restreindre le consentement utilisateur aux éditeurs vérifiés.
+
+## I|Cloud Security / AWS
+Dans AWS, quel service génère des détections de menaces à partir de CloudTrail, des journaux de flux VPC et des requêtes DNS ?
++ Amazon GuardDuty.
+- Amazon S3 Glacier.
+- AWS Lambda.
+- Amazon Route 53 Domains.
+> GuardDuty analyse en continu les événements CloudTrail, les VPC Flow Logs et les journaux DNS (et d'autres sources selon les protections activées) pour détecter des comportements malveillants : minage de cryptomonnaie, appels API anormaux, communications avec des IP malveillantes. Ses résultats peuvent être envoyés vers le SIEM.
+
+## I|Cloud Security / Stockage exposé
+Un journal CloudTrail montre l'appel PutBucketPolicy rendant un bucket S3 contenant des données clients accessible publiquement, effectué par une clé d'accès créée la veille. Quelle action est prioritaire ?
++ Rétablir l'accès privé du bucket, désactiver la clé d'accès concernée et analyser les accès aux objets pendant la période d'exposition.
+- Supprimer définitivement le bucket et ses données pour éliminer l'exposition, puis recréer un bucket privé à partir des sauvegardes.
+- Ignorer l'événement, car les buckets publics sont courants.
+- Changer uniquement la région AWS du bucket.
+> L'exposition de stockage cloud est une cause fréquente de fuites de données. Le confinement consiste à corriger la politique, révoquer les identifiants suspects et vérifier les accès (journaux d'accès S3, événements de données CloudTrail) afin d'évaluer s'il y a eu fuite et d'en informer la gouvernance.
+
+## A|Identity Monitoring / Vol de jeton
+Un compte présente une connexion réussie avec MFA depuis la France, puis, 10 minutes plus tard, des accès à Exchange Online depuis une IP d'hébergeur à l'étranger réutilisant le même identifiant de session, sans nouvelle demande MFA. Quelle hypothèse est la plus probable ?
++ Un vol et un rejeu de jeton ou de cookie de session (token replay), par exemple suite à un phishing AiTM ou à un infostealer.
+- Une synchronisation normale entre deux centres de données Microsoft, qui réutilise l'identifiant de session de l'utilisateur pour répliquer sa boîte aux lettres.
+- Une panne du service MFA.
+- Un changement de mot de passe programmé.
+> Le rejeu d'un jeton déjà validé contourne le MFA (T1550.004, T1539). La réponse inclut la révocation des sessions (revoke sessions), la réinitialisation des identifiants, la vérification des règles de boîte et des appareils enregistrés, et des mesures comme la protection des jetons et l'accès conditionnel basé sur la conformité des appareils.
+
+## A|Identity Monitoring / Persistance cloud
+Après la compromission d'un compte administrateur Entra ID, quels éléments doivent être vérifiés pour s'assurer que l'attaquant n'a pas créé de persistance ?
++ Secrets ajoutés aux applications, méthodes MFA, rôles attribués, domaines fédérés et accès conditionnel.
+- Uniquement l'historique de navigation de l'administrateur.
+- La date du dernier changement de mot de passe et la liste des connexions réussies : si le mot de passe a été réinitialisé, aucune persistance n'est possible.
+- Le nombre de licences Microsoft 365 attribuées.
+> Les attaquants cloud créent des portes dérobées : identifiants ajoutés aux applications (T1098.001), méthodes MFA supplémentaires (T1098.005), domaines fédérés malveillants (T1484.002), exclusions d'accès conditionnel. Les Audit logs d'Entra ID sont la source principale pour ces vérifications.
+
+## A|Cloud Security / Requête KQL identité
+Quelle requête KQL est la plus pertinente pour détecter une MFA fatigue dans Microsoft Sentinel ?
++ SigninLogs | where ResultType == "500121" | summarize Refus = count(), IPs = make_set(IPAddress) by UserPrincipalName, bin(TimeGenerated, 1h) | where Refus > 5
+- SigninLogs | where ResultType == "0" | take 10
+- SigninLogs | where ResultType == "50126" | summarize Echecs = count() by IPAddress, bin(TimeGenerated, 1h) | where Echecs > 5
+- SecurityEvent | where EventID == 4688
+> Le code 500121 correspond à un échec lors de l'authentification forte (demande MFA refusée ou non complétée). Un nombre élevé de refus pour un même utilisateur sur une courte période, suivi éventuellement d'un succès, est caractéristique d'une MFA fatigue. make_set() fournit le contexte des IP sources.
+
+## A|Cloud Security / Comptes d'urgence
+Comment le SOC doit-il surveiller les comptes d'accès d'urgence (« break-glass ») d'Entra ID ?
++ Ils doivent être exclus des politiques susceptibles de les bloquer, mais toute connexion doit générer une alerte de haute sévérité immédiate.
+- Ils doivent être soumis aux mêmes politiques d'accès conditionnel et de MFA que les autres administrateurs, et utilisés chaque jour pour vérifier leur bon fonctionnement.
+- Ils doivent partager le mot de passe de l'administrateur principal.
+- Ils ne nécessitent aucune surveillance, car ils sont rarement utilisés.
+> Les comptes break-glass permettent de récupérer l'accès en cas de panne du MFA ou d'erreur de configuration. Leur usage doit rester exceptionnel. Microsoft recommande d'alerter sur toute connexion de ces comptes, de protéger leurs identifiants et de tester périodiquement leur fonctionnement de façon contrôlée.

@@ -1,0 +1,161 @@
+# MODULE 1 – SOC FUNDAMENTALS
+
+## F|SOC Fundamentals / Mission du SOC
+Quelle définition décrit le mieux la mission principale d'un Security Operations Center (SOC) ?
++ Surveiller en continu le système d'information, détecter, analyser et répondre aux incidents de sécurité.
+- Développer les applications métier de l'entreprise selon des pratiques DevSecOps.
+- Gérer exclusivement le parc de postes de travail et le support aux utilisateurs.
+- Réaliser des tests d'intrusion et des audits de conformité annuels pour le compte de la direction générale, puis en présenter les résultats.
+> Le SOC est une fonction centralisée combinant personnes, processus et technologies. Sa mission est la surveillance continue (souvent 24/7), la détection des menaces, l'analyse des alertes et la coordination de la réponse aux incidents. Le support utilisateur relève du helpdesk et les tests d'intrusion d'une équipe offensive (Red Team ou prestataire).
+
+## F|SOC Fundamentals / Organisation par niveaux
+Dans un SOC organisé en niveaux, quelle est la responsabilité principale d'un analyste Tier 1 ?
++ Surveiller les alertes, effectuer le triage initial et escalader les cas avérés ou complexes.
+- Réaliser le reverse engineering des échantillons de malware avancés.
+- Définir la stratégie de sécurité et le budget du SOC.
+- Concevoir l'architecture du SIEM, développer les connecteurs de collecte et valider seul la mise en production des nouvelles règles.
+> L'analyste Tier 1 (L1) est en première ligne : il surveille la console SIEM/EDR, qualifie les alertes (vrai ou faux positif), enrichit les données de base, documente le ticket et escalade vers le Tier 2 selon les procédures. Le reverse engineering relève du Tier 3 et la stratégie du SOC Manager.
+
+## F|SOC Fundamentals / Composantes du SOC
+Quels sont les trois piliers fondamentaux sur lesquels repose un SOC efficace ?
++ Les personnes, les processus et la technologie.
+- Le pare-feu, l'antivirus et le proxy.
+- La conformité, l'audit et l'assurance.
+- Le réseau, le stockage et la virtualisation.
+> Le modèle « People, Process, Technology » est la référence pour concevoir un SOC. Sans analystes compétents, sans processus documentés (playbooks, escalade, SLA) et sans outils adaptés (SIEM, EDR, SOAR, TIP), le SOC ne peut pas fonctionner de manière fiable. Les outils cités dans les autres propositions ne sont que des composants technologiques.
+
+## F|SOC Fundamentals / Modèles de SOC
+Une PME ne dispose ni du budget ni des compétences pour opérer un SOC interne 24/7. Elle confie la surveillance de ses journaux à un prestataire externe qui fournit plateforme et analystes. De quel modèle s'agit-il ?
++ SOC as a Service (SOCaaS) / SOC externalisé auprès d'un MSSP.
+- SOC interne dédié (in-house).
+- SOC virtuel composé uniquement d'employés internes à temps partiel.
+- SOC de commandement (Command SOC) supervisant plusieurs SOC régionaux.
+> Dans le modèle SOCaaS ou MSSP, un fournisseur externe met à disposition la technologie, les analystes et les processus de surveillance, souvent par abonnement. C'est une option adaptée aux organisations qui ne peuvent pas financer un SOC interne 24/7. Le Command SOC coordonne plusieurs SOC dans les grandes organisations.
+
+## F|SOC Fundamentals / Terminologie
+Comment distingue-t-on un événement de sécurité d'un incident de sécurité ?
++ Un événement est toute occurrence observable ; un incident est un événement qui viole ou menace réellement la politique de sécurité.
+- Un événement est toujours malveillant, alors qu'un incident peut être bénin.
+- Un incident est un événement de sévérité élevée remonté par un IDS, alors qu'un événement correspond à toute alerte de sévérité faible du SIEM.
+- Il n'existe aucune différence : les deux termes sont strictement synonymes.
+> Selon le NIST (SP 800-61), un événement est toute occurrence observable dans un système ou un réseau (connexion, requête, échec d'authentification). Un incident est une violation, ou une menace imminente de violation, des politiques de sécurité. Le rôle du SOC est précisément de déterminer quels événements constituent des incidents.
+
+## F|SOC Fundamentals / Outils du SOC
+Quel outil d'un SOC est principalement conçu pour automatiser et orchestrer les actions de réponse à l'aide de playbooks ?
++ SOAR (Security Orchestration, Automation and Response).
+- SIEM (Security Information and Event Management).
+- WAF (Web Application Firewall).
+- DLP (Data Loss Prevention).
+> Le SOAR orchestre des actions entre plusieurs outils (enrichissement IOC, blocage d'IP, isolation d'hôte, création de ticket) via des playbooks automatisés. Le SIEM collecte, corrèle et alerte, mais l'automatisation avancée de la réponse est la fonction propre du SOAR (ex. Microsoft Sentinel playbooks sur Logic Apps, Splunk SOAR, Cortex XSOAR).
+
+## I|SOC Fundamentals / Rôles Tier 2
+Un analyste Tier 1 escalade une alerte confirmée d'exécution de script suspect sur un serveur. Quelle activité relève typiquement du Tier 2 ?
++ Mener l'investigation approfondie, déterminer le périmètre de la compromission et coordonner les actions de confinement.
+- Clôturer le ticket après avoir vérifié que l'antivirus a bien supprimé le script, puisque l'alerte a déjà été qualifiée par le Tier 1.
+- Acheter une nouvelle licence EDR pour le serveur concerné.
+- Rédiger la politique de sécurité générale de l'entreprise.
+> Le Tier 2 (Incident Responder) reçoit les incidents escaladés. Il corrèle les sources (EDR, SIEM, proxy, AD), reconstitue la chronologie, évalue le périmètre (autres hôtes, comptes touchés) et recommande ou applique les mesures de confinement. Le Tier 3 intervient sur les cas les plus complexes (threat hunting, analyse de malware, forensic avancé).
+
+## I|SOC Fundamentals / Rôles Tier 3
+Quelle mission est généralement confiée à un analyste SOC Tier 3 ?
++ Mener des campagnes de threat hunting proactives et analyser des menaces avancées non détectées par les outils.
+- Traiter en premier niveau la file d'attente des alertes de faible sévérité afin de soulager les analystes Tier 1 pendant les pics d'activité.
+- Réinitialiser les mots de passe des utilisateurs bloqués.
+- Assurer uniquement la permanence téléphonique de nuit.
+> Le Tier 3 regroupe des experts (threat hunters, analystes malware, forensic) qui recherchent proactivement des menaces furtives, développent de nouvelles détections et apportent leur expertise sur les incidents majeurs. La réinitialisation de mots de passe relève du support et le traitement des alertes simples du Tier 1.
+
+## I|SOC Fundamentals / Processus de surveillance
+Quel est l'ordre logique du flux de traitement d'une alerte dans un SOC ?
++ Collecte des données, détection, triage, investigation, réponse, puis retour d'expérience.
+- Détection, réponse immédiate, collecte des preuves, triage, investigation, puis retour d'expérience.
+- Triage, collecte, réponse, détection, investigation, puis archivage.
+- Investigation, réponse, collecte, triage, détection, puis clôture.
+> Le flux opérationnel commence par la collecte (logs, télémétrie), puis la détection (règles, analytiques), le triage (qualification et priorisation), l'investigation (périmètre, cause), la réponse (confinement, éradication, restauration) et enfin le retour d'expérience pour améliorer les détections et les processus.
+
+## I|SOC Fundamentals / SOC Maturity Model
+Un SOC s'auto-évalue avec le modèle SOC-CMM. Quels domaines ce modèle évalue-t-il ?
++ Business, People, Process, Technology et Services.
+- Identify, Protect, Detect, Respond et Recover uniquement.
+- Reconnaissance, Weaponization, Delivery, Exploitation et Installation.
+- Confidentialité, Intégrité, Disponibilité, Traçabilité et Authenticité.
+> Le SOC-CMM (SOC Capability Maturity Model) évalue la maturité et la capacité d'un SOC selon cinq domaines : Business, People, Process, Technology et Services, avec des niveaux de maturité gradués. Les fonctions Identify/Protect/Detect/Respond/Recover appartiennent au NIST CSF et les étapes Reconnaissance à Installation à la Cyber Kill Chain.
+
+## I|SOC Fundamentals / Modèle hybride
+Une organisation conserve une équipe SOC interne pendant les heures ouvrées et confie la surveillance de nuit et du week-end à un MSSP. Quel modèle opérationnel est mis en œuvre ?
++ Un SOC hybride (co-managé).
+- Un SOC entièrement interne.
+- Un SOC virtuel sans aucune plateforme.
+- Un NOC (Network Operations Center) converti.
+> Le modèle hybride ou co-managé combine des ressources internes et externes. Il permet de garder la connaissance du contexte métier en interne tout en assurant une couverture 24/7 grâce au prestataire. Il nécessite des processus d'escalade et de passation clairement définis entre les deux équipes.
+
+## I|SOC Fundamentals / SOC vs NOC
+Quelle différence principale existe entre un NOC et un SOC ?
++ Le NOC se concentre sur la disponibilité et la performance du réseau, le SOC sur la détection et la réponse aux menaces de sécurité.
+- Le NOC traite uniquement les incidents de sécurité, le SOC uniquement les pannes matérielles.
+- Le NOC surveille les menaces externes provenant d'Internet, tandis que le SOC surveille uniquement les menaces internes et les employés malveillants.
+- Le SOC gère les licences logicielles, le NOC gère les incidents de sécurité.
+> Le NOC (Network Operations Center) surveille la santé de l'infrastructure (latence, pannes, capacité). Le SOC surveille les menaces et incidents de sécurité. Les deux collaborent souvent : une saturation de bande passante peut par exemple relever d'une attaque DDoS que le SOC doit analyser.
+
+## I|SOC Fundamentals / Gestion des alertes
+Un SOC reçoit 15 000 alertes par jour et les analystes Tier 1 n'en traitent qu'une fraction. Quel phénomène décrit cette situation et quel risque induit-elle ?
++ L'« alert fatigue » ; elle augmente le risque que de vraies attaques soient ignorées.
+- Le « threat hunting » réactif ; il augmente mécaniquement la couverture de détection et réduit le nombre de faux positifs.
+- Le « log rotation » ; il entraîne une perte de licences SIEM.
+- Le « sandboxing » ; il ralentit l'exécution des postes.
+> L'alert fatigue survient quand le volume d'alertes, souvent dominé par les faux positifs, dépasse la capacité des analystes. Ceux-ci deviennent moins attentifs et des vrais positifs peuvent passer inaperçus. Les remèdes incluent le tuning des règles, l'agrégation des alertes en incidents, l'automatisation (SOAR) et l'approche Risk-Based Alerting.
+
+## I|SOC Fundamentals / Indicateurs de détection
+Une règle SIEM n'a pas déclenché d'alerte alors qu'une attaque réelle par brute force a eu lieu. Comment qualifie-t-on ce résultat ?
++ Un faux négatif.
+- Un faux positif.
+- Un vrai positif.
+- Un vrai négatif.
+> Un faux négatif correspond à une activité malveillante réelle qui n'a pas été détectée. C'est le cas le plus dangereux, car il donne une fausse impression de sécurité. Un faux positif est une alerte déclenchée sur une activité légitime ; un vrai positif est une alerte correcte sur une activité malveillante.
+
+## I|SOC Fundamentals / Collaboration CSIRT
+Quelle est la relation habituelle entre le SOC et le CSIRT dans une grande organisation ?
++ Le SOC détecte et qualifie les incidents, puis le CSIRT prend en charge la gestion des incidents majeurs et la coordination de la réponse.
+- Le CSIRT surveille les alertes en temps réel, tandis que le SOC se limite à l'administration des pare-feux et à la rédaction des politiques de sécurité.
+- Le SOC et le CSIRT ne communiquent jamais afin de préserver leur indépendance.
+- Le CSIRT est une simple base de données de vulnérabilités consultée par le SOC.
+> Dans de nombreuses organisations, le SOC assure la surveillance et la détection, puis transfère les incidents significatifs au CSIRT (Computer Security Incident Response Team). Celui-ci coordonne la réponse, la communication avec la direction, le juridique et les parties externes. Dans les petites structures, les deux fonctions peuvent être fusionnées.
+
+## A|SOC Fundamentals / Threat landscape
+Quel élément doit prioritairement guider la définition des cas d'usage de détection d'un nouveau SOC ?
++ L'analyse des risques de l'organisation, ses actifs critiques et les menaces qui la ciblent.
+- La liste exhaustive de toutes les règles proposées par l'éditeur du SIEM, activées sans distinction.
+- Le nombre de licences disponibles sur le SIEM uniquement.
+- Les préférences personnelles des analystes Tier 1.
+> Un SOC efficace adopte une approche orientée risques : il identifie les « joyaux de la couronne » (actifs critiques), les menaces pertinentes pour son secteur (threat profiling) et construit ses cas d'usage en conséquence. Activer toutes les règles par défaut sans contexte génère du bruit et de l'alert fatigue.
+
+## A|SOC Fundamentals / Gouvernance et efficacité
+Le RSSI demande de démontrer la valeur du SOC. Quelle approche est la plus pertinente ?
++ Mesurer la couverture des techniques MITRE ATT&CK prioritaires, le MTTD, le MTTR et le taux de faux positifs, puis présenter leur évolution.
+- Présenter le volume total de journaux ingérés par jour et le nombre de règles de corrélation activées, qui reflètent directement le niveau de protection.
+- Présenter le nombre d'analystes recrutés au cours de l'année.
+- Comparer le prix du SIEM avec celui des concurrents.
+> La valeur d'un SOC se démontre par des indicateurs de résultat : couverture de détection mappée sur ATT&CK, délais de détection et de réponse, qualité des alertes et réduction de l'impact des incidents. Le volume de logs ingérés est un indicateur de coût et d'activité, pas d'efficacité.
+
+## A|SOC Fundamentals / Architecture de visibilité
+Un SOC dispose d'un SIEM et d'un EDR, mais un attaquant a exfiltré des données via un serveur Linux non couvert. Quel concept de surveillance cet incident met-il en évidence ?
++ Un angle mort de visibilité : chaque source critique doit être inventoriée et intégrée (logs, endpoint, réseau).
+- Un excès de règles de corrélation dans le SIEM, qui a saturé les analystes et masqué l'alerte d'exfiltration générée par le serveur Linux.
+- Un problème lié exclusivement à la politique de mots de passe.
+- L'inutilité d'un EDR face aux serveurs.
+> La « SOC visibility triad » (Gartner) combine SIEM/logs, EDR (endpoint) et NDR (réseau). Un SOC doit maintenir un inventaire des actifs et vérifier que chacun envoie bien sa télémétrie. Un serveur non intégré constitue un angle mort exploitable. Le suivi de la couverture des sources de logs fait partie des contrôles de santé du SIEM.
+
+## A|SOC Fundamentals / Automatisation et risques
+Un SOC envisage de configurer un playbook SOAR qui désactive automatiquement tout compte Entra ID dès qu'une alerte « risque utilisateur élevé » apparaît. Quel est le principal point de vigilance ?
++ Évaluer l'impact des faux positifs et prévoir des exceptions (comptes d'urgence) et une validation humaine pour les comptes critiques.
+- Aucun : l'automatisation complète est toujours préférable à l'intervention humaine.
+- Étendre l'action à tous les comptes du même service et à leurs managers, afin de contenir une éventuelle compromission latérale.
+- Supprimer définitivement le compte plutôt que de le désactiver.
+> L'automatisation de la réponse accélère le confinement mais peut provoquer des interruptions de service en cas de faux positif. Les bonnes pratiques consistent à exclure les comptes d'urgence, à prévoir une approbation humaine pour les actions à fort impact et à tester le playbook avant de le généraliser.
+
+## A|SOC Fundamentals / Indépendance des journaux
+Pourquoi les journaux collectés par le SOC doivent-ils être centralisés sur une plateforme distincte des systèmes surveillés, avec un accès restreint ?
++ Pour préserver leur intégrité et leur disponibilité, car un attaquant ayant compromis un hôte cherche souvent à effacer ses traces localement.
+- Pour réduire la charge des systèmes sources, car la journalisation locale consomme l'essentiel des ressources disque et processeur des serveurs.
+- Pour éviter de devoir synchroniser les horloges des équipements.
+- Parce que les journaux locaux ne sont jamais au format texte.
+> Les attaquants effacent fréquemment les journaux locaux (Event ID 1102 sur Windows, suppression de fichiers dans /var/log sous Linux). La centralisation en quasi temps réel vers un SIEM ou un collecteur protégé, avec contrôle d'accès et éventuellement stockage immuable, garantit la disponibilité des preuves pour l'investigation et la conformité.

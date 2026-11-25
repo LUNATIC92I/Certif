@@ -1,0 +1,201 @@
+# MODULE 2 – SIEM AND LOG MANAGEMENT
+
+## F|SIEM / Fonctions de base
+Quelle fonction n'est PAS une fonction native d'un SIEM ?
++ Le chiffrement des disques durs des postes de travail.
+- La collecte et l'agrégation des journaux.
+- La normalisation et la corrélation des événements.
+- La génération d'alertes et le reporting.
+> Un SIEM collecte, normalise, stocke, corrèle les événements, génère des alertes et fournit des capacités de recherche et de reporting. Le chiffrement des disques relève de solutions de protection des terminaux comme BitLocker ou FileVault, gérées par l'équipe infrastructure.
+
+## F|Log Management / Normalisation
+Quel est l'objectif de la normalisation des journaux dans un SIEM ?
++ Convertir des journaux de formats hétérogènes en un schéma commun afin de pouvoir les rechercher et les corréler.
+- Filtrer les journaux de faible sévérité et compresser les autres afin de réduire le volume et le coût de la licence.
+- Compresser les journaux pour réduire le coût de stockage.
+- Chiffrer les journaux pendant leur transfert.
+> Chaque source (pare-feu, Windows, proxy, cloud) produit des formats différents. La normalisation mappe les champs vers un schéma unifié (ex. src_ip, user, action), comme le CIM de Splunk, l'ECS d'Elastic ou l'ASIM de Microsoft Sentinel. Une même règle peut ainsi s'appliquer à plusieurs sources.
+
+## F|Log Management / Syslog
+Quel port et quel protocole sont utilisés par défaut par le Syslog traditionnel ?
++ UDP 514.
+- TCP 22.
+- UDP 161.
+- TCP 3389.
+> Le Syslog historique utilise UDP 514, sans garantie de livraison ni chiffrement. Pour la fiabilité et la confidentialité, on privilégie Syslog sur TCP ou Syslog sur TLS (port 6514, RFC 5425). UDP 161 correspond au SNMP, TCP 22 au SSH et TCP 3389 au RDP.
+
+## F|Log Management / Niveaux Syslog
+Dans la norme Syslog (RFC 5424), quel niveau de sévérité correspond à la valeur 0 ?
++ Emergency : le système est inutilisable.
+- Debug : messages de débogage.
+- Informational : messages d'information.
+- Warning : conditions d'avertissement.
+> Les niveaux Syslog vont de 0 à 7 : 0 Emergency, 1 Alert, 2 Critical, 3 Error, 4 Warning, 5 Notice, 6 Informational, 7 Debug. Plus la valeur est faible, plus l'événement est grave. Cette information sert à filtrer et prioriser la collecte.
+
+## F|Log Management / Synchronisation temporelle
+Pourquoi la synchronisation NTP de toutes les sources de journaux est-elle essentielle pour un SOC ?
++ Elle garantit des horodatages cohérents, indispensables à la corrélation et à la reconstitution de la chronologie d'une attaque.
+- Elle permet au SIEM de rejeter automatiquement les journaux arrivés en retard, ce qui réduit le volume ingéré et le coût de licence.
+- Elle chiffre automatiquement les journaux transmis.
+- Elle remplace la nécessité d'un parsing des journaux.
+> Sans horloge commune, des événements liés peuvent sembler décalés de plusieurs minutes, ce qui fausse les règles de corrélation à fenêtre temporelle et la timeline d'un incident. Il est aussi recommandé de stocker les horodatages en UTC et de vérifier la gestion des fuseaux horaires lors du parsing.
+
+## F|SIEM / Architecture Splunk
+Dans une architecture Splunk, quel composant est installé sur les sources pour transmettre les données aux indexeurs avec une empreinte minimale ?
++ Le Universal Forwarder.
+- Le Search Head.
+- Le Deployment Server.
+- Le License Master.
+> Le Universal Forwarder est un agent léger qui collecte et transmet les données aux indexeurs. Le Heavy Forwarder peut parser et filtrer avant envoi. Le Search Head exécute les recherches SPL, et le Deployment Server distribue les configurations aux forwarders.
+
+## F|SIEM / Faux positifs
+Une alerte « connexion administrateur hors heures ouvrées » se déclenche chaque nuit à 2 h à cause d'un script de sauvegarde légitime. Comment qualifier ces alertes ?
++ Des faux positifs.
+- Des vrais positifs.
+- Des faux négatifs.
+- Des vrais négatifs.
+> Un faux positif est une alerte déclenchée par une activité bénigne. Ici, la tâche de sauvegarde est légitime : il faut documenter l'exception et ajuster la règle (exclusion ciblée du compte de service et de l'hôte source), plutôt que de désactiver totalement la détection.
+
+## F|SIEM / Formats de journaux
+Quel format de journal a été développé par ArcSight et est largement utilisé pour transmettre des événements de sécurité au SIEM via Syslog ?
++ CEF (Common Event Format).
+- LEEF (Log Event Extended Format).
+- EVTX (Windows Event Log).
+- PCAP (Packet Capture).
+> Le CEF, introduit par ArcSight, est un format texte structuré en en-tête et extensions clé=valeur, utilisé par de nombreux pare-feux et solutions de sécurité. Le LEEF est le format équivalent promu par IBM QRadar. L'EVTX est le format binaire natif des journaux Windows et le PCAP un format de capture réseau.
+
+## I|SIEM / Corrélation
+Quel scénario illustre une règle de corrélation multi-sources ?
++ Une alerte se déclenche après 20 échecs VPN d'un utilisateur suivis d'un succès depuis une IP listée en CTI.
+- Une alerte se déclenche dès qu'un événement 4625 apparaît sur un contrôleur de domaine, quel que soit le compte concerné.
+- Une alerte se déclenche lorsqu'un disque du SIEM est plein.
+- Une alerte se déclenche à chaque redémarrage d'un poste.
+> La corrélation associe plusieurs événements, souvent issus de sources différentes, selon une logique et une fenêtre temporelle. Combiner des échecs VPN, un succès et un enrichissement CTI réduit fortement les faux positifs par rapport à une alerte sur un événement unique.
+
+## I|SIEM / QRadar
+Dans IBM QRadar, comment appelle-t-on l'entité qui regroupe les événements et flux corrélés nécessitant une investigation ?
++ Une offense (offense).
+- Un notable event.
+- Un incident Fusion.
+- Un case Elastic.
+> QRadar génère des « offenses » lorsque des règles de corrélation se déclenchent. Leur magnitude est calculée à partir de la pertinence, de la sévérité et de la crédibilité. Les notable events appartiennent à Splunk Enterprise Security et Fusion est le moteur de corrélation multi-étapes de Microsoft Sentinel.
+
+## A|SIEM / Parsing QRadar
+Un nouveau pare-feu envoie ses journaux à QRadar, mais les événements apparaissent en « Unknown » avec des champs non extraits. Quelle est la cause la plus probable ?
++ Aucun DSM (Device Support Module) adapté ou aucune extension de source de log personnalisée n'est appliqué à cette source.
+- Les offenses sont désactivées sur la console.
+- La licence EPS est dépassée : QRadar conserve alors les événements sans les parser jusqu'au renouvellement de la licence.
+- Le pare-feu utilise une adresse IPv4 privée.
+> Dans QRadar, les DSM assurent le parsing et la catégorisation des événements par type de source. Si la source n'est pas reconnue automatiquement ou que le format est non standard, il faut installer le DSM approprié ou créer une Log Source Extension via le DSM Editor pour extraire les champs.
+
+## I|SIEM / Splunk SPL
+Un analyste veut compter, dans Splunk, les échecs de connexion Windows par compte sur les dernières 24 heures. Quelle requête est la plus appropriée ?
++ index=wineventlog EventCode=4625 earliest=-24h | stats count by Account_Name | sort - count
+- index=wineventlog EventCode=4624 earliest=-24h | stats count by Account_Name | sort - count
+- index=* | dedup host | head 10
+- index=wineventlog EventCode=4625 | delete
+> L'Event ID 4625 correspond aux échecs d'ouverture de session. La commande stats count by agrège par compte et sort - count classe par ordre décroissant pour identifier les comptes les plus ciblés. L'Event ID 4624 correspond aux succès, et la commande delete supprimerait les données au lieu de les analyser.
+
+## I|SIEM / Microsoft Sentinel
+Dans Microsoft Sentinel, quel type de règle d'analyse exécute une requête KQL à intervalle défini sur une période de recherche donnée afin de générer des alertes ?
++ Une règle planifiée (Scheduled query rule).
+- Une règle d'automatisation (Automation rule).
+- Un classeur (Workbook).
+- Une watchlist.
+> Les règles planifiées exécutent une requête KQL selon une fréquence (ex. toutes les 5 minutes) sur une période (ex. les 5 dernières minutes) avec un seuil. Les règles d'automatisation gèrent le tri et le déclenchement de playbooks, les workbooks servent à la visualisation et les watchlists sont des listes de référence.
+
+## I|SIEM / Elastic
+Dans Elastic Security, quel schéma de normalisation permet d'utiliser des noms de champs uniformes comme source.ip, user.name ou process.command_line ?
++ ECS (Elastic Common Schema).
+- CIM (Common Information Model).
+- ASIM (Advanced Security Information Model).
+- STIX (Structured Threat Information Expression).
+> L'ECS est le schéma d'Elastic qui standardise les noms de champs entre les sources. Le CIM est son équivalent chez Splunk, l'ASIM chez Microsoft Sentinel. STIX est un langage de représentation de la threat intelligence, pas un schéma de journaux.
+
+## I|SIEM / Use cases
+Quel élément doit obligatoirement figurer dans la documentation d'un cas d'usage de détection ?
++ L'objectif, les sources de données requises, la logique, le mapping ATT&CK et la procédure de réponse.
+- Uniquement le nom de la règle et la date de création.
+- Le nom de l'éditeur de la règle, sa date de création et la liste des analystes habilités à la modifier, sans autre détail.
+- Le coût d'ingestion des journaux concernés uniquement.
+> Un cas d'usage bien documenté décrit la menace ciblée, les prérequis en données, la logique de détection, les faux positifs connus, la sévérité, le mapping MITRE ATT&CK et le playbook de traitement. Cette documentation garantit la cohérence du triage et facilite la maintenance des règles.
+
+## I|SIEM / Mapping ATT&CK
+Une règle SIEM détecte la création d'une tâche planifiée via schtasks.exe /create pointant vers un exécutable situé dans %APPDATA%. À quelle technique MITRE ATT&CK la rattacher ?
++ T1053.005 – Scheduled Task/Job : Scheduled Task.
+- T1566.001 – Phishing : Spearphishing Attachment.
+- T1110.003 – Brute Force : Password Spraying.
+- T1486 – Data Encrypted for Impact.
+> La création de tâches planifiées pour l'exécution ou la persistance correspond à la sous-technique T1053.005. L'emplacement %APPDATA% est un indicateur supplémentaire de suspicion, car les logiciels légitimes s'installent généralement dans Program Files.
+
+## I|Log Management / Sources Windows
+Quelle source de journal Windows est indispensable pour suivre la création de processus avec leur ligne de commande, sans Sysmon ?
++ Le journal Security avec l'événement 4688 et l'option d'audit de la ligne de commande activée.
+- Le journal Application avec l'événement 1000, qui recense chaque lancement d'exécutable et ses arguments.
+- Le journal System avec l'événement 6005.
+- Le journal Setup avec l'événement 2.
+> L'Event ID 4688 (« A new process has been created ») nécessite l'activation de la stratégie d'audit « Audit Process Creation ». Le paramètre GPO « Include command line in process creation events » ajoute la ligne de commande, indispensable pour repérer les abus de PowerShell ou de LOLBins.
+
+## I|Log Management / Rétention
+Une organisation doit conserver ses journaux 12 mois pour des raisons réglementaires tout en maîtrisant les coûts du SIEM. Quelle stratégie est la plus adaptée ?
++ Un stockage hiérarchisé : données récentes « chaudes » interrogeables, données anciennes archivées à moindre coût.
+- Supprimer tous les journaux au-delà de 7 jours.
+- Ne collecter que les journaux de sévérité critique.
+- Conserver les journaux uniquement sur les postes sources en augmentant la taille des journaux locaux, puis les collecter au besoin.
+> La hiérarchisation (hot, warm, cold, archive) répond à la fois aux besoins d'investigation rapide et aux exigences de conservation. Par exemple, Microsoft Sentinel propose une rétention interactive et une rétention longue (archive) moins coûteuse ; Splunk utilise des buckets hot, warm, cold et frozen.
+
+## I|SIEM / Enrichissement
+Pourquoi enrichir les événements dans le SIEM avec des données de contexte (CMDB, annuaire, géolocalisation, réputation IP) ?
++ Pour accélérer le triage grâce à la criticité de l'actif, au rôle de l'utilisateur et à la réputation des indicateurs.
+- Pour augmenter artificiellement le volume de données et justifier le budget.
+- Pour augmenter la sévérité de toutes les alertes et garantir qu'aucune ne soit clôturée sans validation d'un analyste Tier 2.
+- Pour supprimer le besoin d'un analyste humain.
+> L'enrichissement apporte le contexte nécessaire à la priorisation : une alerte sur un contrôleur de domaine ou sur un compte du comité de direction n'a pas la même criticité qu'une alerte sur un poste de test. Il réduit le temps d'investigation et améliore la qualité des décisions.
+
+## I|SIEM / Watchlists
+Dans Microsoft Sentinel, un analyste souhaite exclure d'une règle une liste de 200 adresses IP de scanners de vulnérabilités internes, sans modifier la règle à chaque changement. Quelle fonctionnalité utiliser ?
++ Une watchlist référencée dans la requête KQL via _GetWatchlist().
+- Un workbook dédié aux scanners, filtré sur leurs adresses et partagé avec l'équipe.
+- Une règle Fusion.
+- La désactivation de la règle d'analyse.
+> Les watchlists permettent d'importer des listes de référence (IP, comptes VIP, actifs critiques) utilisables dans les requêtes KQL. La mise à jour de la liste ne nécessite pas de modifier la règle, ce qui facilite la gestion des exclusions et des enrichissements.
+
+## A|SIEM / Risk-Based Alerting
+Une équipe Splunk Enterprise Security souhaite réduire le volume de notables tout en détectant des attaques composées de signaux faibles. Quelle approche est la plus adaptée ?
++ Le Risk-Based Alerting : les détections alimentent un score de risque par entité, alerté au-delà d'un seuil.
+- Augmenter la sévérité minimale de déclenchement de toutes les règles et regrouper les notables par source pour ne présenter que les alertes critiques.
+- Désactiver toutes les règles de sévérité faible et moyenne.
+- Créer une alerte distincte pour chaque événement Windows.
+> Le RBA agrège des observations de faible fidélité sur une entité (utilisateur, hôte) via un index de risque. Une alerte est déclenchée quand le score cumulé ou la diversité des tactiques ATT&CK dépasse un seuil. Les analystes reçoivent ainsi moins d'alertes, mais plus riches en contexte et de meilleure fidélité.
+
+## A|SIEM / Santé de la collecte
+Un analyste constate qu'aucun événement d'un contrôleur de domaine n'est arrivé dans le SIEM depuis 6 heures, sans alerte. Quelle mesure aurait permis de détecter ce problème plus tôt ?
++ Une règle de surveillance de la santé des sources signalant l'absence d'événements d'une source critique au-delà d'un seuil.
+- Une règle de détection de brute force et d'effacement des journaux (Event ID 1102) sur le contrôleur de domaine, à exécuter toutes les heures.
+- L'augmentation de la rétention du SIEM.
+- Le passage du Syslog UDP au format CEF.
+> Les sources silencieuses sont un angle mort majeur : panne d'agent, saturation, modification réseau ou action volontaire d'un attaquant. Les SOC matures surveillent la volumétrie et la dernière réception par source critique, par exemple via une requête de type « dernière occurrence par hôte » comparée à un seuil.
+
+## A|SIEM / Fenêtre de corrélation
+Une règle détecte « 10 échecs d'authentification puis un succès en 5 minutes ». Un attaquant ralentit son attaque à un essai toutes les 3 minutes. Quelle adaptation est la plus pertinente ?
++ Ajouter une détection sur une fenêtre longue (ex. 24 h) avec un seuil adapté, agrégée par compte et par source.
+- Réduire la fenêtre à 1 minute pour être plus réactif.
+- Supprimer la règle, car elle ne peut pas détecter les attaques lentes.
+- Réduire la fenêtre à une minute et abaisser le seuil à deux échecs, afin de détecter même les tentatives les plus espacées.
+> Les attaques « low and slow » contournent les fenêtres de corrélation courtes. Combiner des règles à fenêtres courtes et longues, ou utiliser l'UEBA et des approches statistiques, permet de détecter ces comportements. Réduire la fenêtre ou augmenter le seuil aggraverait l'angle mort.
+
+## A|SIEM / Coût et filtrage
+Pour réduire les coûts d'ingestion, un ingénieur propose de filtrer à la source tous les événements Windows 4624 de type de logon 3. Quel est le principal risque ?
++ Perdre la visibilité sur les connexions réseau (accès SMB, mouvements latéraux, pass-the-hash) indispensable aux investigations.
+- Les événements 4625 associés seront également supprimés automatiquement.
+- Le SIEM ne pourra plus recevoir d'événements Syslog.
+- Aucun risque majeur : le logon type 3 ne concerne que les comptes machine et les impressions, sans valeur pour l'investigation.
+> Le logon type 3 (Network) apparaît lors des accès aux partages, des connexions PsExec ou des authentifications pass-the-hash. Son filtrage complet crée un angle mort sur le mouvement latéral. Il est préférable de filtrer de manière ciblée (comptes machine connus, sources bruyantes) après analyse.
+
+## A|SIEM / Détection multi-étapes Sentinel
+Dans Microsoft Sentinel, quel moteur utilise le machine learning pour corréler des alertes et anomalies de faible fidélité provenant de plusieurs produits en incidents multi-étapes de haute fidélité ?
++ Fusion.
+- Les règles NRT (Near-Real-Time).
+- Les watchlists.
+- Les notebooks Jupyter.
+> Le moteur Fusion corrèle automatiquement des signaux issus de plusieurs sources (Entra ID Protection, Defender for Cloud Apps, Defender for Endpoint, anomalies) pour identifier des scénarios d'attaque multi-étapes. Les règles NRT s'exécutent environ toutes les minutes sur une seule requête.

