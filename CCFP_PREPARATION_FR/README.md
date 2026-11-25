@@ -38,6 +38,7 @@ ccfp/content.py        présentation CCFP, objectifs, conseils, glossaire, bibli
 ccfp/rewrite.py        outil de maintenance des propositions (remplacement par préfixe unique)
 data/m01.txt … m11.txt questions de la banque (une par module), data/exam.txt examen blanc
 assets/                ressources graphiques (motif de couverture et son générateur)
+tools/fix_length_*.py  historique des réécritures de propositions (déjà appliquées, ne pas relancer)
 ```
 
 Format d'une question dans `data/*.txt` :
