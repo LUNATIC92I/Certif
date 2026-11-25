@@ -1,0 +1,226 @@
+# MODULE 5 – Malware Analysis et Threat Intelligence
+
+## D|Malware / Types de menaces
+Quelle caractéristique définit un ransomware ?
++ Il chiffre ou bloque les données et exige une rançon, souvent après exfiltration (double extorsion).
+- Il se limite à afficher des publicités indésirables.
+- Il se propage uniquement par clé USB et par partages réseau, en recopiant son code dans chaque répertoire sans jamais modifier les fichiers existants.
+- Il enregistre les frappes clavier sans autre action.
+> Le ransomware (T1486) vise l'impact : chiffrement des données et extorsion. Les groupes modernes exfiltrent souvent les données avant le chiffrement et menacent de les publier. Le guide CCFP demande de distinguer les principales menaces rencontrées par un SOC : malware, ransomware, phishing et mouvement latéral.
+! Les adwares affichent des publicités, les keyloggers capturent les frappes. Le mode de propagation ne définit pas un ransomware.
+
+## D|Malware / Hash
+Pourquoi Falcon utilise-t-il principalement le SHA256 pour identifier un fichier ?
++ Parce qu'il fournit une empreinte quasi unique, indépendante du nom et de l'emplacement du fichier.
+- Parce qu'il permet de déchiffrer le contenu du fichier.
+- Parce qu'il indique la date de création du fichier.
+- Parce qu'il change à chaque copie du fichier sur un autre disque, ce qui permet de tracer précisément le parcours du fichier sur le parc.
+> Le SHA256 est une empreinte cryptographique : deux fichiers identiques ont le même hash, quel que soit leur nom ou leur chemin. Il sert à pivoter dans les recherches, à créer des IOC et à interroger les sources d'intelligence. MD5 et SHA1 sont plus anciens et sujets à des collisions.
+! Un hash ne déchiffre rien, ne contient pas de date et ne change pas lors d'une simple copie.
+
+## D|Threat Intelligence / IOC et IOA
+Quelle est la différence entre un IOC et un IOA ?
++ L'IOC est un artefact observé (hash, IP, domaine) ; l'IOA décrit un comportement d'attaque en cours.
+- Un IOC est toujours plus fiable qu'un IOA, car il repose sur un artefact précis vérifié par plusieurs sources de renseignement avant sa publication.
+- Un IOA est un hash de fichier, un IOC une technique MITRE.
+- Les deux termes désignent exactement la même chose.
+> Les IOC (Indicators of Compromise) sont des traces souvent observées a posteriori et faciles à changer pour l'attaquant. Les IOA (Indicators of Attack), au cœur de l'approche CrowdStrike, détectent des séquences de comportements (par exemple un processus qui accède à LSASS puis écrit un dump), ce qui permet de bloquer des menaces inconnues.
+! Un IOC n'est pas plus fiable par nature. Les définitions sont inversées dans la troisième proposition. Les deux notions sont distinctes.
+
+## D|Threat Intelligence / Nommage des adversaires
+Dans la nomenclature CrowdStrike, à quel type d'adversaire correspond le suffixe « SPIDER » (par exemple WIZARD SPIDER) ?
++ À des groupes cybercriminels à motivation financière (eCrime).
+- À des acteurs étatiques russes spécialisés dans l'espionnage.
+- À des acteurs étatiques chinois.
+- À des groupes hacktivistes.
+> CrowdStrike nomme les adversaires selon leur origine ou leur motivation : BEAR pour la Russie, PANDA pour la Chine, KITTEN pour l'Iran, CHOLLIMA pour la Corée du Nord, SPIDER pour l'eCrime et JACKAL pour l'hacktivisme, entre autres.
+! BEAR désigne la Russie, PANDA la Chine et JACKAL les hacktivistes.
+
+## D|Threat Intelligence / MITRE ATT&CK
+Quel est l'intérêt du mapping MITRE ATT&CK dans les détections et rapports d'intelligence Falcon ?
++ Fournir un langage commun sur les tactiques et techniques, relier détection et intelligence, évaluer la couverture.
+- Attribuer automatiquement un identifiant CVE et un score CVSS à chaque détection afin de prioriser la correction des vulnérabilités exploitées.
+- Remplacer l'arbre de processus dans l'investigation.
+- Classer les hôtes par système d'exploitation.
+> ATT&CK structure les comportements adverses en tactiques et techniques. Falcon associe ses détections et ses profils d'adversaires à ATT&CK, ce qui permet de comparer les techniques d'un acteur aux détections observées et d'identifier les lacunes.
+! ATT&CK n'est pas une base de vulnérabilités. Il ne remplace pas l'arbre de processus et ne classe pas les hôtes.
+
+## I|Threat Intelligence / Apport de l'intelligence
+Selon le guide CCFP, comment la threat intelligence améliore-t-elle la plateforme Falcon ?
++ Par le contexte des adversaires, l'enrichissement des indicateurs et une défense proactive intégrée.
+- En remplaçant le capteur sur les endpoints non protégés.
+- En augmentant automatiquement la rétention des événements liés aux adversaires connus, afin de permettre des enquêtes rétrospectives plus longues.
+- En supprimant le besoin de politiques de prévention.
+> Le guide cite l'intelligence sur les adversaires, l'enrichissement des indicateurs, la défense proactive et l'intégration dans Falcon. Une détection peut ainsi être reliée à un acteur connu, à ses TTP et à ses indicateurs, ce qui accélère la décision et oriente la chasse.
+! L'intelligence ne remplace ni le capteur ni les politiques, et n'agit pas sur la rétention.
+
+## I|Malware / Sandbox
+Quel est l'intérêt de soumettre un échantillon suspect à une sandbox comme Falcon Sandbox ?
++ Observer son comportement dans un environnement isolé et en extraire des indicateurs exploitables.
+- Supprimer définitivement l'échantillon de tous les hôtes.
+- Obtenir un verdict définitif : un échantillon sans comportement malveillant en sandbox peut être autorisé sur tout le parc.
+- Signer numériquement l'échantillon pour l'autoriser.
+> L'analyse dynamique en sandbox produit un rapport comportemental et des IOC (domaines, IP, fichiers déposés, mutex) qui servent à rechercher d'autres victimes et à bloquer la menace. Certains malwares détectent les sandbox, et l'absence de comportement malveillant ne garantit donc pas l'innocuité.
+! La sandbox ne supprime pas de fichier et ne signe pas l'échantillon. Elle ne fournit pas non plus de verdict définitif : un malware peut détecter l'environnement d'analyse et rester inactif.
+
+## I|Malware / Classification
+Une détection mentionne une famille de malware de type « loader ». Que signifie cette classification ?
++ Il sert surtout à télécharger ou charger d'autres charges malveillantes.
+- Le programme chiffre les fichiers et demande une rançon.
+- Le programme est un outil légitime d'administration système, classé ainsi parce qu'il charge des modules à la demande.
+- Le programme se limite à afficher des publicités.
+> Un loader (ou downloader) est un premier étage qui récupère et exécute des charges utiles : implant C2, stealer ou ransomware. Le détecter tôt permet d'interrompre la chaîne avant l'impact.
+! Le chiffrement avec rançon caractérise un ransomware. Un loader n'est pas un outil d'administration et ne se résume pas à de la publicité.
+
+## I|Threat Intelligence / Pyramid of Pain
+Pourquoi les IOA comportementaux sont-ils plus difficiles à contourner pour un adversaire que les IOC de type hash ou IP ?
++ Parce qu'ils visent les TTP, coûteux à changer, alors qu'un hash ou une IP change facilement.
+- Parce qu'ils sont tenus secrets par CrowdStrike et inconnus des attaquants.
+- Parce qu'ils ne fonctionnent que hors ligne.
+- Parce qu'ils sont recalculés chaque jour à partir des signatures antivirales et des listes de réputation de l'ensemble des clients CrowdStrike.
+> Selon la Pyramid of Pain, les hashs, IP et domaines sont faciles à changer, alors que les TTP représentent le mode opératoire de l'adversaire. Détecter un comportement force l'attaquant à modifier sa façon d'opérer, ce qui est beaucoup plus coûteux.
+! La robustesse ne vient pas du secret, de l'exécution hors ligne ou de signatures quotidiennes.
+
+## I|Threat Intelligence / Gestion des indicateurs
+Un analyste ajoute un domaine C2 à la gestion des IOC avec l'action « Detect only ». Quel est l'effet attendu ?
++ Une détection est générée si un hôte contacte ce domaine, sans blocage de l'activité.
+- Le domaine est bloqué sur tous les hôtes et aucune alerte n'est générée dans la console.
+- Le domaine est ajouté à une liste d'autorisation globale.
+- Le domaine est supprimé des journaux DNS.
+> « Detect only » génère des détections lorsque l'indicateur est observé, sans action de blocage. C'est utile pour un indicateur de confiance moyenne, ou pour mesurer l'impact avant de passer à un blocage. Les types d'indicateurs et les actions disponibles dépendent du type (hash, domaine, IP) et de la plateforme.
+! Le blocage silencieux correspond à « Block, hide detection » (pour les types qui le permettent). L'autorisation correspond à « Allow ». Les journaux ne sont pas modifiés.
+
+## I|Threat Intelligence / Expiration des indicateurs
+Pourquoi définir une date d'expiration pour un IOC de type adresse IP ?
++ Parce qu'une IP peut être réattribuée à un service légitime ; l'expiration limite les faux positifs.
+- Parce que les IP changent de format chaque année.
+- Parce que la console limite à 24 heures la durée de vie de tous les indicateurs réseau, qu'il faut ensuite recréer manuellement chaque jour.
+- Parce que les IP ne peuvent jamais être bloquées par Falcon.
+> Les indicateurs réseau sont volatils : hébergeurs, CDN et adresses dynamiques changent rapidement de propriétaire. Une expiration, avec une revue périodique, maintient la pertinence de la liste d'indicateurs.
+! Le format IP ne change pas. La durée de vie n'est pas imposée à 24 heures. Le blocage d'IP peut être possible selon les modules et la configuration.
+
+## I|Malware / Réputation de fichier
+Un fichier inconnu de toutes les sources de réputation est exécuté sur un poste. Quelle affirmation est correcte ?
++ L'absence de réputation ne prouve rien : ML et IOA évaluent le fichier et son comportement.
+- Le fichier est forcément légitime, car aucune source ne le connaît.
+- Le fichier est forcément malveillant, car aucune source ne le connaît.
+- Falcon ne peut prendre aucune décision tant que le hash n'a pas été soumis et classé par la communauté de threat intelligence.
+> Les malwares ciblés ou fraîchement compilés ont un hash inconnu. Falcon s'appuie alors sur le machine learning (caractéristiques du fichier) et les IOA (comportement), sans dépendre de la réputation. Un fichier rare mérite cependant l'attention de l'analyste.
+! L'inconnu n'est ni bon ni mauvais par définition, et Falcon peut décider sans hash connu.
+
+## I|Threat Intelligence / Profil d'adversaire
+Une détection est associée par l'intelligence CrowdStrike à un adversaire connu. Comment exploiter cette information ?
++ Consulter son profil (motivations, cibles, TTP) pour anticiper ses prochaines étapes.
+- Clore la détection, puisque l'adversaire est déjà connu de CrowdStrike et que ses indicateurs sont bloqués automatiquement sur tous les tenants.
+- Publier immédiatement l'attribution sur les réseaux sociaux.
+- Désactiver les politiques de prévention pour observer l'adversaire.
+> Les profils d'adversaires décrivent les techniques, outils et objectifs observés. Ils aident à anticiper les actions suivantes (vol d'identifiants, mouvement latéral, exfiltration) et à vérifier des indicateurs spécifiques. Les profils accessibles dépendent du niveau de souscription.
+! Un adversaire connu reste une menace. L'attribution publique est une décision sensible qui ne relève pas du SOC. Désactiver la prévention expose l'organisation.
+
+## A|Malware / Infostealer
+Un poste a exécuté un infostealer pendant 20 minutes avant d'être confiné. Quelle est la conséquence la plus importante à traiter ?
++ Les identifiants, cookies et jetons du poste sont compromis : réinitialiser, révoquer les sessions, surveiller.
+- Aucune conséquence, puisque le poste est désormais confiné.
+- Seuls les fichiers chiffrés doivent être restaurés depuis une sauvegarde.
+- Le capteur doit être réinstallé, car un infostealer cible en priorité les fichiers et la configuration de l'EDR pour en extraire les identifiants du tenant.
+> Un infostealer exfiltre rapidement les secrets : mots de passe enregistrés, cookies et jetons permettant de contourner le MFA. Le confinement stoppe l'activité future mais ne récupère pas ce qui a été volé. La réponse s'étend donc aux identités et aux services cloud.
+! Le confinement ne réduit pas à zéro les conséquences. Un infostealer ne chiffre généralement pas de fichiers. Il ne cible pas spécifiquement le capteur.
+
+## A|Malware / Analyse d'un échantillon
+Un analyste doit analyser un exécutable suspect récupéré via RTR. Quelle pratique est la plus sûre ?
++ Rechercher le hash, puis analyser l'échantillon dans une sandbox ou un laboratoire isolé.
+- L'exécuter sur son poste d'analyste, protégé par Falcon, en observant ses processus enfants dans la console.
+- Envoyer l'exécutable par courriel à l'ensemble de l'équipe pour avis.
+- Renommer l'exécutable en .txt et l'ouvrir dans le navigateur.
+> L'analyse de malware exige l'isolement : sandbox (Falcon Sandbox selon la licence) ou laboratoire dédié. La recherche préalable du hash évite une analyse inutile si l'échantillon est déjà connu. Les fichiers récupérés via RTR sont fournis dans une archive protégée pour éviter une exécution accidentelle.
+! Exécuter l'échantillon sur son poste, le diffuser par courriel ou l'ouvrir dans un navigateur sont des pratiques dangereuses.
+
+## A|Threat Intelligence / Confiance d'un indicateur
+Un flux tiers fournit une IP marquée malveillante avec une confiance faible. Elle correspond à un service cloud utilisé par l'entreprise. Quelle décision est la plus appropriée ?
++ Ne pas la bloquer globalement ; s'en servir comme contexte et vérifier l'activité réelle.
+- La bloquer immédiatement sur tous les hôtes avec l'action « Block », car un indicateur publié par un flux tiers a toujours été vérifié.
+- Désactiver le service cloud de l'entreprise par précaution.
+- Supprimer toutes les détections liées à des IP externes.
+> Bloquer une IP partagée par un service légitime peut interrompre l'activité sans gain de sécurité réel. Les indicateurs de faible confiance servent plutôt à enrichir et prioriser l'analyse. Le comportement observé reste le critère principal.
+! Le blocage global ou l'arrêt du service sont disproportionnés. Supprimer des détections réduirait la visibilité.
+
+## A|Threat Intelligence / Indicateurs et IOA
+Un rapport de renseignement décrit un adversaire qui utilise toujours la même chaîne : mshta.exe lancé par explorer.exe, puis PowerShell téléchargeant un loader. Quelle exploitation est la plus durable ?
++ Créer une détection comportementale sur la chaîne de processus, plutôt que de s'en tenir aux hashs.
+- Importer uniquement les hashs du rapport dans la gestion des IOC, car ils couvrent toutes les variantes compilées par cet adversaire.
+- Bloquer explorer.exe sur tous les postes.
+- Attendre que l'adversaire change d'outil avant d'agir.
+> Les hashs changent à chaque recompilation, alors que la chaîne d'exécution reflète le mode opératoire. Une règle comportementale (avec un mode de détection, puis éventuellement de blocage, après évaluation des faux positifs) protège contre de nombreuses variantes.
+! Les hashs seuls ne couvrent pas les variantes. Bloquer explorer.exe rendrait Windows inutilisable. Attendre laisse l'adversaire opérer.
+
+## A|Threat Intelligence / IOA personnalisés
+Lors de la création d'une règle d'IOA personnalisée (Custom IOA), quelle démarche réduit le risque d'impact en production ?
++ Commencer en surveillance ou détection, analyser, affiner, puis bloquer si nécessaire.
+- Passer directement en mode blocage sur tout le parc.
+- Écrire une expression régulière .* sur tous les champs pour maximiser la couverture, puis activer le blocage sur l'ensemble du parc.
+- Appliquer la règle uniquement aux hôtes hors ligne.
+> Les règles d'IOA personnalisées sont regroupées en groupes de règles attribués aux politiques de prévention. Elles définissent des critères (nom d'image, ligne de commande, parent, etc.) et une action : surveiller, détecter ou bloquer. Une montée progressive évite de bloquer des processus métier.
+! Un blocage immédiat, une regex trop large ou une application à des hôtes hors ligne sont des erreurs de conception.
+
+## A|Malware / Documents piégés
+Une campagne utilise des fichiers ISO contenant un raccourci LNK qui lance un script. Quelle observation dans la télémétrie est la plus caractéristique ?
++ Le montage d'une image ISO, puis un interpréteur lancé depuis le volume monté avec explorer.exe pour parent.
+- Une ouverture de session RDP de type 10 sur un contrôleur de domaine, suivie de la copie d'un fichier ISO dans le dossier SYSVOL partagé par tous les postes.
+- Une modification de la politique de prévention dans la console.
+- Une mise à jour du capteur sur le poste.
+> Les conteneurs ISO ou IMG ont été utilisés pour contourner les protections liées à la « Mark of the Web ». Le schéma typique est : montage, puis exécution d'un LNK qui lance un interpréteur (cmd, PowerShell, wscript, rundll32) depuis le volume monté.
+! Les propositions sur RDP, les politiques et la mise à jour du capteur sont sans rapport avec ce vecteur d'accès initial.
+
+## A|Threat Intelligence / Priorisation par l'intelligence
+Deux vulnérabilités ont un score CVSS équivalent, mais l'intelligence indique que l'une est activement exploitée par un adversaire ciblant votre secteur. Quelle décision prendre ?
++ Prioriser la vulnérabilité exploitée et chasser une exploitation antérieure.
+- Traiter les deux en fonction de l'ordre alphabétique des CVE.
+- Ignorer l'intelligence, car seul le score CVSS, calculé de façon objective, doit guider la priorisation des correctifs.
+- Attendre une détection Falcon avant de corriger.
+> L'intelligence transforme une priorisation théorique (CVSS) en priorisation fondée sur la menace réelle. Une vulnérabilité exploitée dans le secteur concerné présente un risque immédiat, et une compromission antérieure doit être recherchée.
+! L'ordre alphabétique est arbitraire. Le CVSS seul ignore le contexte d'exploitation. Attendre une détection augmente le risque.
+
+## A|Malware / Persistance d'un implant
+Après la suppression d'un implant, la même détection réapparaît chaque matin sur l'hôte. Quelle hypothèse vérifier en priorité ?
++ Une persistance non éradiquée (tâche, service, clé Run, WMI) qui relance l'implant.
+- Un dysfonctionnement du capteur qui rejoue chaque matin les anciennes détections stockées localement après la synchronisation avec le cloud.
+- Une mise à jour de la politique de prévention chaque matin.
+- Un changement automatique du CID de l'hôte.
+> La réapparition régulière d'une menace indique presque toujours un mécanisme de persistance resté en place, ou un vecteur d'infection toujours actif. L'analyse des ASEP, tâches planifiées, services et abonnements WMI, et de leur processus créateur, permet d'éradiquer complètement.
+! Le capteur ne rejoue pas d'anciennes détections. Les politiques et le CID ne provoquent pas de nouvelles infections.
+
+## A|Threat Intelligence / Partage
+Une organisation souhaite partager des indicateurs d'un incident avec un ISAC sectoriel. Quelle précaution est essentielle ?
++ Appliquer un TLP adapté, retirer les données sensibles et valider avec la gouvernance.
+- Partager l'export complet de la télémétrie Falcon, y compris les noms d'utilisateurs.
+- Publier les indicateurs sur un réseau social public sans étiquette.
+- Partager les identifiants de l'API Falcon pour permettre aux partenaires d'enquêter.
+> Le Traffic Light Protocol (TLP:CLEAR, GREEN, AMBER, AMBER+STRICT, RED) encadre la diffusion. Les données personnelles et internes doivent être retirées. Le partage est utile à la communauté mais doit rester maîtrisé.
+! Partager la télémétrie complète, publier sans contrôle ou donner des identifiants d'API sont des fautes graves.
+
+## A|Malware / Double extorsion
+Un ransomware a chiffré des serveurs. Pourquoi l'analyse doit-elle aussi rechercher une exfiltration préalable ?
++ Parce que de nombreux groupes volent les données avant de chiffrer, avec des conséquences de notification.
+- Parce que le chiffrement empêche toute exfiltration ultérieure.
+- Parce que les sauvegardes contiennent toujours les journaux d'exfiltration, qui permettent d'identifier les données volées avant leur publication.
+- Parce que l'exfiltration annule automatiquement le chiffrement.
+> L'exfiltration (souvent avec des outils comme rclone, des archives compressées et des transferts vers des services cloud) précède fréquemment le chiffrement. L'identifier conditionne les obligations de notification (RGPD) et la gestion de crise.
+! Le chiffrement n'empêche rien rétroactivement. Les sauvegardes ne contiennent pas d'information d'exfiltration. Les deux phénomènes sont indépendants.
+
+## A|Threat Intelligence / Hash et variantes
+Un analyste dispose du SHA256 d'un malware et veut identifier des variantes proches. Quelle approche est la plus pertinente ?
++ S'appuyer sur la famille, les comportements, l'infrastructure ou YARA, pas sur le seul SHA256.
+- Modifier un caractère du hash pour obtenir les variantes.
+- Rechercher le même SHA256 dans les détections des autres clients CrowdStrike, accessibles depuis la recherche universelle de la console.
+- Calculer le MD5 du SHA256.
+> Un SHA256 identifie un seul fichier. Les variantes se repèrent par des caractéristiques communes : comportement, chaînes, structure, infrastructure C2 ou classification de famille. Les règles YARA et les rapports d'intelligence aident à les détecter.
+! Modifier un hash ne produit pas de variante. Un client n'a pas accès aux autres tenants. Le MD5 d'un hash n'a pas de sens.
+
+## A|Malware / Outils légitimes détournés
+Un attaquant utilise ProcDump, un outil Microsoft signé, pour créer un dump de la mémoire de lsass.exe. Pourquoi Falcon peut-il détecter cette action alors que le fichier est légitime ?
++ Parce que la détection vise le comportement (accès à LSASS, création d'un dump), non la réputation.
+- Parce que tous les outils Microsoft signés sont bloqués par défaut.
+- Parce que le hash de ProcDump figure dans une liste de signatures antivirales qui classe tous les outils Sysinternals comme malveillants.
+- Parce que Falcon interdit toute lecture de la mémoire d'un processus.
+> Le vol d'identifiants par dump de LSASS (T1003.001) est reconnaissable quel que soit l'outil utilisé : ProcDump, comsvcs.dll ou un outil maison. Les IOA évaluent la cible (LSASS), le type d'accès et la création du fichier de dump. Un outil signé peut donc être bloqué dans ce contexte précis.
+! Les outils Microsoft ne sont pas bloqués par défaut. Le hash d'un outil légitime n'est pas malveillant en soi. Les accès mémoire légitimes restent autorisés.

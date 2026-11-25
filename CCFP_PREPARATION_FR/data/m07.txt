@@ -1,0 +1,226 @@
+# MODULE 7 – Incident Response et Digital Forensics
+
+## D|Incident Response / Cycle de réponse
+Selon le NIST SP 800-61, quelles sont les phases du cycle de réponse aux incidents ?
++ Préparation ; détection et analyse ; confinement, éradication, restauration ; post-incident.
+- Reconnaissance ; armement ; livraison ; exploitation.
+- Identification ; protection ; détection et analyse ; sauvegarde et archivage des preuves.
+- Installation ; configuration ; supervision ; désinstallation.
+> Ce cycle reste la référence pédagogique de la réponse aux incidents. Falcon intervient à chaque phase : préparation (politiques, rôles), détection et analyse (Insight XDR), confinement et éradication (confinement réseau, RTR), activités post-incident (rapports, amélioration des détections).
+! La deuxième proposition reprend les débuts de la Cyber Kill Chain. Les autres listes ne correspondent à aucun cadre de réponse aux incidents.
+
+## D|Incident Response / Confinement
+Quel est l'objectif principal du confinement lors d'un incident ?
++ Limiter la propagation et l'impact de l'attaque tout en préservant les preuves.
+- Identifier l'attaquant et l'attaquer en retour.
+- Restaurer immédiatement toutes les sauvegardes des systèmes touchés et remettre l'activité en service.
+- Rédiger le rapport final de l'incident.
+> Le confinement stoppe l'extension des dégâts : isolement réseau d'un hôte, désactivation d'un compte, blocage d'un indicateur. Il doit préserver les preuves, ce que permet le confinement réseau Falcon, qui garde l'hôte allumé et joignable par RTR.
+! La contre-attaque est illégale et dangereuse. La restauration et le rapport final interviennent plus tard.
+
+## D|Digital Forensics / Chaîne de possession
+Pourquoi faut-il documenter la chaîne de possession des preuves collectées ?
++ Pour prouver l'intégrité des preuves et garantir leur recevabilité.
+- Pour accélérer la copie des fichiers.
+- Pour chiffrer automatiquement les preuves.
+- Pour éviter de calculer les hashs des fichiers, la signature de chaque intervenant suffisant à prouver l'intégrité.
+> La chaîne de possession, combinée aux hashs calculés lors de la collecte, démontre que la preuve n'a pas été altérée. Les journaux d'audit RTR et les métadonnées de collecte de Falcon contribuent à cette traçabilité.
+! La chaîne de possession n'accélère ni ne chiffre la collecte, et ne remplace pas le calcul des hashs.
+
+## D|Incident Response / Éradication
+Quelle action relève de l'éradication ?
++ Supprimer les fichiers malveillants, les mécanismes de persistance et les comptes créés par l'attaquant.
+- Isoler l'hôte du réseau.
+- Rédiger la note de retour d'expérience.
+- Restaurer les données depuis une sauvegarde saine et antérieure à la compromission.
+> L'éradication supprime la présence de l'adversaire. Elle doit être complète, sinon l'attaquant revient via une persistance oubliée. RTR (kill, rm, reg delete, scripts) permet de l'exécuter à distance.
+! L'isolement relève du confinement, la note de retour d'expérience des activités post-incident et la restauration de la phase de restauration.
+
+## D|Incident Response / Retour d'expérience
+Quel est l'objectif de la réunion de retour d'expérience (lessons learned) ?
++ Identifier les axes d'amélioration et mettre à jour détections, politiques et procédures.
+- Désigner un coupable à sanctionner.
+- Supprimer toutes les traces de l'incident.
+- Désactiver les détections qui ont déclenché l'incident, puisqu'elles ont rempli leur rôle et risquent de générer du bruit pendant la remédiation.
+> Le retour d'expérience alimente l'amélioration continue : nouvelles règles, exclusions corrigées, politiques renforcées, playbooks mis à jour. Il s'inscrit dans le cycle continu détection, investigation, réponse.
+! Le retour d'expérience n'est pas une recherche de coupable. Supprimer les traces ou désactiver des détections serait contre-productif.
+
+## I|Digital Forensics / Artefacts d'exécution
+Quels artefacts Windows aident à prouver l'exécution d'un programme, en complément de la télémétrie Falcon ?
++ Prefetch, Amcache, ShimCache et les clés UserAssist.
+- Le fond d'écran et la corbeille.
+- La liste des imprimantes et des polices installées récemment.
+- Le fichier hosts uniquement.
+> Ces artefacts conservent des traces d'exécution, parfois antérieures au déploiement du capteur ou complémentaires à la télémétrie : Prefetch (exécutions récentes et nombre d'exécutions), Amcache (métadonnées et hashs), ShimCache (compatibilité), UserAssist (programmes lancés via l'interface).
+! Le fond d'écran, la corbeille, les imprimantes et le fichier hosts ne prouvent pas l'exécution d'un programme.
+
+## I|Incident Response / Persistance
+Quel mécanisme de persistance Windows est fréquemment utilisé par les attaquants et doit être vérifié lors de l'éradication ?
++ Les tâches planifiées, les services, les clés Run/RunOnce et les abonnements WMI.
+- Le changement du fond d'écran de l'utilisateur.
+- La modification de la langue du clavier.
+- La création de raccourcis sur le bureau de l'utilisateur, qui relance l'implant à chaque clic.
+> Ces mécanismes permettent de relancer un implant au démarrage ou à intervalles réguliers (T1053.005, T1543.003, T1547.001, T1546.003). La télémétrie Falcon (par exemple AsepValueUpdate) et les commandes RTR (reg query, listes de tâches via scripts) aident à les identifier.
+! Les modifications d'apparence ou de clavier ne relancent pas de code. Un raccourci sur le bureau n'est pas un mécanisme de démarrage automatique.
+
+## I|Incident Response / DLL sideloading
+Un exécutable signé d'un éditeur légitime est trouvé dans C:\Users\Public\ avec une DLL non signée portant le nom d'une de ses dépendances. Quelle technique est probable ?
++ Le DLL side-loading.
+- Le Kerberoasting.
+- Le password spraying.
+- L'ARP spoofing.
+> Le DLL side-loading (T1574.002) exploite l'ordre de recherche des DLL : un exécutable de confiance charge une bibliothèque contrôlée par l'attaquant, ce qui masque l'activité derrière un processus signé. La télémétrie de chargement de modules et l'emplacement inhabituel du binaire sont des indices clés.
+! Kerberoasting et password spraying sont des attaques sur les identifiants. L'ARP spoofing est une attaque réseau.
+
+## I|Incident Response / Vol d'identifiants
+Après une détection de dump de LSASS sur un serveur, quelle action de réponse est indispensable ?
++ Considérer compromis les identifiants des comptes connectés au serveur, et les réinitialiser en priorisant les privilégiés.
+- Redémarrer le serveur, ce qui vide la mémoire de LSASS et invalide automatiquement tous les hashs et tickets qui ont pu être extraits.
+- Supprimer le fichier de dump et clore l'incident.
+- Désinstaller l'antivirus intégré de Windows.
+> La mémoire de LSASS peut contenir des hashs NTLM, des tickets Kerberos, voire des mots de passe. Même si le dump a été bloqué ou supprimé, il faut évaluer si l'extraction a réussi et réinitialiser les identifiants exposés. Le redémarrage ne rend pas inutilisables des identifiants déjà volés.
+! Le redémarrage et la suppression du dump ne traitent pas le vol. L'antivirus de Windows n'a aucun rapport avec la réponse.
+
+## I|Incident Response / Propagation USB
+Plusieurs postes d'un même service présentent une détection identique après l'utilisation d'une clé USB partagée. Quelle démarche est la plus appropriée ?
++ Identifier la clé, retrouver tous les hôtes où elle a été branchée et adapter Device Control.
+- Formater tous les postes du service sans investigation.
+- Désactiver la prévention sur ces postes pour laisser le malware s'exécuter et comprendre son fonctionnement avant de le bloquer sur le reste du parc.
+- Bloquer le port 443 sur le réseau du service.
+> La télémétrie Falcon enregistre les connexions de périphériques USB, avec des identifiants (fournisseur, produit, numéro de série selon les cas). On peut ainsi tracer la clé sur le parc. Device Control limite ensuite la propagation (blocage, lecture seule, exceptions).
+! Formater sans investigation détruit les preuves. Désactiver la prévention expose le parc. Bloquer le port 443 n'a aucun rapport avec une propagation par USB.
+
+## I|Incident Response / Ransomware
+Quel indicateur précoce de ransomware justifie un confinement immédiat ?
++ La suppression des clichés et sauvegardes, puis des modifications massives de fichiers.
+- Une connexion RDP réussie d'un administrateur pendant les heures ouvrées sur un serveur de fichiers.
+- L'installation d'une mise à jour de navigateur.
+- Une requête DNS vers un site d'actualités.
+> La destruction des mécanismes de récupération (T1490) et le chiffrement massif (T1486) caractérisent le ransomware. Le confinement rapide via Falcon limite la propagation aux partages réseau et aux autres hôtes.
+! Une session RDP légitime, une mise à jour ou une requête DNS banale ne justifient pas à elles seules un confinement.
+
+## I|Incident Response / Restauration
+Avant de remettre en service un serveur après un incident, quelle vérification est indispensable ?
++ Cause corrigée, sauvegarde saine et antérieure à l'attaque, identifiants changés, puis surveillance étroite.
+- Restaurer la sauvegarde la plus récente sans vérification, car elle minimise la perte de données et le capteur bloquera toute menace résiduelle.
+- Désactiver la journalisation pour améliorer les performances.
+- Lever le confinement avant toute vérification.
+> Une restauration mal préparée réintroduit l'attaquant : porte dérobée présente dans la sauvegarde, vulnérabilité non corrigée ou identifiants volés encore valides. La surveillance après remise en service vérifie l'absence de retour de l'adversaire.
+! Restaurer sans vérifier, désactiver la journalisation ou lever le confinement trop tôt sont des erreurs classiques.
+
+## I|Digital Forensics / Collecte à distance
+Un poste compromis se trouve dans une filiale sans personnel technique. Quelle approche permet une collecte fiable ?
++ RTR et les outils de collecte (scripts validés, Falcon Forensics), avec hashs et horodatages.
+- Demander à l'utilisateur de copier ses fichiers et journaux sur une clé USB et de l'envoyer par courrier au SOC.
+- Attendre plusieurs semaines le déplacement d'un analyste.
+- Réinstaller le poste à distance.
+> La réponse à distance permet de collecter rapidement des éléments volatils et non volatils. La traçabilité (journaux RTR, hashs, horodatages) préserve la valeur probante. Falcon Forensics, lorsqu'il est souscrit, automatise la collecte d'artefacts forensiques.
+! La manipulation par l'utilisateur altère les preuves. Attendre ou réinstaller fait perdre les éléments volatils.
+
+## A|Incident Response / Périmètre
+Après confirmation d'un implant sur un poste, quelle étape définit correctement le périmètre de l'incident ?
++ Rechercher sur tout le parc les indicateurs et comportements observés sur le premier hôte.
+- Nettoyer uniquement le poste concerné, puis clore l'incident.
+- Supposer que seul ce poste est touché, car Falcon aurait généré une détection sur tout autre hôte compromis par le même implant.
+- Réinitialiser le mot de passe de l'administrateur de la console Falcon.
+> Le scoping utilise les éléments du premier hôte comme pivots. Un attaquant compromet rarement un seul système : identifiants réutilisés, mouvements latéraux, persistances multiples. Ignorer le périmètre conduit à une éradication incomplète.
+! Traiter un seul poste ou supposer un incident limité est risqué. Le compte de la console Falcon n'est pas concerné par l'implant.
+
+## A|Incident Response / Ordre des actions
+Un attaquant actif dispose d'un accès sur trois serveurs et d'un compte administrateur de domaine. Quelle stratégie d'éviction est la plus efficace ?
++ Une action coordonnée après cartographie : confinement, comptes neutralisés et persistances supprimées.
+- Nettoyer un serveur par jour pour limiter l'impact métier, en commençant par le moins critique afin de valider la procédure de remédiation.
+- Réinitialiser uniquement le mot de passe administrateur, sans toucher aux hôtes.
+- Désinstaller le capteur des serveurs pour réinstaller un système propre.
+> Une éviction partielle alerte l'attaquant, qui réagit par d'autres accès ou par des actions destructrices. Une opération coordonnée, préparée à partir d'une cartographie complète (hôtes, comptes, persistances, accès distants), réduit ce risque.
+! Le nettoyage progressif laisse du temps à l'attaquant. La réinitialisation seule ne supprime pas les implants. Retirer le capteur supprime la visibilité.
+
+## A|Incident Response / Comptes de domaine
+L'investigation révèle que l'attaquant a obtenu le hash du compte KRBTGT. Quelle mesure est indispensable ?
++ Réinitialiser deux fois le mot de passe de KRBTGT, avec un délai de réplication entre les deux.
+- Supprimer le compte KRBTGT de l'annuaire.
+- Réinitialiser le mot de passe de l'utilisateur initialement compromis et de tous les administrateurs, ce qui invalide les tickets forgés.
+- Redémarrer les contrôleurs de domaine sans autre action.
+> Avec le hash KRBTGT, l'attaquant peut forger des tickets Kerberos valides pour n'importe quel compte (T1558.001). L'annuaire conservant l'ancien et le nouveau mot de passe, une double réinitialisation espacée est nécessaire. Les détections d'identité de Falcon peuvent aider à repérer l'usage de tickets forgés.
+! Le compte KRBTGT ne doit jamais être supprimé. Les autres actions ne rendent pas les tickets forgés invalides.
+
+## A|Digital Forensics / Timestomping
+L'analyse NTFS montre qu'un exécutable malveillant a une date de création $STANDARD_INFORMATION en 2019 et une date $FILE_NAME de la semaine dernière. Que conclure ?
++ Un timestomping probable : la date a été falsifiée, la télémétrie d'écriture rétablit la chronologie.
+- Un fonctionnement normal de NTFS lors de la copie d'un fichier.
+- Une corruption du disque à traiter par chkdsk.
+- Une preuve que le fichier est un composant d'origine de Windows, mis à jour la semaine dernière par Windows Update sans changer sa date de création.
+> Les horodatages $STANDARD_INFORMATION sont modifiables par des API accessibles aux outils, alors que $FILE_NAME l'est beaucoup plus difficilement. Une date $SI antérieure à $FN est un indice classique de falsification. Les événements d'écriture de fichier enregistrés par le capteur fournissent une source indépendante.
+! Une copie ne produit pas cette incohérence typique. Ce n'est ni une corruption, ni une preuve d'origine Windows.
+
+## A|Incident Response / Ransomware et identifiants
+Un ransomware s'est propagé à 30 serveurs via un outil de déploiement d'entreprise, en utilisant un compte d'administration. Quelle mesure de confinement est prioritaire en plus du confinement des hôtes ?
++ Neutraliser le compte utilisé et suspendre l'outil de déploiement compromis.
+- Augmenter la rétention des journaux du SIEM.
+- Mettre à jour tous les capteurs vers la dernière version.
+- Créer des exclusions pour l'outil de déploiement afin d'éviter les faux positifs pendant la restauration des 30 serveurs.
+> Les groupes de ransomware abusent fréquemment d'outils légitimes (déploiement logiciel, GPO, RMM) et de comptes privilégiés. Confiner les hôtes sans couper le vecteur de propagation laisse l'attaquant toucher d'autres systèmes.
+! La rétention et la mise à jour des capteurs ne stoppent pas la propagation. Exclure l'outil compromis aveuglerait la détection.
+
+## A|Incident Response / DLL sideloading avancé
+Lors de l'investigation d'un DLL side-loading, quelle combinaison d'éléments confirme le plus solidement le scénario ?
++ Un binaire signé lancé d'un emplacement inhabituel, chargeant une DLL non signée de ce répertoire, puis une activité C2.
+- La présence de nombreuses DLL Microsoft signées dans C:\Windows\System32 dont la date de modification est postérieure à l'installation du système.
+- Une détection de PUP sur le navigateur de l'utilisateur.
+- Un échec de connexion de l'utilisateur la veille.
+> Le side-loading se confirme par la corrélation : emplacement anormal du binaire de confiance, DLL non signée chargée depuis ce répertoire, puis comportement post-exploitation (C2, persistance). La télémétrie de chargement de modules et l'arbre de processus permettent de le démontrer.
+! Les DLL système signées dans System32 sont normales. Un PUP ou un échec de connexion n'ont pas de lien direct avec ce scénario.
+
+## A|Incident Response / Preuves et remédiation
+La direction exige que l'hôte compromis d'un dirigeant soit réinstallé immédiatement. Quelle position le SOC doit-il défendre ?
++ Collecter rapidement les preuves essentielles à distance, puis réinstaller.
+- Réinstaller immédiatement sans aucune collecte, car la télémétrie cloud suffit dans tous les cas.
+- Refuser toute réinstallation pendant plusieurs mois.
+- Désinstaller le capteur et laisser l'hôte en service.
+> Une réinstallation détruit la mémoire et les artefacts locaux, essentiels pour comprendre le vecteur, le périmètre et d'éventuelles exigences juridiques. La télémétrie cloud est précieuse mais ne contient pas tout. Une collecte rapide à distance concilie les besoins métier et forensiques.
+! Réinstaller sans collecte fait perdre des preuves. Bloquer l'hôte pendant des mois est disproportionné. Désinstaller le capteur supprime la protection.
+
+## A|Incident Response / USB et poste isolé
+Un poste industriel non connecté au réseau d'entreprise a été infecté par une clé USB. Le capteur Falcon y est installé mais l'hôte n'a pas d'accès Internet direct. Quelle affirmation est correcte ?
++ Les protections locales ont pu agir, mais rien ne remonte sans connectivité (directe ou proxy).
+- Le capteur stocke ses événements sur la clé USB, qui les transmet au cloud CrowdStrike dès qu'elle est branchée sur un poste connecté.
+- RTR fonctionne en temps réel sans aucune connectivité.
+- Les postes sans Internet ne peuvent pas recevoir le capteur Falcon.
+> Le capteur fonctionne localement (ML embarqué, IOA), mais la console dépend de la communication avec le cloud. Les environnements isolés exigent une architecture de connectivité adaptée (proxy) ou une collecte locale. Device Control peut prévenir ce vecteur.
+! Une clé USB n'est pas un canal de télémétrie. RTR exige une connexion. Le capteur peut être installé, mais avec des capacités dépendantes de la connectivité.
+
+## A|Incident Response / Escalade juridique
+Pendant une investigation, l'analyste découvre que des données personnelles de clients ont probablement été exfiltrées. Quelle action est la plus appropriée ?
++ Escalader immédiatement à la gouvernance (RSSI, DPO, juridique) pour évaluer la notification.
+- Attendre la fin complète de l'investigation, plusieurs semaines plus tard, avant d'informer qui que ce soit.
+- Contacter directement les clients concernés sans validation.
+- Supprimer les preuves de l'exfiltration pour limiter le risque juridique.
+> Les délais réglementaires courent à partir de la connaissance de la violation. Le SOC fournit les faits ; la décision de notification revient à la gouvernance. Détruire des preuves serait illégal et contre-productif.
+! L'attente, la communication non validée et la destruction de preuves sont inappropriées.
+
+## A|Incident Response / Prévention de la réinfection
+Après éradication d'un incident de phishing ayant compromis un poste, quelle mesure réduit le plus le risque de réinfection par la même campagne ?
++ Bloquer les indicateurs, purger les e-mails restants, renforcer la détection et prévenir les cibles.
+- Réinstaller uniquement le poste concerné.
+- Désactiver la messagerie de toute l'entreprise pendant une semaine, le temps que la campagne de l'attaquant se termine.
+- Supprimer la détection initiale de la console.
+> La prévention de la réinfection combine des actions techniques (IOC, détections, purge des e-mails) et humaines (sensibilisation ciblée). Les autres destinataires de la campagne sont des victimes potentielles.
+! Traiter un seul poste ignore les autres destinataires. Arrêter la messagerie est disproportionné. Supprimer la détection fait perdre l'historique.
+
+## A|Incident Response / Rapport
+Quelle structure est recommandée pour le rapport d'un incident majeur traité avec Falcon ?
++ Résumé exécutif, chronologie, impact, cause racine, actions (références RTR et détections), recommandations.
+- Une liste chronologique de captures d'écran de la console et des sessions RTR, sans commentaire, pour garantir l'objectivité du rapport.
+- Uniquement l'export CSV des détections.
+- Uniquement le nom des analystes qui ont travaillé sur l'incident.
+> Un rapport doit servir à la fois aux décideurs (résumé, impact, recommandations) et aux équipes techniques (chronologie, preuves, indicateurs). Les références aux détections et sessions RTR assurent la traçabilité.
+! Des captures sans contexte, un export brut ou une liste de noms ne permettent ni de comprendre ni de décider.
+
+## A|Incident Response / Validation post-incident
+Comment vérifier, après éradication, que l'adversaire n'est plus présent ?
++ Surveiller hôtes et comptes, relancer les chasses et vérifier l'absence de détections et de connexions C2.
+- Considérer l'incident terminé dès la suppression du dernier fichier malveillant, si aucune détection ne survient dans l'heure qui suit.
+- Désactiver toutes les détections sur les hôtes concernés pendant un mois.
+- Demander à l'utilisateur s'il remarque un comportement anormal.
+> La validation repose sur des preuves : absence de détection, absence de communication avec l'infrastructure de l'adversaire, absence de nouvelles persistances. Une période de surveillance renforcée est recommandée.
+! La suppression d'un fichier ne garantit pas l'éviction. Désactiver les détections ou se fier au ressenti de l'utilisateur est insuffisant.

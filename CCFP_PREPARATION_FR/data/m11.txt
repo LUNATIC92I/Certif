@@ -1,0 +1,136 @@
+# MODULE 11 – Scénarios pratiques SOC et questions avancées
+
+## A|Scénario / Malware dormant
+Un binaire inconnu écrit il y a trois semaines dans C:\ProgramData\Intel\ n'a jamais été exécuté. Une tâche planifiée créée le même jour doit le lancer demain à 3 h. Aucune détection n'a été générée. Quelle est la meilleure décision ?
++ Un implant dormant : collecter binaire et tâche, analyser, supprimer après collecte, chasser sur le parc.
+- Attendre l'exécution de demain à 3 h pour voir si Falcon génère une détection, ce qui confirmera objectivement la malveillance du binaire.
+- Supprimer uniquement la tâche planifiée et laisser le binaire pour observation.
+- Ignorer l'artefact, puisque le machine learning ne l'a pas détecté.
+> Un implant dormant attend un déclencheur pour échapper aux contrôles. L'absence de détection ne prouve pas l'innocuité : le fichier n'a jamais été exécuté et n'a donc produit aucun comportement à évaluer. La chasse sur la création de tâches et sur le chemin permet de trouver d'autres hôtes préparés de la même façon.
+! Attendre l'exécution, c'est prendre le risque d'une compromission. Laisser le binaire ou ignorer l'artefact est inadapté.
+
+## A|Scénario / Binaire sur clé USB
+Une détection signale l'exécution de E:\Factures\facture.pdf.exe sur un poste, puis la création d'un raccourci sur d'autres volumes amovibles et d'une valeur dans une clé Run. Quelle analyse est la plus juste ?
++ Un ver USB à double extension : contenir, tracer la clé et les postes touchés, éradiquer, durcir Device Control.
+- Une facture légitime au format PDF ouverte par l'utilisateur.
+- Un comportement normal de l'explorateur Windows, qui crée des raccourcis sur les volumes amovibles et une clé Run lors de l'indexation des clés USB.
+- Une mise à jour du lecteur PDF installée par l'utilisateur.
+> La double extension (.pdf.exe) masque un exécutable. La propagation vers d'autres volumes amovibles et la clé Run sont caractéristiques d'un ver USB (T1091, T1547.001). La télémétrie des périphériques permet de tracer la clé, et Device Control (blocage de l'exécution depuis les supports amovibles) limite ce vecteur.
+! Un PDF ne s'exécute pas comme un .exe. L'indexation et les mises à jour ne créent ni copies sur d'autres volumes, ni clé Run.
+
+## A|Scénario / DLL side-loading
+Un exécutable signé d'un éditeur antivirus tiers, non utilisé dans l'entreprise, est lancé depuis C:\Users\Public\Libraries\. Il charge une DLL non signée du même répertoire, puis établit des connexions régulières vers une IP externe. Quelle conclusion et quelle priorité ?
++ Un side-loading masquant un implant C2 : confinement, collecte et recherche de l'IP et du hash sur le parc.
+- Une installation légitime d'un antivirus d'évaluation par l'utilisateur, qui place ses fichiers dans le dossier public et contacte son serveur de licences.
+- Une mise à jour automatique d'un composant Windows.
+- Un faux positif dû à la signature numérique du binaire.
+> Les attaquants apportent souvent leur propre binaire signé vulnérable au side-loading (T1574.002). L'emplacement inhabituel, la DLL non signée et le beaconing forment une chaîne cohérente. Le hash de la DLL et l'IP de destination sont de bons pivots pour le scoping.
+! Un antivirus non déployé dans l'entreprise n'a rien à faire dans un répertoire public. Ce n'est pas un composant Windows, et la signature du binaire hôte ne garantit pas l'innocuité de la DLL chargée.
+
+## A|Scénario / PowerShell malveillant
+L'arbre de processus montre : explorer.exe → wscript.exe (fichier .js depuis le dossier Téléchargements) → powershell.exe -nop -w hidden -enc …, puis une requête DNS vers un domaine enregistré il y a deux jours. Quelle séquence d'actions est la plus appropriée ?
++ Décoder, identifier domaine et charge, contenir si besoin, bloquer les indicateurs et chercher sur le parc.
+- Fermer la détection, car PowerShell est un outil d'administration légitime et le domaine dispose d'un certificat TLS valide délivré par une autorité reconnue.
+- Désinstaller PowerShell de tous les postes.
+- Bloquer uniquement le fichier .js par son nom.
+> La chaîne combine un script JavaScript téléchargé (T1059.007), PowerShell caché et encodé (T1059.001) et un domaine très récent : tous les signaux d'un accès initial. L'analyse du contenu encodé révèle la charge et les indicateurs à rechercher.
+! PowerShell est légitime, mais pas dans ce contexte. Le désinstaller casserait l'administration. Un blocage par nom de fichier est trivial à contourner.
+
+## A|Scénario / Persistance par registre
+Une détection signale la création de la valeur « OneDriveUpdate » dans HKCU\…\CurrentVersion\Run, pointant vers C:\Users\<utilisateur>\AppData\Roaming\odu.exe, alors que OneDrive est installé dans son emplacement standard. Quelle démarche est la plus rigoureuse ?
++ Vérifier l'écrivain de la valeur, le hash, la signature et le réseau ; si malveillant, collecter, supprimer, chercher ailleurs.
+- Supprimer immédiatement la valeur et le fichier sans analyse, puis relancer OneDrive pour vérifier que la synchronisation des fichiers de l'utilisateur fonctionne.
+- Ignorer, car le nom contient « OneDrive ».
+- Réinstaller OneDrive sur le poste.
+> Les attaquants imitent des noms légitimes (T1036, Masquerading) pour leurs persistances. La comparaison avec l'emplacement et la signature attendus révèle l'anomalie. L'événement d'ASEP indique aussi le processus responsable, qui mène souvent à l'accès initial.
+! Supprimer sans analyse détruit des preuves. Un nom n'est pas une preuve de légitimité. Réinstaller OneDrive ne traite pas la menace.
+
+## A|Scénario / Ransomware en cours
+À 2 h du matin, Falcon bloque un processus qui tente de supprimer les clichés instantanés sur un serveur de fichiers, puis plusieurs détections de chiffrement apparaissent sur trois autres serveurs. Quelle priorité absolue ?
++ Contenir tous les hôtes, neutraliser compte et propagation, protéger les sauvegardes, ouvrir la crise.
+- Attendre l'arrivée de l'équipe le matin pour éviter une décision hâtive.
+- Restaurer immédiatement les sauvegardes sur les serveurs touchés sans confinement, pour réduire l'interruption avant l'ouverture des bureaux.
+- Créer une exclusion pour le processus bloqué afin d'éviter les faux positifs.
+> Lors d'un ransomware actif, la vitesse est déterminante : le confinement réseau Falcon stoppe la propagation tout en gardant l'accès RTR. Identifier le compte et l'outil de déploiement utilisés (GPO, PsExec, outil RMM) évite de nouvelles vagues.
+! Attendre, restaurer sans confiner (la restauration serait chiffrée à son tour) ou exclure le processus aggraverait la situation.
+
+## A|Scénario / Processus parent suspect
+Une détection indique que sqlservr.exe a lancé cmd.exe, qui exécute certutil.exe -urlcache -split -f http://… pour télécharger un fichier, puis whoami. Quelle est l'interprétation la plus probable ?
++ Une exploitation du serveur SQL, suivie d'un téléchargement d'outil et de découverte.
+- Une maintenance normale de SQL Server, qui télécharge ses certificats via certutil et vérifie le compte de service avec whoami.
+- Une sauvegarde planifiée de la base de données.
+- Une requête SQL standard d'un utilisateur de l'application.
+> Un moteur de base de données ne lance normalement pas d'interpréteur de commandes. La chaîne sqlservr.exe → cmd.exe → certutil (T1105), puis whoami (T1033), indique une exécution de commandes par le service SQL, typique d'une exploitation. Il faut examiner les journaux SQL, les comptes et l'exposition du serveur.
+! La maintenance, les sauvegardes et les requêtes applicatives ne produisent pas cette chaîne de processus.
+
+## A|Scénario / Compte compromis
+Un compte utilisateur se connecte normalement depuis Lyon à 9 h, puis à 9 h 20 depuis une IP d'hébergeur à l'étranger sur des ressources inhabituelles ; la protection des identités signale un risque élevé. Quelle réponse est la plus adaptée ?
++ Révoquer sessions et identifiants, exiger un MFA ou bloquer, puis investiguer l'origine du vol.
+- Attendre que l'utilisateur signale lui-même un problème.
+- Bloquer définitivement toutes les connexions depuis l'étranger pour l'ensemble de l'entreprise, y compris celles des collaborateurs en déplacement.
+- Supprimer le compte de l'utilisateur sans investigation.
+> Un déplacement impossible combiné à un risque d'identité élevé indique une prise de contrôle probable. La réponse vise à couper l'accès de l'attaquant (sessions, identifiants), puis à comprendre comment les identifiants ont été obtenus pour traiter la cause.
+! Attendre laisse l'attaquant agir. Un blocage géographique global est disproportionné. Supprimer le compte sans investigation fait perdre des preuves.
+
+## A|Scénario / Mouvement latéral
+Sur un serveur, un service au nom aléatoire est créé et exécute un binaire depuis C:\Windows\ ; juste avant, une ouverture de session réseau d'un compte administrateur provient d'un poste utilisateur. Le même schéma apparaît ensuite sur deux autres serveurs. Que faire en priorité ?
++ Contenir le poste source et les serveurs, neutraliser le compte, chercher ses autres cibles.
+- Contenir uniquement le premier serveur et attendre.
+- Supprimer les services créés et clore l'incident.
+- Réinitialiser le mot de passe de tous les utilisateurs de l'entreprise sans autre action, ce qui invalide immédiatement les sessions de l'attaquant.
+> Le schéma correspond à une exécution à distance de type PsExec ou Impacket (T1021.002, T1569.002). Le poste source détient probablement les identifiants volés : c'est le point de départ à traiter. La neutralisation du compte coupe la propagation.
+! Traiter un seul serveur ou se limiter à la suppression des services laisse l'attaquant actif. Une réinitialisation globale sans confinement ne stoppe pas l'activité en cours.
+
+## A|Scénario / Activité sur plusieurs endpoints
+En une heure, 25 postes de différents services exécutent rundll32.exe avec une DLL au même nom aléatoire dans %TEMP%, juste après l'ouverture d'une pièce jointe reçue par e-mail. Quelle démarche globale adopter ?
++ Une campagne : regrouper, identifier l'e-mail, bloquer les indicateurs, contenir et purger les boîtes.
+- Analyser chaque poste séparément, un par jour.
+- Réinstaller les 25 postes sans investigation.
+- Ignorer, car rundll32.exe est un binaire Microsoft signé et la DLL est supprimée automatiquement du dossier %TEMP% au redémarrage.
+> Une même charge sur de nombreux postes après une pièce jointe caractérise une campagne de phishing réussie. La réponse doit être globale : vecteur (e-mail), indicateurs, hôtes infectés et destinataires non encore touchés.
+! L'analyse séquentielle est trop lente. La réinstallation sans investigation fait perdre le périmètre. La signature de rundll32 n'a pas d'importance, c'est la DLL chargée qui pose problème.
+
+## A|Scénario / Exclusion détournée
+Un attaquant dépose ses outils dans D:\App\Batch\, un chemin couvert par une exclusion ML créée pour une application métier. Les outils s'exécutent sans détection ML, mais un IOA se déclenche lors d'un accès à LSASS. Qu'en conclure ?
++ Seul le ML était exclu, les IOA restaient actifs ; il faut resserrer l'exclusion.
+- L'exclusion ML a désactivé toute visibilité, et l'IOA est un faux positif.
+- Les exclusions ML n'ont aucun effet, il n'y a donc rien à corriger.
+- Il faut transformer l'exclusion ML en exclusion de visibilité, plus cohérente pour une application métier, afin d'éviter les détections IOA.
+> Les exclusions ML ne suspendent que l'évaluation par machine learning sur le chemin indiqué. Les IOA et la télémétrie continuent de fonctionner, ce qui illustre l'intérêt de la défense en profondeur. Un chemin exclu trop large reste néanmoins une opportunité pour l'attaquant.
+! L'exclusion ML ne supprime pas la visibilité, et l'IOA n'est pas un faux positif. L'exclusion a bien eu un effet. Une exclusion de visibilité aveuglerait complètement le capteur.
+
+## A|Scénario / Accès initial par service exposé
+Un serveur RDP exposé sur Internet présente des milliers d'échecs d'authentification, puis une ouverture de session réussie de type 10 pour un compte de test oublié, suivie de l'installation d'un outil d'accès à distance. Quelle réponse est la plus complète ?
++ Contenir, désactiver le compte, collecter, chercher l'activité, puis supprimer l'exposition RDP et imposer le MFA.
+- Changer uniquement le mot de passe du compte de test.
+- Bloquer l'IP source unique, puisque les attaques par force brute proviennent forcément d'une seule adresse, et conserver l'exposition RDP.
+- Désinstaller l'outil d'accès à distance et clore l'incident.
+> Le brute force RDP réussi sur un compte oublié est un vecteur courant d'accès initial (T1110, T1133, T1078). La réponse doit traiter l'accès actuel, l'activité ultérieure (outil installé, mouvements possibles) et la cause racine (exposition et compte inutile).
+! Un simple changement de mot de passe, le blocage d'une seule IP ou la suppression de l'outil laissent la cause et le périmètre non traités.
+
+## A|Scénario / Fausse alerte apparente
+Une détection de haute sévérité concerne un administrateur qui exécute un script de déploiement habituel, mais avec un argument inhabituel qui télécharge un fichier depuis un domaine personnel. L'administrateur affirme qu'il s'agit d'un test. Quelle attitude adopter ?
++ Vérifier objectivement le contenu, le domaine et l'autorisation : la parole ne suffit pas.
+- Clore immédiatement la détection sur la parole de l'administrateur, son niveau de privilège garantissant qu'il connaît les risques.
+- Désactiver la détection pour tous les administrateurs.
+- Réinstaller le poste de l'administrateur sans discussion.
+> Les comptes privilégiés sont des cibles prioritaires, et un attaquant peut se faire passer pour un administrateur. Les vérifications techniques et la procédure de gestion des changements permettent de conclure de manière documentée.
+! Clore sur parole ou désactiver la détection crée un angle mort. Réinstaller sans vérification est disproportionné.
+
+## A|Scénario / Exfiltration
+Un serveur de fichiers exécute rclone.exe, renommé svchost64.exe, avec des paramètres de copie vers un service de stockage cloud, après la création d'archives 7z protégées par mot de passe. Quelle conclusion et quelle priorité ?
++ Une exfiltration en cours avec un outil renommé : contenir, identifier compte et données, alerter la gouvernance.
+- Une sauvegarde légitime vers le cloud, l'outil étant renommé par l'éditeur pour fonctionner comme un service Windows et les archives chiffrées par conformité.
+- Une mise à jour d'un service Windows.
+- Un faux positif dû au nom svchost64.exe.
+> Le renommage d'outils (T1036.003), l'archivage protégé (T1560.001) et le transfert vers un stockage cloud (T1567.002) précèdent souvent l'extorsion. Le hash du binaire et ses arguments révèlent l'outil réel, malgré son nom.
+! Une sauvegarde légitime n'utilise pas un binaire renommé pour imiter un processus système. Ce n'est ni une mise à jour, ni un faux positif.
+
+## A|Scénario / Désactivation de la sécurité
+Sur un poste, un processus exécuté avec des privilèges élevés tente d'arrêter des services de sécurité, de charger un pilote signé vulnérable connu, puis de terminer des processus de protection. Falcon bloque une partie des actions. Quelle analyse est la plus juste ?
++ Un affaiblissement des défenses (BYOVD possible), prélude fréquent au ransomware : confiner et investiguer.
+- Une mise à jour de pilote légitime sans conséquence.
+- Un comportement normal du gestionnaire de tâches Windows.
+- Une désinstallation planifiée par l'équipe IT d'un ancien antivirus, dont l'outil charge un pilote pour arrêter les services protégés.
+> Les attaquants tentent de neutraliser les outils de sécurité (T1562.001), notamment en chargeant un pilote vulnérable pour agir au niveau du noyau (BYOVD). Même partiellement bloquée, cette activité indique un adversaire avancé, déjà privilégié et proche de son objectif.
+! Une mise à jour légitime ne tente pas d'arrêter les protections. Le gestionnaire de tâches n'agit pas ainsi. Une opération IT doit pouvoir être vérifiée dans la gestion des changements.

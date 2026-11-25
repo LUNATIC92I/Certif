@@ -1,0 +1,181 @@
+# MODULE 6 – Falcon Real Time Response
+
+## D|Real Time Response / Principe
+Qu'est-ce que Falcon Real Time Response (RTR) ?
++ Une session de commandes à distance sur un hôte, via le capteur, pour investiguer et remédier.
+- Un service de sauvegarde automatique des endpoints.
+- Un outil de déploiement de systèmes d'exploitation et de logiciels, piloté depuis la console à travers le capteur.
+- Une console de gestion des licences.
+> RTR permet d'ouvrir une session sur un hôte Windows, macOS ou Linux à travers la connexion du capteur au cloud, sans VPN ni outil supplémentaire. L'analyste peut lister des fichiers, examiner les processus, récupérer des artefacts, arrêter un processus ou exécuter des scripts selon ses droits.
+! RTR n'est pas un outil de sauvegarde, de déploiement ou de gestion de licences.
+
+## D|Real Time Response / Commandes de base
+Quelle commande RTR permet de lister les processus en cours d'exécution sur l'hôte ?
++ ps
+- get
+- put
+- kill
+> La commande ps affiche les processus en cours. Elle est disponible pour les rôles en lecture seule. get récupère un fichier, put dépose un fichier issu de la bibliothèque de fichiers, et kill arrête un processus.
+! get, put et kill sont des commandes d'action, qui exigent des niveaux de droits supérieurs.
+
+## D|Real Time Response / Commandes réseau
+Quelle commande RTR permet d'afficher les connexions réseau actives de l'hôte ?
++ netstat
+- filehash
+- reg query
+- eventlog
+> netstat affiche les connexions et ports en écoute, ce qui aide à repérer une communication suspecte et le processus associé. filehash calcule le hash d'un fichier, reg query lit le registre et eventlog consulte les journaux d'événements Windows.
+! Ces trois commandes sont utiles en investigation, mais elles ne montrent pas les connexions réseau.
+
+## D|Real Time Response / Confinement
+Que se passe-t-il lorsqu'un hôte est placé en confinement réseau (network containment) dans Falcon ?
++ L'hôte est isolé, sauf vers le cloud CrowdStrike (et les adresses autorisées), ce qui permet de continuer l'investigation.
+- L'hôte est éteint immédiatement.
+- Le capteur est désinstallé pour empêcher toute communication.
+- Toutes les communications de l'hôte restent ouvertes, mais le capteur bloque les nouveaux processus et la console suspend les connexions des utilisateurs du poste.
+> Le confinement réseau coupe les communications de l'hôte tout en maintenant le lien avec le cloud Falcon : l'analyste peut toujours utiliser RTR, collecter des preuves et remédier. Une liste d'adresses autorisées pendant le confinement peut être configurée (par exemple pour certains serveurs d'outillage). L'action est réversible.
+! Le confinement n'éteint pas l'hôte et ne désinstalle pas le capteur. Il coupe le réseau, pas la console.
+
+## I|Real Time Response / Rôles
+Quels rôles structurent les droits d'utilisation de RTR dans Falcon ?
++ Trois rôles (lecture seule, Active Responder, Administrator) aux commandes croissantes.
+- Un seul rôle, qui donne accès à toutes les commandes à tous les utilisateurs de la console disposant du rôle Falcon Analyst.
+- Des rôles définis par système d'exploitation de l'hôte.
+- Des rôles attribués automatiquement selon l'ancienneté de l'analyste.
+> RTR distingue trois niveaux : Read Only Analyst (commandes d'observation), Active Responder (collecte et actions de remédiation comme get ou kill) et Administrator (dépôt de fichiers avec put, exécution avec run, scripts personnalisés avec runscript). Ce découpage applique le moindre privilège.
+! RTR n'utilise pas un rôle unique, ni des rôles par système d'exploitation ou selon l'ancienneté.
+
+## I|Real Time Response / Récupération de fichier
+Un analyste doit récupérer un exécutable suspect sur un hôte pour l'analyser. Quelle commande RTR utiliser et quel rôle minimal est nécessaire ?
++ get, avec au minimum le rôle Active Responder.
+- cat, avec le rôle Read Only Analyst, qui copie le fichier dans la console.
+- put, avec le rôle Read Only Analyst.
+- ls, avec le rôle Administrator.
+> get transfère un fichier de l'hôte vers le cloud. Le fichier est ensuite téléchargeable depuis la console, dans une archive protégée par mot de passe pour éviter une exécution accidentelle. Cette commande nécessite au minimum les droits d'Active Responder, et doit être autorisée par la politique de réponse de l'hôte.
+! cat affiche le contenu d'un fichier texte. put fait l'inverse de get (il dépose un fichier sur l'hôte). ls liste les fichiers sans les récupérer.
+
+## I|Real Time Response / Politique de réponse
+Un analyste disposant du rôle adéquat ne parvient pas à utiliser la commande get sur un serveur. Quelle est la cause probable ?
++ La politique de réponse de son groupe d'hôtes n'autorise pas cette fonction.
+- Le serveur n'est pas en confinement réseau.
+- Le serveur dispose d'une politique de prévention en mode « Aggressive », qui bloque les transferts de fichiers RTR vers le cloud.
+- Le capteur du serveur est trop récent.
+> Les droits RTR combinent le rôle de l'utilisateur et les politiques de réponse attribuées aux groupes d'hôtes. Une politique peut activer ou désactiver RTR, ou certaines fonctionnalités comme get, put, run et les scripts personnalisés. C'est utile pour restreindre les actions sur des systèmes sensibles.
+! Le confinement n'est pas requis. La politique de prévention ne contrôle pas RTR. Un capteur récent ne bloque pas get.
+
+## I|Real Time Response / Arrêt de processus
+Pendant une session RTR, l'analyste identifie un processus malveillant actif. Quelle commande l'arrête ?
++ kill, suivi de l'identifiant du processus.
+- rm, suivi du nom du processus.
+- reg delete, suivi du nom du processus et de sa clé de démarrage.
+- cd, suivi de l'identifiant du processus.
+> kill termine un processus à partir de son PID (obtenu avec ps). Cette commande relève du rôle Active Responder. La suppression du binaire sur le disque (rm) et la suppression de la persistance (reg delete, tâches planifiées) viennent ensuite, lors de l'éradication.
+! rm supprime un fichier, reg delete supprime une valeur de registre et cd change de répertoire.
+
+## I|Real Time Response / Hash
+Quelle commande RTR calcule le hash d'un fichier présent sur l'hôte sans le récupérer ?
++ filehash
+- get
+- memdump
+- zip
+> filehash renvoie les empreintes du fichier, ce qui permet de vérifier immédiatement sa réputation ou de rechercher le même fichier ailleurs, sans transférer l'échantillon.
+! get transfère le fichier, memdump crée un dump mémoire d'un processus et zip crée une archive.
+
+## I|Real Time Response / Journaux
+Pendant une session RTR sur un poste Windows, l'analyste veut consulter les derniers événements du journal Security sans récupérer de fichier. Quelle commande est appropriée ?
++ eventlog
+- netstat
+- ipconfig
+- mount
+> eventlog permet de consulter les journaux d'événements Windows depuis la session. netstat montre les connexions, ipconfig la configuration réseau et mount les volumes montés.
+! Les autres commandes ne donnent pas accès aux journaux d'événements.
+
+## A|Real Time Response / Dépôt d'outil
+L'équipe veut exécuter un outil de collecte forensique sur un hôte via RTR. Quelle démarche est correcte ?
++ L'ajouter aux « put files » de la console, puis put et run, avec le rôle Administrator.
+- Utiliser get pour envoyer l'outil depuis le poste de l'analyste vers l'hôte, puis l'exécuter avec la commande cat.
+- Copier l'outil par courriel sur l'hôte, puis l'exécuter avec cat.
+- Utiliser ls pour installer l'outil automatiquement.
+> Les fichiers utilisables avec put doivent d'abord être ajoutés à la bibliothèque de « put files » de la console. Les commandes put, run et put-and-run relèvent du rôle Administrator, et la politique de réponse doit autoriser ces fonctions.
+! get va de l'hôte vers le cloud, pas l'inverse. Le courriel et cat n'exécutent pas d'outil. ls ne fait que lister.
+
+## A|Real Time Response / Scripts personnalisés
+Un analyste veut exécuter le même script PowerShell de collecte sur plusieurs hôtes à chaque incident. Quelle fonctionnalité RTR est la plus adaptée ?
++ Des scripts personnalisés enregistrés, lancés avec runscript, si besoin en batch.
+- La commande cat sur chaque hôte, en copiant le script à la main dans une session distincte pour chaque incident.
+- Une exclusion IOA pour le script.
+- Une politique USB Device Control.
+> Les scripts personnalisés stockés dans la console sont exécutés avec runscript (rôle Administrator). Ils standardisent la collecte et réduisent les erreurs. Les sessions RTR peuvent être ouvertes sur plusieurs hôtes (batch) via la console ou l'API.
+! cat ne permet pas d'exécuter un script. Une exclusion IOA et Device Control n'ont aucun rôle dans l'exécution de scripts.
+
+## A|Real Time Response / Mémoire
+Un analyste soupçonne qu'un processus légitime héberge du code injecté. Quelle action RTR permet de préserver la preuve en mémoire avant de tuer le processus ?
++ Un dump mémoire du processus (memdump), récupéré avec get avant toute action.
+- Exécuter kill immédiatement, puis rechercher le code injecté dans le fichier exécutable du processus sur le disque.
+- Redémarrer l'hôte pour vider la mémoire.
+- Exécuter filehash sur le processus.
+> Le code injecté n'existe souvent qu'en mémoire. Un dump du processus (ou de la mémoire de l'hôte, selon les outils et l'OS) préserve cette preuve pour l'analyse. L'ordre de volatilité impose de collecter la mémoire avant de tuer le processus ou de redémarrer.
+! kill ou un redémarrage détruisent la preuve. filehash calcule le hash du fichier sur le disque, pas le contenu injecté en mémoire.
+
+## A|Real Time Response / Audit
+Pourquoi les sessions RTR sont-elles journalisées et auditables ?
++ Parce que RTR est puissant : chaque commande doit être traçable (qui, quand, où).
+- Pour permettre aux utilisateurs des hôtes de consulter et rejouer les commandes exécutées sur leur poste par le SOC.
+- Pour réduire la consommation réseau du capteur.
+- Parce que les commandes ne fonctionnent qu'après validation par CrowdStrike.
+> Les journaux d'audit RTR, disponibles dans la console et via les API (dont l'API Event Streams pour les événements de session), enregistrent les sessions et les commandes. Ils servent à contrôler l'usage d'un outil sensible et à documenter les actions de réponse.
+! L'audit ne sert pas aux utilisateurs finaux, n'a pas d'effet sur le réseau et ne requiert aucune validation par CrowdStrike.
+
+## A|Real Time Response / Remédiation de persistance
+Un analyste identifie une valeur malveillante dans HKCU\Software\Microsoft\Windows\CurrentVersion\Run d'un utilisateur. Quelle séquence RTR est la plus rigoureuse ?
++ reg query, get du binaire, kill du processus, reg delete de la valeur, rm du fichier, puis vérification.
+- Supprimer immédiatement le fichier avec rm, sans documentation.
+- Exécuter shutdown pour forcer l'utilisateur à se reconnecter.
+- Modifier la politique de prévention de l'hôte pour supprimer la valeur de registre lors de la prochaine synchronisation du capteur.
+> Une remédiation rigoureuse préserve d'abord la preuve (lecture, collecte), puis stoppe l'exécution, supprime la persistance et le fichier, et vérifie le résultat. Les commandes reg set et reg delete relèvent du rôle Active Responder. La ruche HKCU doit correspondre à l'utilisateur concerné.
+! Supprimer sans collecte détruit la preuve. Un arrêt de l'hôte ne supprime pas la persistance. Les politiques de prévention ne modifient pas le registre.
+
+## A|Real Time Response / Confinement et impact
+Un serveur de production critique est suspecté de compromission. Avant d'utiliser le confinement réseau, quelle vérification est indispensable ?
++ Évaluer l'impact métier, informer selon la procédure et autoriser si besoin certains flux pendant le confinement.
+- Aucune : le confinement doit toujours être appliqué immédiatement, sans concertation, car le capteur maintient automatiquement les flux applicatifs.
+- Désinstaller le capteur avant de confiner le serveur.
+- Vérifier que le serveur dispose de la dernière version de Windows.
+> Le confinement interrompt le service rendu par le serveur. Selon la procédure, il peut être décidé immédiatement (ransomware en cours) ou après concertation. Les listes d'adresses autorisées pendant le confinement permettent de conserver certains flux d'administration ou d'investigation.
+! Confiner sans évaluer l'impact peut causer une panne majeure. Désinstaller le capteur supprime la capacité de réponse. La version de Windows n'est pas un prérequis.
+
+## A|Real Time Response / Hôte hors ligne
+Un analyste tente d'ouvrir une session RTR sur un ordinateur portable hors ligne. Quelle affirmation est correcte ?
++ Des commandes peuvent être mises en file d'attente, mais aucune interaction directe n'est possible hors ligne.
+- RTR fonctionne normalement en temps réel même lorsque l'hôte est éteint, grâce à la copie de l'hôte conservée dans le cloud.
+- Le capteur réveille automatiquement l'hôte à distance.
+- La session redirige automatiquement les commandes vers un autre hôte.
+> RTR nécessite que le capteur soit connecté au cloud pour une interaction en direct. Falcon propose une mise en file d'attente des sessions et commandes pour les hôtes hors ligne, notamment via l'API, avec des limites de durée. Les capacités exactes dépendent de la version.
+! Un hôte éteint ne peut pas exécuter de commande. Le capteur ne réveille pas l'hôte et ne redirige rien vers un autre hôte.
+
+## A|Real Time Response / Batch
+Un indicateur malveillant (fichier dans C:\ProgramData\updater.exe) est découvert sur 40 hôtes. Quelle approche RTR est la plus efficace ?
++ Une session batch pour vérifier, collecter un échantillon, puis remédier de façon contrôlée.
+- Ouvrir 40 sessions manuelles successives, afin d'adapter la remédiation au contexte de chaque hôte sans risque d'erreur collective.
+- Supprimer le fichier uniquement sur le premier hôte.
+- Attendre que les utilisateurs signalent un problème.
+> Les sessions batch (console ou API) exécutent la même commande sur plusieurs hôtes. Associées à des scripts validés, elles accélèrent la remédiation à grande échelle tout en conservant la traçabilité. L'automatisation via Falcon Fusion SOAR ou l'API est également possible.
+! Les sessions manuelles sont lentes et sujettes aux erreurs. Remédier un seul hôte laisse les autres compromis. Attendre des signalements augmente le dwell time.
+
+## A|Real Time Response / Moindre privilège
+Un MSSP demande pour tous ses analystes Tier 1 le rôle RTR Administrator « pour aller plus vite ». Quelle recommandation faire ?
++ Refuser : lecture seule pour le Tier 1, droits supérieurs aux niveaux avancés, politiques de réponse restrictives.
+- Accepter, puisque les journaux d'audit enregistrent toutes les commandes et suffisent à compenser tout abus ou erreur de manipulation.
+- Accepter, mais désactiver les journaux d'audit pour ne pas les surcharger.
+- Supprimer RTR de la plateforme pour éviter les risques.
+> Le rôle Administrator permet de déposer et d'exécuter n'importe quel fichier ou script sur les hôtes : un compte compromis ou une erreur aurait un impact majeur. Le moindre privilège, la séparation des rôles et la restriction des politiques de réponse limitent ce risque.
+! L'audit détecte a posteriori, il ne prévient pas l'abus. Désactiver l'audit aggrave le risque. Supprimer RTR prive le SOC d'une capacité essentielle.
+
+## A|Real Time Response / Volatilité
+Lors d'une session RTR sur un hôte compromis, dans quel ordre collecter les éléments ?
++ Les éléments volatils (processus, réseau, mémoire), puis le disque, avant toute remédiation.
+- D'abord la suppression des fichiers malveillants pour stopper l'attaque, puis la collecte des journaux et de la mémoire restante.
+- D'abord un redémarrage pour stabiliser l'hôte, puis la collecte.
+- D'abord les journaux archivés sur les serveurs distants, puis la mémoire.
+> L'ordre de volatilité (RFC 3227) recommande de collecter d'abord ce qui disparaît rapidement. Dans RTR, cela correspond à ps, netstat et aux dumps mémoire, puis aux fichiers, au registre et aux journaux, avant toute action destructrice.
+! Supprimer ou redémarrer d'abord détruit des preuves. Les journaux distants sont les moins volatils et peuvent attendre.

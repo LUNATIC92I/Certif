@@ -1,0 +1,136 @@
+# MODULE 10 – Administration, Policies et Reporting
+
+## D|Administration / RBAC
+Quel principe doit guider l'attribution des rôles utilisateurs dans la console Falcon ?
++ Le moindre privilège.
+- Tous les utilisateurs doivent être administrateurs pour gagner du temps.
+- Les rôles sont attribués selon l'ancienneté dans l'entreprise.
+- Un seul compte partagé doit être utilisé par toute l'équipe.
+> Falcon propose des rôles prédéfinis (administration, analyse, lecture seule, RTR, gestion des exclusions, etc.) et, selon le tenant, des rôles personnalisés. Le moindre privilège limite l'impact d'un compte compromis ou d'une erreur.
+! Donner des droits d'administration à tous, attribuer selon l'ancienneté ou partager un compte rend l'audit impossible et augmente le risque.
+
+## D|Administration / Authentification
+Quelle mesure est essentielle pour protéger l'accès à la console Falcon ?
++ Le MFA, directement ou via un SSO d'entreprise protégé par MFA.
+- Un mot de passe identique pour tous les analystes.
+- L'accès à la console depuis n'importe quel poste personnel, à condition que le mot de passe soit complexe et renouvelé chaque mois.
+- La désactivation de la journalisation des connexions.
+> La console donne accès à des capacités puissantes (RTR, confinement, politiques). Elle impose le MFA pour les comptes locaux et peut s'intégrer à un fournisseur d'identité via SAML. Les connexions sont journalisées.
+! Un mot de passe partagé, un accès sans contrôle ou l'absence de journalisation sont des failles majeures.
+
+## D|Administration / Journaux d'audit
+À quoi servent les journaux d'audit de la plateforme Falcon ?
++ À tracer les actions des utilisateurs (connexions, politiques, exclusions, RTR).
+- À stocker les fichiers mis en quarantaine.
+- À enregistrer les frappes clavier et les écrans des utilisateurs des endpoints, pour les besoins des enquêtes internes.
+- À calculer le score CVSS des vulnérabilités.
+> L'audit répond à la question « qui a fait quoi, quand ». Il permet par exemple de retrouver qui a créé une exclusion ou levé un confinement. Les événements d'audit sont consultables dans la console et transmissibles à un SIEM via l'API Event Streams.
+! L'audit ne stocke pas les fichiers en quarantaine, n'enregistre pas les frappes clavier et ne calcule aucun score de vulnérabilité.
+
+## D|Administration / Types de politiques
+Quel type de politique Falcon contrôle les versions du capteur déployées sur un groupe d'hôtes ?
++ La politique de mise à jour du capteur (sensor update policy).
+- La politique de prévention, via son réglage de versions.
+- La politique Device Control.
+- La politique de réponse (response policy).
+> La politique de mise à jour du capteur définit la version cible (par exemple la dernière version, N-1, N-2 ou une version figée) et inclut la protection contre la désinstallation. Les autres politiques gèrent la prévention, les périphériques et les fonctions RTR.
+! Les autres politiques ne gèrent pas les versions du capteur.
+
+## D|Administration / Tableaux de bord
+Quel est l'intérêt des tableaux de bord et des rapports planifiés de Falcon ?
++ Suivre l'activité et la posture, et diffuser régulièrement des indicateurs.
+- Modifier automatiquement les politiques de prévention lorsque le nombre de détections dépasse un seuil défini.
+- Désinstaller les capteurs inactifs.
+- Remplacer les journaux d'audit.
+> Les tableaux de bord donnent une vue opérationnelle, et les rapports planifiés automatisent la communication des indicateurs. Ils soutiennent le pilotage : tendances des détections, couverture du parc, délais de traitement.
+! Les tableaux de bord ne modifient pas les politiques, ne désinstallent pas de capteurs et ne remplacent pas l'audit.
+
+## I|Administration / Mises à jour du capteur
+Une organisation veut bénéficier des nouvelles protections tout en limitant le risque lié à une nouvelle version du capteur sur ses serveurs critiques. Quelle stratégie adopter ?
++ La version N sur un groupe pilote et N-1 sur les serveurs critiques, avec suivi.
+- Désactiver définitivement les mises à jour du capteur.
+- Mettre à jour tous les hôtes vers chaque nouvelle version le jour de sa publication, sans pilote, pour profiter immédiatement des nouvelles protections.
+- Installer manuellement chaque mise à jour sur chaque serveur.
+> Les politiques de mise à jour permettent de choisir des versions automatiques relatives (N, N-1, N-2) ou des versions figées, par groupe d'hôtes. Un déploiement par anneaux combine rapidité de protection et maîtrise du risque.
+! Geler les versions prive des nouvelles protections. Tout mettre à jour sans pilote augmente le risque. L'installation manuelle ne passe pas à l'échelle.
+
+## I|Administration / Jeton de maintenance
+Un administrateur système doit désinstaller légitimement le capteur d'un serveur dont la protection contre la désinstallation est activée. Que lui faut-il ?
++ Le jeton de maintenance de l'hôte, obtenu par un utilisateur habilité.
+- Le CID du tenant.
+- L'AID d'un autre hôte du même groupe.
+- Le mot de passe administrateur local du serveur, saisi dans l'assistant de désinstallation lancé en mode sans échec.
+> Lorsque la protection est activée, la désinstallation exige un jeton de maintenance, spécifique à l'hôte ou global selon la configuration. Sa récupération est réservée à des rôles habilités et tracée, ce qui garantit le contrôle des désinstallations.
+! Le CID sert à l'installation. L'AID d'un autre hôte n'a aucune valeur ici. Les droits d'administrateur local ne suffisent pas, c'est précisément l'objet de la protection.
+
+## I|Administration / API
+Une équipe veut automatiser l'extraction des détections via l'API Falcon. Quelle pratique est recommandée ?
++ Un client API dédié, limité aux scopes nécessaires, avec un secret protégé et renouvelé.
+- Utiliser le compte d'un analyste et son mot de passe dans le script.
+- Créer un client API avec tous les scopes en écriture pour éviter les erreurs d'autorisation lors des évolutions futures du script.
+- Publier le secret du client dans un dépôt de code pour faciliter le partage.
+> L'API Falcon utilise OAuth2 avec un identifiant et un secret de client, et des scopes en lecture ou en écriture par service. Le moindre privilège s'applique aussi aux clients API, dont le secret doit être stocké dans un coffre et renouvelé.
+! Les identifiants personnels dans un script, des scopes excessifs ou un secret publié sont des failles majeures.
+
+## I|Administration / Notifications
+Comment être notifié automatiquement par e-mail ou messagerie collaborative lorsqu'une détection de sévérité critique apparaît ?
++ Par un workflow Falcon Fusion SOAR filtré sur la sévérité, avec une action de notification.
+- En activant l'option de notification par e-mail dans la politique de mise à jour du capteur des hôtes concernés.
+- En créant une exclusion IOA.
+- En réduisant la rétention des événements.
+> Falcon Fusion SOAR permet de créer des workflows : déclencheur (nouvelle détection, incident, événement d'audit…), conditions (sévérité, groupe d'hôtes) et actions (notification, création de ticket, confinement, etc.). Les connecteurs disponibles dépendent du tenant.
+! Les politiques de capteur, les exclusions et la rétention ne gèrent pas les notifications.
+
+## I|Administration / Gestion des hôtes
+Un hôte décommissionné apparaît toujours dans la console avec un dernier contact vieux de 60 jours. Quelle action est la plus appropriée ?
++ Vérifier le décommissionnement, puis masquer l'hôte (hide host).
+- Placer l'hôte en confinement réseau pour qu'il disparaisse des rapports.
+- Modifier le CID du tenant.
+- Créer une exclusion de visibilité pour cet hôte.
+> Les hôtes inactifs faussent les indicateurs (couverture, vulnérabilités). Le masquage retire l'hôte des vues actives. S'il se reconnecte, il redevient visible, ce qui peut révéler une erreur de décommissionnement.
+! Le confinement d'un hôte hors ligne n'a pas de sens. Le CID n'est pas concerné. Une exclusion de visibilité n'a aucun rapport avec l'inventaire.
+
+## I|Administration / Politiques par plateforme
+Pourquoi une politique de prévention créée pour Windows ne s'applique-t-elle pas aux hôtes macOS du même groupe ?
++ Parce que les politiques sont définies par plateforme.
+- Parce que macOS n'est pas pris en charge par Falcon.
+- Parce que les hôtes macOS doivent être placés dans un tenant distinct.
+- Parce que les politiques ne s'appliquent qu'aux serveurs.
+> Les réglages de prévention diffèrent selon le système d'exploitation. Les politiques sont donc créées par plateforme (Windows, macOS, Linux, et d'autres selon les modules), et un même groupe peut recevoir une politique pour chaque plateforme.
+! macOS est pris en charge, ne nécessite pas un autre tenant, et les politiques s'appliquent à tous les types d'hôtes.
+
+## I|Administration / Exclusions et gouvernance
+Comment encadrer la création d'exclusions dans un grand SOC ?
++ Rôles dédiés, justification, revue, exclusions précises et contrôle régulier par l'audit.
+- Permettre à tous les analystes de créer des exclusions sans justification, pour réduire au plus vite le bruit qui ralentit le triage des alertes.
+- Créer une exclusion globale sur C:\ pour éviter toute discussion.
+- Interdire toute exclusion, même pour les faux positifs avérés.
+> Les exclusions sont un vecteur de risque : une exclusion trop large crée un angle mort exploitable. Une gouvernance (rôle dédié, justification, revue, audit) équilibre réduction du bruit et sécurité.
+! Laisser chacun créer des exclusions, exclure C:\ ou tout interdire sont des extrêmes inadaptés.
+
+## A|Administration / Multi-CID
+Un groupe international dispose d'un tenant parent et de plusieurs tenants enfants (un par filiale). Quel avantage offre cette architecture Flight Control (multi-CID) ?
++ Une gestion et une visibilité centralisées, avec des données et politiques séparées par filiale.
+- La fusion automatique de toutes les données dans un seul tenant, sans séparation.
+- L'obligation d'héberger tous les tenants enfants dans le même cloud CrowdStrike que le parent, sans exception.
+- La suppression du besoin de rôles et de permissions.
+> Les architectures multi-CID (Falcon Flight Control) permettent à un tenant parent de superviser des tenants enfants : vue consolidée, gestion centralisée de certaines politiques, tout en respectant les besoins d'isolement des filiales. Les capacités exactes dépendent de la configuration contractuelle.
+! Les tenants ne sont pas fusionnés. L'architecture n'impose pas de règle sur le cloud de chaque pays et ne dispense pas de la gestion des rôles.
+
+## A|Administration / Audit d'une exclusion
+Après un incident, l'équipe découvre qu'une exclusion de visibilité sur C:\Temp a permis à l'attaquant d'opérer sans être vu. Quelle démarche est la plus appropriée ?
++ Restreindre l'exclusion, retrouver dans l'audit qui l'a créée, reconstituer l'activité et revoir le processus.
+- Conserver l'exclusion, car elle avait été validée par l'équipe applicative, et ajouter une règle IOA spécifique pour les outils de l'attaquant.
+- Supprimer les journaux d'audit pour éviter une recherche de responsabilité.
+- Désactiver toutes les détections du parc pendant l'analyse.
+> Les exclusions trop larges sont exploitées par les attaquants, qui déposent leurs outils dans les chemins exclus. L'audit permet de retracer la décision et d'améliorer la gouvernance. Les autres sources (SIEM, réseau, artefacts) aident à reconstituer l'activité invisible pour le capteur.
+! Conserver l'exclusion, détruire l'audit ou désactiver les détections aggraverait la situation.
+
+## A|Administration / Rôle personnalisé
+Une équipe d'audit interne doit consulter les détections et l'état des politiques, sans pouvoir modifier quoi que ce soit ni utiliser RTR. Quelle configuration est la plus appropriée ?
++ Un rôle en lecture seule adapté, sans RTR ni droit de modification.
+- Attribuer le rôle Falcon Administrator en demandant de ne rien modifier, les actions étant de toute façon tracées dans l'audit.
+- Partager le compte d'un analyste senior.
+- Créer un client API avec tous les scopes en écriture.
+> Les rôles en lecture seule et les rôles personnalisés permettent de donner une visibilité sans capacité d'action. Ce découpage respecte le moindre privilège et la séparation des fonctions entre opérations et audit.
+! Un rôle d'administration « sous consigne », un compte partagé ou un client API à pleins droits violent le moindre privilège.

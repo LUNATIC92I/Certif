@@ -1,0 +1,181 @@
+# MODULE 9 – Falcon Discover, Exposure Management et Device Control
+
+## D|Exposure Management / Objectif
+Quel est l'objectif de Falcon Exposure Management ?
++ Identifier, évaluer et prioriser les expositions pour réduire le risque avant exploitation.
+- Bloquer les malwares à l'exécution sur les postes.
+- Ouvrir des sessions de réponse à distance sur les hôtes.
+- Corréler les journaux des pare-feux et des proxys dans un SIEM pour détecter les attaques en cours sur le périmètre.
+> Exposure Management regroupe des capacités d'inventaire des actifs, de gestion des vulnérabilités (héritière de Falcon Spotlight), d'hygiène IT (héritière de Falcon Discover) et de surface d'attaque. Il s'agit de prévention par la réduction du risque. Les fonctions incluses dépendent de la licence.
+! Le blocage à l'exécution relève de Prevent, la réponse à distance de RTR et la corrélation de journaux du SIEM.
+
+## D|Discover / Inventaire
+Quelles informations Falcon Discover fournit-il pour l'hygiène IT ?
++ L'inventaire des hôtes gérés et non gérés, des applications et des comptes (dont les administrateurs).
+- Le contenu des courriels des utilisateurs.
+- Les mots de passe en clair des comptes du domaine, afin d'identifier les mots de passe faibles et réutilisés.
+- La facturation des licences Microsoft.
+> Discover s'appuie sur le capteur pour inventorier les applications et les comptes, et pour repérer les appareils non gérés observés sur le réseau. Ces informations révèlent des risques : logiciels obsolètes, administrateurs locaux inutiles, actifs sans protection.
+! Discover ne collecte ni courriels ni mots de passe, et ne gère pas de facturation.
+
+## D|Exposure Management / Analyse sans scan
+Quelle est la particularité de l'évaluation des vulnérabilités de Falcon (anciennement Falcon Spotlight) ?
++ Elle exploite le capteur déjà installé, sans scan réseau ni agent supplémentaire.
+- Elle nécessite un scanner réseau dédié, déployé dans chaque site, qui lance des scans authentifiés hebdomadaires.
+- Elle exige l'installation d'un second agent sur chaque hôte.
+- Elle n'analyse que les serveurs Linux.
+> L'approche « scanless » exploite les informations collectées par le capteur (versions de logiciels, configuration). Elle évite la charge réseau et les fenêtres de scan, et couvre aussi les postes nomades. La couverture exacte des produits dépend de la plateforme.
+! Il n'y a ni scanner réseau, ni second agent, et Windows, macOS et Linux sont couverts selon les produits.
+
+## D|Device Control / Classes
+Que désigne une « classe » de périphériques dans une politique Falcon Device Control ?
++ Une catégorie de périphériques USB (stockage de masse, imagerie, MTP/PTP…).
+- Un groupe d'utilisateurs Active Directory autorisés à utiliser des périphériques amovibles.
+- Un niveau de machine learning.
+- Un type de licence Falcon.
+> Device Control applique des politiques par classe de périphérique, avec des actions comme l'accès complet, la lecture seule, le blocage complet ou le blocage de l'exécution pour le stockage de masse. Des exceptions peuvent ensuite cibler des périphériques précis. Les classes et actions disponibles varient selon la plateforme.
+! Une classe ne désigne ni un groupe d'utilisateurs, ni un niveau de ML, ni une licence.
+
+## I|Discover / Actifs non gérés
+Comment Falcon peut-il identifier des appareils non gérés (sans capteur) sur le réseau ?
++ Grâce aux observations réseau des hôtes équipés du capteur.
+- En installant automatiquement le capteur sur tout appareil détecté, puis en le retirant des appareils non pris en charge.
+- En interrogeant les fournisseurs d'accès Internet.
+- En scannant Internet tout entier.
+> Les capteurs installés observent les autres appareils actifs sur le réseau local. Falcon en déduit une liste d'actifs non gérés, ce qui permet de repérer les angles morts (systèmes non protégés, équipements inconnus) et de prioriser le déploiement.
+! Falcon n'installe pas automatiquement le capteur, n'interroge pas les FAI et ne scanne pas Internet pour cela.
+
+## I|Exposure Management / Priorisation
+Pourquoi le score ExPRT.AI de Falcon est-il utile en plus du score CVSS ?
++ Parce qu'il estime le risque réel d'exploitation, d'après l'intelligence et l'activité observée.
+- Parce qu'il remplace l'identifiant CVE par un numéro interne.
+- Parce qu'il indique la date de publication du correctif et le délai de déploiement recommandé par l'éditeur.
+- Parce qu'il mesure uniquement la consommation CPU de l'application vulnérable.
+> Le CVSS mesure la sévérité intrinsèque, mais de nombreuses vulnérabilités « critiques » ne sont jamais exploitées. ExPRT.AI (Exploit Prediction Rating) intègre des données d'exploitation et d'intelligence pour concentrer l'effort sur ce qui compte.
+! ExPRT.AI ne remplace pas les CVE, n'est pas une date de correctif et ne mesure pas la performance.
+
+## I|Discover / Comptes
+Lors d'une revue d'hygiène, Falcon révèle que 300 utilisateurs standards sont administrateurs locaux de leur poste. Quel est le principal risque ?
++ Un code malveillant lancé dans la session dispose d'emblée de privilèges élevés.
+- Les postes consomment davantage de licences Falcon.
+- Les utilisateurs ne peuvent plus imprimer.
+- Le capteur passe automatiquement en Reduced Functionality Mode sur les postes dont l'utilisateur est administrateur local.
+> Le moindre privilège réduit l'impact d'une compromission. Les droits d'administrateur local permettent d'installer des pilotes, de modifier la configuration et d'accéder à des secrets. L'inventaire des comptes de Falcon aide à identifier et à réduire ces privilèges.
+! Les droits locaux n'affectent ni les licences, ni l'impression, ni l'état du capteur.
+
+## I|Exposure Management / Applications
+L'inventaire applicatif révèle une version obsolète d'un logiciel d'accès à distance installée sur 50 postes sans justification. Quelle action est la plus appropriée ?
++ Vérifier l'usage avec les métiers, désinstaller l'injustifié, mettre à jour le reste et surveiller.
+- Ignorer, car un logiciel installé sur 50 postes a forcément été validé par le processus d'achat et de déploiement de l'IT.
+- Bloquer le port 443 pour tout le parc.
+- Désinstaller le capteur Falcon de ces postes.
+> Les outils d'accès à distance non maîtrisés sont fréquemment détournés par les attaquants (T1219). L'inventaire applicatif permet de les repérer, de réduire la surface d'attaque et de prioriser la mise à jour.
+! Un logiciel installé n'est pas forcément autorisé. Bloquer le port 443 casserait l'activité. Retirer le capteur supprimerait la protection.
+
+## I|Device Control / Mode surveillance
+Pourquoi commencer un déploiement de Device Control en mode surveillance (monitor) ?
++ Pour inventorier les usages réels et préparer les exceptions avant de bloquer.
+- Parce que le mode surveillance bloque plus de périphériques que le mode d'application, ce qui permet de tester la politique la plus stricte.
+- Parce que le mode surveillance désactive les détections de malwares.
+- Parce que le mode application nécessite une licence différente pour chaque clé.
+> Le mode surveillance enregistre les connexions de périphériques sans les bloquer. L'équipe peut identifier les usages métier (scanners, clés chiffrées, équipements spécifiques) et créer des exceptions avant d'appliquer la politique.
+! Le mode surveillance ne bloque pas, n'affecte pas la détection des malwares et n'a pas de licence par clé.
+
+## I|Device Control / Exceptions
+Quel identifiant permet de créer l'exception la plus restrictive pour autoriser une seule clé USB précise ?
++ L'identifiant du fournisseur, celui du produit et le numéro de série.
+- Le nom de l'utilisateur connecté.
+- La lettre de lecteur attribuée par Windows au premier branchement de la clé.
+- La couleur du boîtier de la clé.
+> Les exceptions peuvent porter sur le fournisseur (Vendor ID), le produit (Product ID) et, lorsque le périphérique en fournit un, le numéro de série. Le numéro de série distingue un exemplaire précis, alors qu'une exception par fournisseur et produit autorise tout le modèle.
+! Le nom d'utilisateur ou la lettre de lecteur ne permettent pas d'identifier un périphérique. La couleur n'est pas un attribut technique.
+
+## A|Exposure Management / Risque contextualisé
+Deux hôtes présentent la même vulnérabilité critique : un serveur exposé sur Internet hébergeant une application métier, et un poste de test isolé. Comment prioriser ?
++ D'abord le serveur exposé, compte tenu de l'exploitabilité, de l'exposition et de la criticité.
+- Traiter d'abord le poste de test, car il est plus facile à corriger et permet de valider le correctif avant de toucher à la production.
+- Traiter les deux simultanément sans distinction, car le CVE est identique.
+- Ne traiter aucun des deux tant qu'une détection n'apparaît pas.
+> La gestion des expositions vise le risque, pas seulement la sévérité technique. Un actif exposé et critique, touché par une vulnérabilité exploitable, présente un risque bien supérieur. Les données d'actifs et d'exposition de Falcon soutiennent cette priorisation.
+! La facilité de correction ou l'identité du CVE ne reflètent pas le risque. Attendre une détection revient à accepter l'exploitation.
+
+## A|Exposure Management / Vulnérabilité sans correctif
+Une vulnérabilité critique activement exploitée touche un composant pour lequel aucun correctif n'est encore disponible. Quelle stratégie adopter ?
++ Des mesures compensatoires (configuration, exposition, détection ciblée), puis le correctif dès que possible.
+- Attendre le correctif sans autre action.
+- Désinstaller le capteur des hôtes touchés pour éviter les conflits avec la future mise à jour du composant vulnérable.
+- Supprimer le CVE de l'inventaire pour améliorer le score de risque.
+> En l'absence de correctif, la défense repose sur la réduction de la surface (désactivation de la fonction vulnérable, filtrage), sur la détection (IOA, règles personnalisées, chasse) et sur les protections contre les exploits. L'intelligence aide à connaître les techniques d'exploitation.
+! Attendre passivement expose l'organisation. Retirer le capteur ou masquer la vulnérabilité aggrave le risque.
+
+## A|Exposure Management / Couverture
+L'inventaire montre 2 000 hôtes non gérés sur 20 000 actifs. Quelle démarche est la plus pertinente ?
++ Classer ces actifs, déployer le capteur là où c'est possible et compenser ailleurs.
+- Ignorer ces actifs, puisqu'ils ne génèrent aucune détection.
+- Couper immédiatement le réseau de tous les actifs non gérés, puis les réactiver un par un après validation par leurs propriétaires.
+- Supprimer ces actifs de l'inventaire pour améliorer les indicateurs.
+> Les actifs non gérés sont des angles morts privilégiés par les attaquants. La priorisation permet d'étendre la couverture là où c'est possible et d'isoler les équipements qui ne peuvent pas recevoir de capteur (IoT, systèmes industriels).
+! Ignorer ou masquer ces actifs ne réduit pas le risque. Une coupure brutale peut interrompre des services légitimes.
+
+## A|Device Control / Blocage de l'exécution
+Une organisation veut permettre la lecture et l'écriture de documents sur clé USB, mais empêcher l'exécution de programmes depuis ces clés. Quelle configuration Device Control correspond ?
++ Autoriser le stockage de masse avec l'option de blocage de l'exécution.
+- Bloquer complètement la classe de stockage de masse.
+- Autoriser le stockage de masse en accès complet, l'exécution étant de toute façon contrôlée par le ML.
+- Créer une exclusion ML sur la lettre de lecteur E:.
+> Device Control peut, pour le stockage de masse, combiner un accès en lecture et écriture avec le blocage de l'exécution. Cela réduit le risque d'infection par un programme lancé depuis une clé, tout en préservant l'échange de documents.
+! Le blocage complet empêche l'usage métier. L'accès complet autorise l'exécution. Une exclusion ML affaiblirait la protection.
+
+## A|Device Control / Contournement
+Un utilisateur contourne le blocage du stockage de masse en connectant un smartphone en mode transfert de fichiers. Quelle explication et quelle correction ?
++ Le smartphone relève d'une autre classe (MTP/PTP), non bloquée : il faut la couvrir aussi.
+- Le capteur ne prend pas en charge les smartphones, qui chiffrent leurs échanges USB : aucune correction n'est donc possible côté poste.
+- Le smartphone désactive le capteur Falcon par Bluetooth.
+- Il suffit de bloquer le port 443 sur le poste.
+> Les smartphones et appareils photo exposent souvent un mode MTP/PTP, distinct du stockage de masse. Une politique cohérente doit couvrir toutes les classes concernées par le risque de fuite ou d'infection, avec des exceptions maîtrisées.
+! Le capteur peut contrôler cette classe. Le smartphone ne désactive pas le capteur. Le port 443 n'a aucun rapport avec l'USB.
+
+## A|Device Control / Investigation
+Après une fuite de données suspectée, l'équipe veut savoir quels périphériques USB ont été connectés au poste d'un employé le mois dernier. Quelle source utiliser ?
++ La télémétrie et les rapports Device Control de cet hôte.
+- La politique de mise à jour du capteur.
+- Le journal d'audit des connexions à la console Falcon, qui enregistre aussi les périphériques branchés par les utilisateurs.
+- La liste des fichiers en quarantaine.
+> Falcon enregistre les connexions de périphériques USB, avec leurs identifiants et les actions de politique appliquées. Ces données, consultables dans la console ou par requête, permettent de reconstituer l'usage des supports amovibles.
+! Les politiques de capteur, l'audit de la console et la quarantaine ne contiennent pas l'historique des périphériques.
+
+## A|Exposure Management / Surface externe
+Quel apport offre la gestion de la surface d'attaque externe dans une stratégie d'Exposure Management ?
++ Découvrir, comme un attaquant, les actifs exposés sur Internet, y compris oubliés.
+- Mesurer la vitesse de la connexion Internet de l'entreprise.
+- Remplacer les politiques de prévention des postes de travail par un filtrage des connexions entrantes depuis Internet.
+- Bloquer les sites web consultés par les employés.
+> La surface externe comprend des services exposés parfois inconnus de l'IT : serveurs de test, applications cloud, sous-domaines oubliés. Les identifier et les évaluer permet de corriger les expositions avant leur exploitation. Le produit dédié et son nom dépendent de l'offre CrowdStrike.
+! Il ne s'agit ni de mesurer le débit, ni de remplacer les politiques, ni de filtrer la navigation.
+
+## A|Discover / Indicateur de compromission dans l'inventaire
+L'inventaire applicatif révèle sur un seul serveur un outil d'administration à distance inconnu, installé la nuit dernière par un compte de service. Quelle démarche adopter ?
++ Un indicateur potentiel de compromission : investiguer l'installation et le réseau, puis escalader.
+- La considérer comme une simple anomalie d'inventaire à corriger lors de la prochaine revue trimestrielle.
+- Supprimer l'entrée de l'inventaire.
+- Ajouter l'outil à une exclusion ML.
+> Les attaquants installent souvent des outils RMM légitimes pour maintenir l'accès. Un logiciel rare, installé hors processus par un compte de service, mérite une investigation immédiate. L'inventaire devient ainsi une source de détection.
+! Attendre ou masquer la découverte laisse l'attaquant opérer. Exclure l'outil le rendrait invisible.
+
+## A|Exposure Management / Mesure de progrès
+Comment mesurer l'efficacité d'un programme de gestion des vulnérabilités appuyé sur Falcon ?
++ Suivre les expositions à fort risque sur les actifs critiques et le délai de remédiation.
+- Compter uniquement le nombre total de CVE détectées chaque mois, quelle que soit leur gravité ou l'actif concerné.
+- Mesurer le nombre de pages de la politique de sécurité.
+- Compter le nombre de capteurs mis à jour chaque jour.
+> Les indicateurs de risque (expositions critiques, délais de remédiation par niveau de risque, couverture des actifs) reflètent mieux la réduction réelle du risque qu'un volume brut de vulnérabilités, dominé par des éléments à faible impact.
+! Le volume brut, la documentation ou la mise à jour des capteurs ne mesurent pas la réduction du risque lié aux vulnérabilités.
+
+## A|Device Control / Exception temporaire
+Un auditeur externe doit utiliser une clé USB pendant deux jours sur trois postes. Quelle approche respecte le mieux la sécurité ?
++ Une exception ciblée sur la clé, limitée aux postes concernés et retirée en fin de mission.
+- Désactiver Device Control sur tout le parc pendant deux jours.
+- Autoriser de façon permanente toutes les clés du même fabricant, afin de ne pas devoir créer une nouvelle exception lors de la prochaine mission.
+- Demander à l'auditeur de copier les fichiers par courriel personnel.
+> Une exception précise, limitée dans le temps et le périmètre, répond au besoin sans affaiblir la politique globale. Sa suppression doit être planifiée et tracée.
+! Désactiver la politique ou autoriser durablement tout un fabricant crée une faille. Le courriel personnel pose un problème de confidentialité.

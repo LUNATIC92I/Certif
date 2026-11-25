@@ -1,0 +1,271 @@
+# MODULE 4 – Threat Hunting et Falcon Advanced Event Search
+
+## D|Threat Hunting / Définition
+Qu'est-ce que le threat hunting dans le contexte de Falcon ?
++ Une recherche proactive, guidée par des hypothèses, d'activités qui n'ont pas été détectées.
+- Le traitement des détections dans l'ordre de leur arrivée, avec escalade des cas avérés.
+- La mise à jour des capteurs vers la dernière version.
+- La création de comptes utilisateurs dans la console.
+> Le threat hunting suppose qu'un adversaire peut déjà être présent sans avoir été détecté. Le chasseur formule une hypothèse (par exemple un abus de rundll32) et l'explore dans la télémétrie, notamment avec Advanced Event Search. Les résultats alimentent de nouvelles détections.
+! Le traitement des détections relève du triage. La mise à jour des capteurs et la gestion des comptes sont des tâches d'administration.
+
+## D|Advanced Event Search / Langage
+Quel langage est utilisé pour écrire des requêtes dans Advanced Event Search (basé sur la technologie LogScale) ?
++ Le CrowdStrike Query Language (CQL), qui chaîne filtres et fonctions par des pipes.
+- Le SQL standard, avec des clauses SELECT, FROM, WHERE et GROUP BY sur les tables d'événements.
+- Le KQL de Microsoft Sentinel.
+- Le langage Python, exécuté dans la console.
+> Advanced Event Search utilise CQL (CrowdStrike Query Language, issu de LogScale). Une requête enchaîne des filtres (champ=valeur, champ=/regex/), puis des fonctions comme groupBy(), count(), sort() ou table(), séparées par le caractère pipe.
+! CQL n'est ni du SQL, ni du KQL, ni du Python, même si certains concepts se ressemblent.
+
+## D|Advanced Event Search / Événement de processus
+Quel événement de la télémétrie Falcon représente la création (l'exécution) d'un processus sur un hôte ?
++ ProcessRollup2.
+- DnsRequest.
+- NetworkConnectIP4.
+- UserLogon.
+> ProcessRollup2 décrit le lancement d'un processus : nom de l'image, ligne de commande, hashs, utilisateur, identifiants de processus et de parent. C'est l'événement le plus utilisé en chasse. SyntheticProcessRollup2 correspond à des processus reconstitués pour des processus déjà en cours.
+! DnsRequest décrit une résolution DNS, NetworkConnectIP4 une connexion réseau sortante IPv4 et UserLogon une ouverture de session.
+
+## D|Advanced Event Search / Événement DNS
+Quel événement interroger pour savoir quels hôtes ont résolu un nom de domaine suspect ?
++ DnsRequest, en filtrant sur le champ DomainName.
+- ProcessRollup2, en filtrant sur le champ CommandLine.
+- UserLogonFailed2, en filtrant sur le champ UserName.
+- AsepValueUpdate, en filtrant sur la clé de registre.
+> L'événement DnsRequest enregistre les requêtes DNS émises par les processus, avec le nom de domaine demandé (DomainName) et l'identifiant du processus émetteur (ContextProcessId). Il permet de relier une résolution à un processus précis.
+! La ligne de commande ne contient pas toujours le domaine. Les échecs de connexion et les modifications d'ASEP ne concernent pas le DNS.
+
+## D|Threat Hunting / Hypothèse
+Quelle formulation est une bonne hypothèse de chasse ?
++ « Un attaquant exécute via rundll32.exe des DLL placées dans des dossiers inscriptibles par les utilisateurs. »
+- « Le réseau est peut-être compromis quelque part : il faut examiner tous les événements des 90 derniers jours sans exception. »
+- « Il faut acheter plus de licences Falcon. »
+- « Tous les utilisateurs sont suspects. »
+> Une hypothèse doit être précise, testable et liée à une technique (ici T1218.011) et à des données disponibles (ProcessRollup2 : nom d'image et ligne de commande). Elle débouche sur une requête et une conclusion claire.
+! Les autres formulations sont trop vagues, sans rapport avec la chasse, ou impossibles à tester.
+
+## D|Threat Hunting / Stack counting
+Un chasseur liste tous les exécutables lancés au démarrage sur 10 000 hôtes et examine ceux présents sur un ou deux hôtes seulement. Quelle technique applique-t-il ?
++ Le stack counting (analyse de fréquence de la « longue traîne »).
+- L'analyse dynamique en sandbox des binaires de démarrage.
+- Le confinement réseau.
+- L'analyse statique d'un binaire.
+> Le stack counting agrège un attribut sur l'ensemble du parc et s'intéresse aux valeurs rares, qui se trouvent souvent dans la « longue traîne ». Dans Advanced Event Search, il se réalise typiquement avec groupBy() et un tri sur le nombre d'occurrences.
+! La sandbox exécute un fichier, le confinement isole un hôte et l'analyse statique examine un seul binaire.
+
+## I|Advanced Event Search / Agrégation
+Quelle requête CQL compte les exécutions de PowerShell par hôte sur les postes Windows ?
++ #event_simpleName=ProcessRollup2 event_platform=Win ImageFileName=/\\powershell\.exe$/i | groupBy([ComputerName])
+- SELECT ComputerName, COUNT(*) FROM ProcessRollup2 WHERE ImageFileName LIKE '%powershell.exe' GROUP BY ComputerName
+- platform_name:'Windows'+ImageFileName:'powershell.exe'
+- #event_simpleName=DnsRequest DomainName=powershell.exe | groupBy([ComputerName])
+> La requête filtre l'événement de processus, la plateforme Windows et le nom d'image par expression régulière insensible à la casse, puis groupBy() agrège par hôte. Par défaut, groupBy() calcule un décompte (_count).
+! La syntaxe SQL n'est pas celle de CQL. La troisième proposition est un filtre FQL, utilisé pour les API et certains filtres de la console, pas pour Advanced Event Search. DnsRequest ne contient pas les exécutions de processus.
+
+## I|Advanced Event Search / Expressions régulières
+Dans une requête CQL, que fait le filtre CommandLine=/-enc/i ?
++ Il conserve les lignes de commande contenant « -enc », sans tenir compte de la casse.
+- Il exclut les événements dont la ligne de commande contient « -enc ».
+- Il chiffre la ligne de commande avant l'affichage.
+- Il ne conserve que les lignes de commande exactement égales à « -enc », en respectant strictement la casse indiquée.
+> En CQL, champ=/regex/ applique une expression régulière, et le drapeau i la rend insensible à la casse. Sans ancre (^ ou $), la correspondance porte sur une sous-chaîne. Ce filtre est utile pour repérer les paramètres -enc ou -EncodedCommand de PowerShell.
+! Pour exclure, il faudrait une négation (par exemple CommandLine!=/-enc/i). Le filtre ne chiffre rien et ne demande pas d'égalité stricte.
+
+## I|Advanced Event Search / FQL vs CQL
+Un administrateur doit filtrer, via l'API Hosts, les hôtes Windows dont le nom commence par « SRV ». Quelle syntaxe est correcte ?
++ Un filtre FQL du type platform_name:'Windows'+hostname:'SRV*'.
+- Une requête CQL du type #event_simpleName=ProcessRollup2 | groupBy([hostname]).
+- Une requête SQL du type SELECT * FROM hosts WHERE hostname LIKE 'SRV%'.
+- Une expression XPath sur le journal d'événements Windows.
+> Le Falcon Query Language (FQL) sert à filtrer les ressources de la plateforme (hôtes, détections, politiques) dans les API et dans plusieurs vues de la console. Il utilise la syntaxe propriété:'valeur', le signe + pour ET, la virgule pour OU, ! pour la négation et * comme joker.
+! CQL sert à interroger la télémétrie d'événements, pas l'inventaire des hôtes via l'API. SQL et XPath ne sont pas utilisés par les API Falcon.
+
+## A|Advanced Event Search / Lien entre événements
+Comment relier un événement DnsRequest au processus qui a effectué la requête ?
++ En reliant son ContextProcessId au TargetProcessId du ProcessRollup2 du même aid.
+- En faisant correspondre le nom de domaine demandé à la ligne de commande du processus, qui contient toujours les domaines contactés.
+- En utilisant le numéro de port 53 comme identifiant de processus.
+- En comparant uniquement les horodatages à la seconde près.
+> Dans la télémétrie Falcon, chaque processus possède un identifiant unique (TargetProcessId dans ProcessRollup2). Les événements générés par ce processus (DNS, réseau, fichiers) le référencent dans ContextProcessId. La jointure doit aussi porter sur l'aid, car ces identifiants sont propres à chaque hôte.
+! Le domaine n'apparaît pas forcément dans la ligne de commande. Le port n'identifie pas un processus. Les horodatages seuls produisent des associations fausses.
+
+## I|Threat Hunting / Persistance par registre
+Quel événement Falcon chasser pour repérer des modifications de clés de démarrage automatique (Run, RunOnce, services) ?
++ AsepValueUpdate, qui signale les modifications des points de démarrage automatique.
+- DnsRequest, qui signale les requêtes DNS.
+- NetworkConnectIP4, qui signale les connexions sortantes vers les clés de registre distantes.
+- UserLogonFailed2, qui signale les échecs d'authentification.
+> Les ASEP (Auto-Start Extensibility Points) sont les emplacements utilisés pour la persistance : clés Run et RunOnce, services, Winlogon. AsepValueUpdate inclut la clé, la valeur écrite et le processus responsable, ce qui permet de repérer une persistance de type T1547.001.
+! Les événements DNS, réseau et d'échec d'authentification ne décrivent pas les modifications de registre.
+
+## I|Threat Hunting / Mouvement latéral
+Quel champ de l'événement UserLogon aide à distinguer une ouverture de session RDP d'une ouverture de session réseau (par exemple un accès SMB) ?
++ LogonType : 10 pour une session RDP, 3 pour une ouverture de session réseau.
+- DomainName, qui contient le domaine DNS résolu.
+- SHA256HashData, qui contient le hash de l'utilisateur.
+- RemotePort, qui vaut toujours 3389 pour une session RDP et 445 pour une session réseau SMB.
+> Le type d'ouverture de session suit la nomenclature Windows : 2 interactive, 3 réseau, 10 RemoteInteractive (RDP), etc. Combiné à l'adresse distante et au compte, il aide à repérer des connexions inhabituelles entre postes, typiques du mouvement latéral (T1021).
+! DomainName concerne le DNS. Le hash SHA256 se rapporte aux fichiers. RemotePort appartient aux événements réseau et ne qualifie pas une session locale.
+
+## I|Advanced Event Search / Tri et limitation
+Après un groupBy([ImageFileName]), comment afficher les 20 valeurs les plus rares ?
++ En ajoutant | sort(_count, order=asc) | head(20).
+- En ajoutant | delete(_count).
+- En remplaçant groupBy() par un filtre FQL du type _count:<20+sort:'asc'.
+- En ajoutant | encrypt(ImageFileName).
+> groupBy() produit un champ _count par valeur. Un tri ascendant sur ce champ place les valeurs les plus rares en premier, et head() limite le nombre de lignes affichées. C'est l'implémentation classique du stack counting en CQL.
+! delete() et encrypt() ne sont pas des fonctions CQL adaptées à ce besoin. FQL ne sert pas à agréger la télémétrie.
+
+## I|Threat Hunting / LOLBins
+Un chasseur veut repérer l'utilisation de certutil.exe pour télécharger des fichiers. Quel filtre est le plus pertinent ?
++ ProcessRollup2 filtré sur certutil.exe avec une ligne de commande contenant urlcache ou http.
+- Un filtre sur UserLogon avec LogonType=2.
+- Un filtre sur DnsRequest avec DomainName=certutil.exe, puisque certutil résout son propre nom avant chaque téléchargement.
+- Un filtre FQL sur les politiques de prévention.
+> Certutil est un binaire Windows légitime souvent détourné pour télécharger des charges (T1105). Les arguments -urlcache, -split ou une URL dans la ligne de commande sont des indicateurs forts. Le résultat peut ensuite être agrégé par hôte et par utilisateur.
+! Les ouvertures de session, les requêtes DNS sur un nom de fichier et les politiques ne permettent pas d'identifier ce comportement.
+
+## I|Threat Hunting / Connexions réseau
+Quel événement et quels champs utiliser pour identifier les processus qui établissent des connexions sortantes vers le port 4444 ?
++ NetworkConnectIP4 (RemotePort, RemoteAddressIP4), relié au processus par ContextProcessId.
+- ProcessRollup2 avec le champ RemotePort, renseigné lorsque le processus ouvre une connexion sortante.
+- AsepValueUpdate avec le champ RemoteAddressIP4.
+- UserLogonFailed2 avec le champ LogonType.
+> NetworkConnectIP4 décrit les connexions sortantes : adresse et port distants, adresse et port locaux, processus émetteur. Le port 4444 est le port par défaut de certains outils offensifs ; une connexion vers ce port depuis un processus inattendu justifie une investigation.
+! ProcessRollup2 ne contient pas le port distant. Les modifications de registre et les échecs de connexion n'ont pas de champ de destination réseau.
+
+## I|Threat Hunting / Nouveaux exécutables
+Quel type d'événement permet de repérer l'écriture d'un nouvel exécutable sur le disque, par exemple dans un répertoire temporaire ?
++ Un événement d'écriture d'exécutable (par exemple NewExecutableWritten ou PeFileWritten).
+- L'événement UserLogon, qui contient le nom du fichier ouvert.
+- L'événement DnsRequest, qui contient le chemin du fichier téléchargé.
+- La politique de mise à jour du capteur, qui liste les fichiers exécutables écrits sur l'hôte depuis la dernière mise à jour.
+> La télémétrie Falcon distingue les écritures de fichiers exécutables. Combinés au processus responsable, ces événements permettent de repérer un dropper qui dépose une charge dans %TEMP%, %APPDATA% ou C:\Users\Public. Les noms d'événements disponibles peuvent varier selon la plateforme et la version du capteur.
+! Les événements de connexion et DNS ne contiennent pas de chemin de fichier. Une politique ne liste pas les fichiers écrits.
+
+## A|Threat Hunting / PowerShell encodé
+Quelle requête CQL est la plus adaptée pour lister les hôtes, utilisateurs et lignes de commande des PowerShell lancés avec un paramètre encodé ?
++ #event_simpleName=ProcessRollup2 ImageFileName=/\\powershell\.exe$/i CommandLine=/\s-(e|en|enc|encodedcommand)\s/i | groupBy([ComputerName, UserName, CommandLine])
+- #event_simpleName=ProcessRollup2 CommandLine=/powershell/i | groupBy([ComputerName, UserName, CommandLine]) | head(1)
+- #event_simpleName=DnsRequest DomainName=/encodedcommand/i | groupBy([ComputerName])
+- platform_name:'Windows'+ImageFileName:'*powershell.exe'+CommandLine:'*-enc*',CommandLine:'*-encodedcommand*'
+> PowerShell accepte des abréviations du paramètre -EncodedCommand (-e, -en, -enc…). La requête cible ces variantes avec une expression régulière insensible à la casse, puis agrège par hôte, utilisateur et ligne de commande pour faciliter la revue. Le contenu encodé (Base64 UTF-16LE) peut ensuite être décodé pour analyse.
+! head(1) ne renvoie qu'un événement. DnsRequest ne contient pas de ligne de commande. La dernière proposition est un filtre FQL, qui ne s'applique pas à la télémétrie d'Advanced Event Search.
+
+## A|Threat Hunting / Relations parent-enfant
+Un chasseur veut identifier les processus cmd.exe ou powershell.exe lancés par des applications Office. Quel champ de ProcessRollup2 est essentiel ?
++ Le nom du processus parent (par exemple ParentBaseFileName), avec celui de l'enfant.
+- Le champ RemotePort du processus enfant.
+- Le champ DomainName du processus parent, qui contient le domaine Office ayant ouvert la session.
+- Le numéro de version du capteur de l'hôte.
+> La relation parent-enfant est l'un des signaux les plus efficaces : Word ou Excel ne lancent normalement pas d'interpréteur de commandes. Filtrer sur le parent (winword.exe, excel.exe, outlook.exe) et l'enfant (cmd.exe, powershell.exe, wscript.exe) révèle les macros malveillantes (T1204.002).
+! Le port, le domaine ou la version du capteur ne décrivent pas la relation entre processus.
+
+## A|Threat Hunting / Rareté sur plusieurs dimensions
+Pour détecter une persistance discrète, un chasseur veut trouver les valeurs écrites dans les clés Run présentes sur moins de trois hôtes du parc. Quelle approche CQL est la plus juste ?
++ AsepValueUpdate, agrégé par valeur avec un décompte distinct des aid, puis filtré sous trois hôtes.
+- Filtrer ProcessRollup2 et trier par heure, puis lire les 100 premiers résultats en notant à la main les valeurs de registre rencontrées.
+- Filtrer DnsRequest et agréger par domaine.
+- Utiliser un filtre FQL dans la gestion des hôtes avec le mot « Run ».
+> Le comptage distinct des hôtes par valeur de registre permet de repérer les persistances rares. Les logiciels légitimes apparaissent sur de nombreux hôtes, tandis qu'une persistance malveillante reste souvent isolée. Les noms de champs exacts doivent être vérifiés dans le schéma de l'événement.
+! Une lecture chronologique ne fait pas ressortir la rareté. DnsRequest ne contient pas le registre. FQL ne permet pas d'agréger la télémétrie.
+
+## A|Threat Hunting / Mouvement latéral par PsExec
+Quelle combinaison d'indicateurs est la plus pertinente pour chasser un mouvement latéral via PsExec ou un outil similaire ?
++ Des sessions réseau (type 3) d'un compte privilégié, puis une création de service et des enfants de services.exe.
+- Des requêtes DNS vers des domaines publics populaires.
+- Des connexions RDP (LogonType 2) au démarrage du poste, suivies de la création d'un profil utilisateur temporaire sur l'hôte cible.
+- Des mises à jour de capteur sur les hôtes cibles.
+> PsExec copie un binaire de service via les partages administratifs, crée un service puis l'exécute. On observe une authentification réseau, l'installation d'un service et des processus enfants de services.exe. Des variantes (Impacket, renommage de PSEXESVC) conservent ce schéma général.
+! Les requêtes DNS banales, les ouvertures de session locales et les mises à jour du capteur ne caractérisent pas ce mouvement latéral.
+
+## A|Threat Hunting / Jointure
+Un chasseur veut afficher, pour chaque requête DNS vers un domaine suspect, la ligne de commande du processus responsable. Quelle approche CQL est la plus adaptée ?
++ Rechercher ProcessRollup2 et DnsRequest, puis corréler TargetProcessId et ContextProcessId sur le même aid.
+- Exécuter deux requêtes séparées et comparer visuellement les horodatages, en associant chaque requête DNS au processus lancé juste avant.
+- Utiliser un filtre FQL sur l'API Detections.
+- Rechercher le domaine dans la ligne de commande uniquement.
+> La corrélation repose sur l'identifiant du processus (TargetProcessId dans ProcessRollup2, ContextProcessId dans DnsRequest) et sur l'aid. CQL propose des fonctions comme join(), ou des techniques d'agrégation qui regroupent les deux événements par clé commune. La méthode exacte dépend du volume et des préférences de requête.
+! La comparaison visuelle est peu fiable. L'API Detections ne contient pas toute la télémétrie. Le domaine n'apparaît généralement pas dans la ligne de commande.
+
+## A|Threat Hunting / Beaconing
+Comment chasser un beaconing C2 dans la télémétrie réseau Falcon ?
++ Agréger NetworkConnectIP4 par hôte, processus et destination, et repérer régularité et rareté.
+- Rechercher uniquement les connexions vers le port 53.
+- Lister les connexions des navigateurs vers les moteurs de recherche, car les implants imitent toujours ce trafic pour passer inaperçus.
+- Compter les ouvertures de session par utilisateur.
+> Un implant communique régulièrement avec son serveur. Les indicateurs sont : intervalles réguliers (avec un jitter faible), connexions continues 24 h/24, destination contactée par un seul ou très peu d'hôtes, processus émetteur inattendu. L'agrégation et le calcul d'écarts entre connexions mettent ces schémas en évidence.
+! Le port 53 ne couvre que le DNS. La navigation web et les ouvertures de session ne caractérisent pas un beaconing.
+
+## A|Threat Hunting / Chasse rétrospective
+Un rapport CTI publie aujourd'hui des IOC (hashs SHA256 et domaines) d'une campagne active depuis trois semaines. Quelle démarche est la plus complète ?
++ Rechercher rétroactivement hashs et domaines dans la télémétrie, puis ajouter les IOC pertinents au blocage.
+- Ajouter les IOC à la gestion des IOC uniquement, car Falcon applique automatiquement le blocage aux trois semaines d'événements déjà collectés.
+- Attendre une détection automatique avant d'agir.
+- Rechercher uniquement les hashs dans la liste des fichiers en quarantaine.
+> Les IOC permettent de bloquer l'avenir, mais une compromission antérieure doit être recherchée dans l'historique. La recherche rétroactive dans la télémétrie identifie d'éventuelles victimes déjà touchées. La période interrogeable dépend de la rétention du tenant.
+! Se limiter au blocage futur ou attendre une détection ignore une compromission passée. La quarantaine ne contient que les fichiers déjà détectés.
+
+## A|Threat Hunting / Faux positifs de chasse
+Une requête de chasse sur rundll32.exe renvoie 50 000 résultats, majoritairement légitimes. Quelle amélioration est la plus pertinente ?
++ Affiner : cibler les DLL hors chemins système et les lignes de commande inhabituelles, puis agréger.
+- Supprimer rundll32.exe de tous les hôtes.
+- Ne conserver que les 10 premiers résultats sans autre filtre, car les événements les plus anciens sont statistiquement les plus suspects.
+- Abandonner la chasse, car le binaire est trop courant.
+> Une bonne chasse réduit le bruit par le contexte : emplacement de la DLL, point d'entrée appelé, processus parent, fréquence sur le parc. L'agrégation et l'analyse de rareté font ressortir les anomalies sans les noyer dans l'activité légitime.
+! Supprimer un binaire système casserait Windows. Prendre les 10 premiers résultats est arbitraire. Abandonner revient à ignorer une technique très utilisée par les attaquants.
+
+## A|Threat Hunting / Comptes et échecs d'authentification
+Quel schéma, observé dans UserLogonFailed2 puis UserLogon, suggère une attaque par password spraying réussie ?
++ Des échecs sur de nombreux comptes depuis une même source, puis un succès pour l'un d'eux.
+- Un seul échec pour un compte, suivi d'un succès une minute plus tard.
+- Des ouvertures de session réussies le matin pour l'ensemble des employés.
+- Des échecs répétés pour un même compte de service à cause d'un ancien mot de passe enregistré.
+> Le password spraying (T1110.003) teste quelques mots de passe courants sur de nombreux comptes pour éviter le verrouillage. L'agrégation des échecs par source et par nombre de comptes distincts, puis la recherche d'un succès ultérieur, révèle une compromission possible.
+! Une faute de frappe isolée, l'activité normale du matin et un mot de passe obsolète sur un compte de service sont des causes bénignes fréquentes.
+
+## A|Threat Hunting / Industrialisation
+Une requête de chasse a permis de trouver une technique réellement utilisée par un attaquant. Que faire ensuite ?
++ La transformer en détection automatisée (règle ou IOA personnalisé), testée et documentée.
+- Supprimer la requête, puisque l'attaquant a été trouvé.
+- Conserver la requête dans un fichier local de l'analyste sans la partager, pour la réutiliser lors d'une prochaine chasse sur le même sujet.
+- Exécuter la requête manuellement une fois par an.
+> Le cycle de chasse se termine par l'industrialisation : une chasse fructueuse devient une détection. Selon la nature de la logique, on utilise une règle de corrélation de Next-Gen SIEM, une recherche planifiée ou une règle d'IOA personnalisée sur l'endpoint.
+! Supprimer, garder pour soi ou exécuter rarement la requête fait perdre le bénéfice de la chasse.
+
+## A|Advanced Event Search / Manipulation de champs
+Dans une requête CQL, à quoi sert l'opérateur := ?
++ À créer ou affecter un champ calculé.
+- À exprimer une égalité stricte dans un filtre FQL.
+- À commenter la fin d'une ligne de requête.
+- À joindre deux tenants différents.
+> En CQL, champ := expression crée un champ. Par exemple, on peut extraire le nom de fichier d'un chemin ou passer une valeur en minuscules pour fiabiliser les comparaisons. Les commentaires s'écrivent avec //, et les filtres avec champ=valeur.
+! := n'appartient pas à FQL, ne sert pas aux commentaires et ne permet pas de joindre des tenants.
+
+## A|Threat Hunting / Chasse sur plusieurs plateformes
+Un chasseur cherche des reverse shells sur des serveurs Linux. Quelle hypothèse et quelles données sont les plus pertinentes ?
++ Des shells lancés par des services web ou de bases de données, puis des connexions sortantes (event_platform=Lin).
+- Des modifications de clés Run du registre sur Linux, détectées par l'événement AsepValueUpdate sur les serveurs web exposés.
+- Des exécutions de powershell.exe avec -enc sur Linux.
+- Des ouvertures de session RDP de type 10 sur Linux.
+> Un reverse shell se manifeste souvent par un interpréteur lancé par un service exposé (nginx, apache, java, mysqld) et par une connexion sortante. La télémétrie Linux de Falcon fournit les processus et les connexions, avec des champs adaptés à cette plateforme.
+! Le registre, PowerShell -enc et RDP de type 10 sont des artefacts Windows.
+
+## A|Threat Hunting / Périmètre temporel
+Une requête de chasse sur 90 jours échoue ou devient très lente. Quelle optimisation est la plus efficace en CQL ?
++ Placer tôt les filtres sélectifs (#event_simpleName, plateforme, champs) et réduire la période.
+- Ajouter groupBy() avant tout filtre pour réduire le volume, puis appliquer les filtres sur le résultat agrégé, qui est beaucoup plus petit.
+- Remplacer tous les filtres par des expressions régulières sans ancre.
+- Lancer la même requête plusieurs fois en parallèle.
+> Les requêtes LogScale sont plus efficaces lorsque les filtres sélectifs, notamment les tags comme #event_simpleName, interviennent tôt. Les agrégations, jointures et expressions régulières larges sur de gros volumes coûtent cher. Il faut aussi vérifier que la période demandée est couverte par la rétention.
+! Agréger avant de filtrer traite inutilement toutes les données. Les regex sans ancre sont plus coûteuses. Les lancements parallèles ne corrigent pas une requête inefficace.
+
+## A|Threat Hunting / Validation des résultats
+Une chasse fait ressortir un binaire rare, non signé, lancé depuis C:\ProgramData sur un seul serveur. Quelle est l'étape suivante la plus appropriée ?
++ Contextualiser (parent, ligne de commande, réseau, fichiers, réputation), puis décider d'escalader.
+- Isoler immédiatement tous les serveurs du domaine.
+- Supprimer le binaire sans analyse ni collecte.
+- Ajouter le binaire à une exclusion de visibilité pour réduire le bruit, puis relancer la chasse afin de faire ressortir d'autres anomalies du parc.
+> Un résultat rare n'est pas forcément malveillant. L'analyse de contexte (chaîne de processus, réseau, fichiers, utilisateur, réputation) permet de conclure. Si l'activité est confirmée, l'incident est escaladé et des preuves sont collectées avant la remédiation.
+! Isoler tout le domaine est disproportionné. Supprimer sans analyse détruit des preuves. Exclure de la visibilité un binaire inconnu crée un angle mort.

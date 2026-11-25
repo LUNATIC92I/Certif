@@ -1,0 +1,226 @@
+# MODULE 2 – Falcon Endpoint Protection
+
+## D|Endpoint Protection / NGAV
+Qu'est-ce qui distingue principalement un NGAV comme Falcon Prevent d'un antivirus traditionnel ?
++ Il combine machine learning, IOA comportementaux et protection contre les exploits, sans dépendre surtout des signatures.
+- Il bloque uniquement les fichiers dont la signature figure dans une base centralisée mise à jour plusieurs fois par jour par l'éditeur.
+- Il analyse le trafic réseau en coupure sans agent sur le poste.
+- Il se limite à la détection, sans possibilité de bloquer une menace.
+> Un NGAV vise aussi les menaces inconnues et les attaques sans fichier. Falcon Prevent s'appuie sur du machine learning (sur le capteur et dans le cloud), sur des IOA comportementaux, sur la protection contre les exploits et sur l'intelligence sur les menaces.
+! Les signatures seules ne détectent pas les malwares inédits. Falcon Prevent fonctionne avec un agent et non en coupure réseau, et il peut bloquer, pas seulement détecter.
+
+## D|Endpoint Protection / Politiques de prévention
+Quel objet de la console définit les comportements de blocage (ML, comportements, exploits, quarantaine) appliqués à un ensemble d'hôtes ?
++ Une politique de prévention (prevention policy) attribuée à un ou plusieurs groupes d'hôtes.
+- Une politique de mise à jour du capteur (sensor update policy), qui fixe aussi les niveaux de blocage.
+- Un rôle utilisateur RBAC.
+- Une règle d'exclusion de visibilité du capteur.
+> Les prevention policies, définies par plateforme (Windows, macOS, Linux), regroupent les réglages de prévention et de détection. Elles sont attribuées à des host groups. Un hôte qui n'appartient à aucun groupe ciblé reçoit la politique par défaut de sa plateforme.
+! La sensor update policy gère les versions du capteur et la protection contre la désinstallation. Les rôles RBAC gèrent les droits des utilisateurs de la console. Une exclusion de visibilité réduit au contraire la collecte.
+
+## D|Endpoint Protection / Quarantaine
+Pourquoi faut-il activer l'option de quarantaine dans une politique de prévention ?
++ Pour neutraliser sur le disque les fichiers bloqués, et non seulement empêcher leur exécution.
+- Pour isoler automatiquement l'hôte du réseau à chaque détection.
+- Pour envoyer tous les fichiers du poste dans le cloud CrowdStrike.
+- Pour supprimer définitivement les fichiers détectés, sans possibilité de restauration, afin d'éviter toute réinfection.
+> Lorsqu'un fichier est jugé malveillant, le blocage empêche son exécution. La quarantaine le neutralise en plus sur le disque. Les fichiers en quarantaine sont listés dans la console et peuvent être restaurés (release) en cas de faux positif.
+! La quarantaine ne déclenche pas de confinement réseau et n'envoie pas tous les fichiers dans le cloud. Elle est réversible, contrairement à une suppression définitive.
+
+## D|Endpoint Protection / Groupes d'hôtes
+Quelle est la différence entre un groupe d'hôtes statique et un groupe dynamique ?
++ Le statique est rempli à la main ; le dynamique inclut automatiquement les hôtes répondant à une règle.
+- Le groupe statique s'applique aux serveurs, dont la configuration change peu, et le groupe dynamique aux postes de travail mobiles.
+- Le groupe dynamique change de politique chaque jour de manière aléatoire.
+- Le groupe statique ne peut recevoir qu'une seule politique, de prévention.
+> Les host groups servent à appliquer les politiques. Un groupe dynamique s'appuie sur une règle (par exemple le système d'exploitation, le type d'hôte ou des tags de regroupement) pour inclure automatiquement les nouveaux hôtes. Un groupe statique est géré à la main.
+! La différence ne dépend pas du type de machine, ne comporte rien d'aléatoire, et un groupe statique peut recevoir tous les types de politiques.
+
+## D|Endpoint Protection / Notifications utilisateur
+Quel est l'effet de l'option de notification des utilisateurs finaux dans une politique de prévention ?
++ Afficher un message à l'utilisateur du poste lorsqu'une action de prévention bloque une activité.
+- Envoyer un courriel au responsable de l'utilisateur à chaque connexion.
+- Demander à l'utilisateur d'approuver ou de refuser chaque blocage avant son application, afin de limiter les interruptions de travail.
+- Désactiver les alertes dans la console pour les hôtes concernés.
+> Les notifications informent l'utilisateur qu'une action a été bloquée par Falcon. Cela réduit les appels au support et facilite la compréhension de l'incident. Le blocage reste appliqué sans approbation de l'utilisateur.
+! Falcon n'envoie pas de courriels aux managers via ce réglage, ne laisse pas l'utilisateur annuler un blocage et ne supprime pas la détection côté console.
+
+## I|Endpoint Protection / Niveaux de machine learning
+Dans une politique de prévention, les curseurs de machine learning proposent des niveaux comme Cautious, Moderate, Aggressive et Extra Aggressive, séparément pour la détection et la prévention. Quelle configuration est cohérente pour un déploiement initial prudent ?
++ Une détection plus élevée que la prévention, pour observer avant d'élever le niveau de blocage.
+- Une prévention à « Extra Aggressive » et une détection désactivée, pour bloquer le maximum de menaces sans générer d'alertes inutiles dans la console.
+- Les deux curseurs désactivés, car le ML génère trop de faux positifs.
+- Une prévention supérieure à la détection, afin de bloquer ce qui n'a pas été détecté.
+> Les seuils de détection et de prévention sont réglables séparément. Une approche courante consiste à détecter plus largement qu'on ne bloque, à analyser les résultats et les faux positifs, puis à relever progressivement le niveau de prévention. La console n'autorise pas un niveau de prévention supérieur au niveau de détection.
+! Bloquer sans détecter ferait perdre la visibilité. Désactiver le ML supprime une protection essentielle. Une prévention supérieure à la détection n'a pas de sens et n'est pas permise.
+
+## I|Endpoint Protection / ML capteur et cloud
+Quelle différence existe entre le machine learning sur le capteur et le machine learning dans le cloud ?
++ Le ML sur capteur décide localement, même hors ligne ; le ML cloud est plus riche mais exige la connectivité.
+- Le ML sur capteur ne concerne que macOS, le ML cloud uniquement Windows.
+- Le ML cloud ne sert qu'à la détection des logiciels potentiellement indésirables (PUP), tandis que le ML capteur est dédié aux ransomwares et aux exploits.
+- Il n'existe aucune différence : il s'agit du même modèle exécuté au même endroit.
+> Falcon utilise des modèles embarqués dans le capteur pour décider immédiatement, y compris sans connexion. Les modèles cloud, alimentés par le Threat Graph, apportent un niveau d'analyse supplémentaire lorsque l'hôte est connecté. Les deux sont configurables dans la politique de prévention.
+! La répartition n'est ni par système d'exploitation ni par catégorie de menace, et les deux mécanismes ne sont pas identiques.
+
+## I|Endpoint Protection / Prévention comportementale
+Un document Word lance PowerShell avec une commande encodée qui télécharge un exécutable. Quel type de protection Falcon est conçu pour bloquer ce comportement même si l'exécutable téléchargé est inconnu ?
++ La prévention comportementale par IOA (processus, scripts et commandes suspects).
+- Le blocage par hash dans la gestion des IOC, qui nécessite que le fichier téléchargé ait déjà été identifié par la communauté.
+- La politique de mise à jour du capteur.
+- La politique USB Device Control.
+> Les IOA analysent les séquences de comportements (application Office qui lance un interpréteur, commande obfusquée, téléchargement puis exécution) indépendamment de la réputation du fichier. Les réglages comme « Suspicious Processes » et « Suspicious Scripts and Commands » permettent de bloquer ces chaînes.
+! Un blocage par hash ne couvre que les fichiers connus. La politique de mise à jour et le contrôle USB ne traitent pas ce scénario.
+
+## I|Endpoint Protection / Protection contre les exploits
+Quel ensemble de réglages relève de la protection contre l'exploitation de vulnérabilités dans une politique Windows ?
++ Force ASLR, Force DEP, Heap Spray Preallocation et SEH Overwrite Protection.
+- Quarantine, End User Notifications et Upload Unknown Executables.
+- Sensor Tampering Protection, Uninstall Protection et Additional User Mode Data (AUMD).
+- Mass storage, Imaging et MTP/PTP.
+> Les mitigations d'exploits renforcent les protections mémoire (ASLR, DEP) et bloquent des techniques classiques (heap spraying, écrasement de gestionnaire SEH, allocation de la page NULL). Elles rendent l'exploitation plus difficile, même pour une vulnérabilité non corrigée.
+! La quarantaine et les notifications concernent la gestion des fichiers et de l'utilisateur. La protection contre la désinstallation dépend de la politique de mise à jour du capteur. Les classes USB relèvent de Device Control.
+
+## I|Endpoint Protection / Ransomware
+Quels réglages d'une politique de prévention Windows ciblent spécifiquement les comportements de ransomware ?
++ Le blocage de la suppression des sauvegardes, la protection des clichés instantanés et la détection du chiffrement.
+- Force ASLR et Force DEP uniquement.
+- Les exclusions de visibilité du capteur sur les répertoires utilisateurs, qui accélèrent l'analyse des fichiers modifiés en masse par un ransomware.
+- Les classes de périphériques USB autorisées en lecture seule.
+> Falcon propose des protections dédiées au ransomware : blocage de la suppression des sauvegardes, audit ou protection des clichés instantanés, détection du chiffrement de fichiers et de familles connues. Elles ciblent les actions préparatoires (destruction des points de restauration) et le chiffrement lui-même.
+! ASLR et DEP sont des mitigations d'exploits génériques. Les exclusions de visibilité réduiraient la protection. Les classes USB ne concernent pas le ransomware.
+
+## I|Endpoint Protection / Précédence des politiques
+Un hôte appartient à deux groupes, chacun associé à une politique de prévention différente. Quelle politique s'applique ?
++ Celle qui a la précédence la plus élevée dans l'ordre des politiques.
+- La plus récente, c'est-à-dire la dernière créée.
+- La plus restrictive, calculée automatiquement réglage par réglage.
+- Les deux politiques sont fusionnées en additionnant leurs réglages.
+> Une seule politique de chaque type s'applique à un hôte. Lorsque plusieurs politiques ciblent ses groupes, l'ordre de précédence de la liste des politiques décide : la politique la plus haute l'emporte. Si aucune ne s'applique, c'est la politique par défaut.
+! Falcon ne choisit ni la plus récente, ni la plus restrictive, et ne fusionne pas les réglages.
+
+## I|Endpoint Protection / Exclusions ML
+Une application métier interne non signée est régulièrement bloquée par le machine learning. Quelle est l'approche la plus appropriée ?
++ Une exclusion ML ciblée sur le chemin précis de l'application et les groupes concernés, après validation.
+- Créer une exclusion de visibilité du capteur sur C:\ pour l'ensemble du parc, ce qui supprime définitivement les détections de l'application.
+- Désactiver le machine learning dans la politique de prévention de tout le parc.
+- Désinstaller le capteur des postes qui utilisent l'application.
+> Les exclusions ML empêchent le machine learning d'agir sur un chemin donné tout en préservant le reste de la protection, y compris les IOA comportementaux. Elles doivent être aussi précises que possible et limitées aux groupes d'hôtes nécessaires.
+! Une exclusion de visibilité sur C:\ aveuglerait le capteur. Désactiver le ML ou désinstaller le capteur supprimerait une protection essentielle pour tout le parc.
+
+## I|Endpoint Protection / Visibilité du capteur
+Pourquoi les exclusions de visibilité du capteur (Sensor Visibility Exclusions) doivent-elles être utilisées avec une extrême prudence ?
++ Parce qu'elles aveuglent le capteur sur ces processus et leurs enfants : ni télémétrie, ni détection.
+- Parce qu'elles augmentent fortement la consommation CPU et mémoire du capteur, qui doit alors analyser en continu les chemins exclus.
+- Parce qu'elles déclenchent automatiquement une isolation réseau de l'hôte.
+- Parce qu'elles ne s'appliquent qu'aux fichiers déjà en quarantaine.
+> Une exclusion de visibilité aveugle le capteur sur un chemin : pas de télémétrie, pas de détection, pas de prévention. Si un attaquant place son outil dans ce chemin ou lance des processus depuis l'exécutable exclu, il agit sans être vu. Elle est réservée à des problèmes de performance ou de compatibilité avérés, faute d'alternative.
+! Ces exclusions ne consomment pas de ressources supplémentaires, ne provoquent pas de confinement et ne concernent pas la quarantaine.
+
+## A|Endpoint Protection / Exclusions IOA
+Une détection comportementale se déclenche chaque nuit sur un script de sauvegarde légitime qui utilise une ligne de commande PowerShell spécifique. Quelle exclusion est la plus adaptée ?
++ Une exclusion IOA sur l'image et la ligne de commande du script, limitée aux groupes concernés.
+- Une exclusion ML sur powershell.exe pour tout le parc.
+- Une exclusion de visibilité du capteur sur C:\Windows\System32\WindowsPowerShell, limitée aux serveurs de sauvegarde.
+- Une entrée IOC « Allow » sur le hash SHA256 de powershell.exe.
+> Les exclusions IOA permettent d'exclure un comportement précis d'une détection donnée, en s'appuyant sur des expressions régulières (image et ligne de commande). Elles peuvent être créées depuis la détection elle-même. C'est la méthode la plus fine pour traiter un faux positif comportemental.
+! L'exclusion ML ne traite pas une détection IOA. L'exclusion de visibilité sur PowerShell créerait un angle mort massif. Autoriser le hash de powershell.exe, binaire légitime utilisé par les attaquants, n'aurait pas d'effet ciblé et serait dangereux.
+
+## A|Endpoint Protection / IOC Management
+Un analyste veut empêcher l'exécution d'un fichier malveillant identifié par son SHA256 sur tout le parc Windows, sans encombrer la console de détections répétées après l'éradication. Quelle action IOC choisir ?
++ « Block, hide detection » sur le hash, pour les plateformes concernées.
+- « Detect only » sur le hash, pour toutes les plateformes.
+- « Allow » sur le hash, puis une exclusion ML sur son chemin.
+- « No action » sur le hash.
+> La gestion des IOC personnalisés propose plusieurs actions : Allow, Block, Block and hide detection, Detect only et No action. « Block, hide detection » bloque l'exécution sans générer de nouvelle détection visible, ce qui convient quand la menace est connue et traitée. « Block » reste préférable si l'on veut être alerté de chaque nouvelle tentative.
+! « Detect only » ne bloque pas. « Allow » autoriserait le fichier. « No action » se limite à conserver l'indicateur, par exemple pour l'enrichissement.
+
+## A|Endpoint Protection / Upload des exécutables inconnus
+Quel est l'intérêt d'activer l'envoi des exécutables inconnus vers le cloud dans une politique de prévention ?
++ Permettre l'analyse cloud des fichiers jamais vus et fournir des échantillons aux analystes, selon la politique de confidentialité.
+- Sauvegarder les fichiers des utilisateurs en cas de ransomware.
+- Diffuser automatiquement les fichiers internes inconnus à la communauté publique de threat intelligence afin d'accélérer l'obtention d'un verdict.
+- Remplacer la quarantaine locale par une suppression côté cloud.
+> L'envoi des exécutables inconnus ou liés à une détection alimente l'analyse cloud (ML, éventuellement sandbox selon la licence) et met l'échantillon à disposition des analystes. Les organisations sensibles évaluent cette option au regard de leurs exigences de confidentialité.
+! Ce n'est pas une sauvegarde, les fichiers ne sont pas publiés publiquement et la quarantaine locale reste en place.
+
+## A|Endpoint Protection / Coexistence avec Microsoft Defender
+Après le déploiement de Falcon Prevent sur Windows, l'équipe souhaite que Falcon devienne l'antivirus principal reconnu par Windows. Quel réglage est concerné ?
++ L'enregistrement de Falcon dans le Centre de sécurité Windows, qui rend Defender Antivirus passif.
+- La protection contre la désinstallation dans la politique de mise à jour du capteur, qui désactive automatiquement les autres antivirus présents.
+- L'exclusion de visibilité de MsMpEng.exe.
+- La désinstallation manuelle de Windows sur les postes concernés.
+> Lorsque Falcon s'enregistre dans le Centre de sécurité Windows, il devient le fournisseur antivirus actif et Defender Antivirus passe en mode passif. Ce réglage est lié à l'activation de la quarantaine dans la politique de prévention. La coexistence doit être planifiée pour éviter des conflits.
+! La protection contre la désinstallation ne joue aucun rôle ici. Une exclusion de visibilité sur Defender aveuglerait Falcon sur ce processus. Désinstaller Windows n'a évidemment aucun sens.
+
+## A|Endpoint Protection / Tests de politique
+Avant de passer une politique de prévention en mode agressif sur 20 000 postes, quelle méthode est la plus sûre ?
++ Un groupe pilote représentatif, l'analyse des faux positifs et des exclusions, puis une extension progressive.
+- L'appliquer directement à tous les postes un vendredi soir, pour que les éventuels blocages touchent le moins d'utilisateurs possible avant le lundi.
+- Désactiver la détection pour ne pas surcharger le SOC pendant le déploiement.
+- Créer une exclusion de visibilité globale pendant la phase de test.
+> Un déploiement par anneaux (pilote, puis groupes élargis) permet d'identifier les impacts métier, de créer des exclusions ciblées et de valider le comportement. Les groupes d'hôtes et l'ordre de précédence facilitent cette approche.
+! Un déploiement global sans test expose à des blocages massifs. Désactiver la détection ou ajouter une exclusion globale ferait perdre la visibilité pendant la phase de test.
+
+## A|Endpoint Protection / Script control
+Un attaquant exécute un script malveillant directement en mémoire via un interpréteur légitime, sans écrire de fichier sur le disque. Quelle capacité de Falcon est la plus pertinente pour le détecter ou le bloquer ?
++ L'inspection des scripts et commandes à l'exécution, qui analyse le contenu exécuté et non le seul fichier.
+- Le machine learning statique sur les fichiers PE écrits sur le disque, qui reconstitue le script à partir des fichiers temporaires de l'interpréteur.
+- La gestion des IOC par hash SHA256.
+- Les règles de Device Control.
+> Les attaques sans fichier contournent l'analyse des fichiers sur disque. Falcon inspecte les scripts et les commandes exécutés par les interpréteurs (PowerShell, scripts) et applique des IOA comportementaux sur ces chaînes d'exécution. Les réglages exacts disponibles dépendent de la plateforme et de la version.
+! Le ML statique ne voit pas un contenu qui n'est jamais écrit. Un hash ne couvre pas un script généré dynamiquement. Device Control concerne les périphériques.
+
+## A|Endpoint Protection / Analyse de faux positif
+Un exécutable signé par un éditeur reconnu est mis en quarantaine par le ML cloud sur plusieurs postes. Que doit faire l'analyste en priorité ?
++ Vérifier hash, signature, provenance et comportement ; libérer et exclure si légitime, sinon traiter l'incident.
+- Libérer immédiatement tous les fichiers en quarantaine et autoriser le hash, car une signature d'éditeur reconnu garantit l'innocuité de l'exécutable.
+- Désactiver la quarantaine dans toutes les politiques.
+- Ignorer les détections, puisque le fichier est signé.
+> Une signature valide n'exclut pas une compromission : certificat volé, chaîne d'approvisionnement compromise ou binaire légitime détourné. L'analyste doit valider avant de libérer et d'exclure. Les exclusions doivent rester ciblées et documentées.
+! Libérer aveuglément ou ignorer les détections revient à se fier à la seule signature, ce qui est dangereux. Désactiver la quarantaine affaiblit la protection de tout le parc.
+
+## A|Endpoint Protection / Tags de regroupement
+Une équipe veut que les serveurs de production reçoivent automatiquement une politique dédiée dès leur installation, sans intervention manuelle dans la console. Quelle méthode est la plus adaptée ?
++ Des tags de regroupement définis à l'installation et un groupe dynamique fondé sur ces tags.
+- Ajouter chaque serveur manuellement à un groupe statique après son apparition dans la console, ce qui garantit un contrôle humain de chaque affectation.
+- Créer une politique de prévention par serveur.
+- Utiliser le même CID que les postes de travail, ce qui suffit à différencier les serveurs.
+> Les tags de regroupement (sensor grouping tags) peuvent être définis à l'installation, et les Falcon grouping tags dans la console. Un groupe dynamique avec une règle basée sur ces tags (et éventuellement le type ou le système d'exploitation) place automatiquement les nouveaux hôtes dans le bon groupe, donc sous la bonne politique.
+! L'affectation manuelle ne passe pas à l'échelle. Une politique par serveur est ingérable. Le CID identifie le tenant, pas une catégorie d'hôtes.
+
+## A|Endpoint Protection / Défense en profondeur
+Un attaquant tente de désactiver le capteur en arrêtant son service et en supprimant ses clés de registre. Quel mécanisme du capteur répond à cette menace ?
++ L'anti-falsification du capteur, complétée par la protection contre la désinstallation.
+- La politique USB Device Control.
+- L'exclusion ML sur le répertoire du capteur, qui empêche les modifications de ses fichiers.
+- La recherche universelle de la console.
+> Le capteur protège ses processus, services, pilotes et clés de registre contre les modifications non autorisées, et la falsification peut générer une détection. La désinstallation ou la modification exige le jeton de maintenance lorsque la protection est activée.
+! Device Control, une exclusion ML ou la recherche universelle n'ont aucun rôle dans la protection du capteur.
+
+## A|Endpoint Protection / Linux
+Sur des serveurs Linux, l'équipe veut bloquer l'exécution de binaires malveillants et surveiller les comportements suspects. Quelle affirmation est correcte ?
++ Falcon fournit des politiques propres à Linux, aux réglages différents de Windows selon la version et le mode.
+- Les politiques Windows s'appliquent automatiquement aux hôtes Linux.
+- Falcon ne fournit que de l'inventaire et de la gestion des vulnérabilités sur Linux, la prévention étant réservée aux postes Windows et macOS.
+- Les hôtes Linux doivent être protégés par Device Control uniquement.
+> Les politiques sont définies par plateforme. Sous Linux, Falcon propose notamment du machine learning et des protections comportementales, mais leur liste est différente de Windows. Il faut consulter la documentation de la version du capteur déployée.
+! Une politique Windows ne s'applique pas à Linux. Falcon fait bien de la prévention sur Linux, et Device Control n'est pas une protection générale contre les malwares.
+
+## A|Endpoint Protection / Exécution de fichiers
+Un hash malveillant connu a été bloqué par IOC sur un poste, mais l'attaquant le recompile légèrement et relance l'attaque. Quelle protection reste efficace ?
++ Le ML et les IOA, qui évaluent les caractéristiques et le comportement plutôt que le hash.
+- Le blocage IOC initial, car le capteur calcule un hash flou qui couvre automatiquement toutes les variantes recompilées du fichier.
+- L'exclusion ML créée pour le fichier original.
+- La recherche du hash original dans le journal d'audit.
+> Une recompilation produit un nouveau hash : les indicateurs atomiques sont faciles à contourner (Pyramid of Pain). Le ML analyse les caractéristiques du fichier et les IOA détectent le comportement malveillant, quel que soit le hash.
+! Un IOC par hash ne couvre qu'un fichier exact. Une exclusion ML affaiblirait la protection. Le journal d'audit ne bloque rien.
+
+## A|Endpoint Protection / Contrôle USB
+Une organisation veut interdire les clés USB de stockage, sauf un modèle chiffré fourni par l'IT. Quelle démarche est la plus sûre avec Falcon Device Control ?
++ Bloquer le stockage de masse avec une exception sur l'identifiant du modèle autorisé, après une phase de surveillance.
+- Créer une exclusion de visibilité du capteur pour les lecteurs amovibles.
+- Bloquer toutes les classes USB, y compris claviers et souris, puis créer une exception par utilisateur sur demande auprès du support.
+- Ajouter le hash SHA256 de chaque clé USB dans la gestion des IOC.
+> Device Control applique des politiques par classe de périphérique (stockage de masse, imagerie, MTP/PTP, etc.) avec des exceptions fondées sur les identifiants du périphérique. Un mode surveillance permet d'abord d'inventorier les usages réels. Les classes et options disponibles varient selon la plateforme.
+! Une exclusion de visibilité ne contrôle pas les périphériques. Bloquer toutes les classes rendrait les postes inutilisables. Un périphérique USB n'a pas de hash SHA256 utilisable dans la gestion des IOC.

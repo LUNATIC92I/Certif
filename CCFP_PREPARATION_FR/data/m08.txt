@@ -1,0 +1,181 @@
+# MODULE 8 – Falcon Identity Protection et Cloud Security
+
+## D|Identity Security / Rôle
+Quel est l'objectif principal de Falcon Next-Gen Identity Security, qui inclut l'ancienne offre Falcon Identity Protection ?
++ Détecter et stopper en temps réel les attaques fondées sur les identités (vol d'identifiants, élévation, mouvement latéral).
+- Chiffrer les disques des contrôleurs de domaine.
+- Remplacer Active Directory par un annuaire cloud CrowdStrike, synchronisé avec les fournisseurs d'identité, afin de supprimer les mots de passe du domaine.
+- Gérer l'inventaire des logiciels installés.
+> Les attaques modernes reposent souvent sur des identifiants valides. Le module analyse l'activité d'authentification (Active Directory, fournisseurs d'identité cloud selon les intégrations), évalue le risque des comptes, détecte les comportements anormaux et peut appliquer des politiques, par exemple exiger un MFA ou bloquer.
+! Le module ne chiffre pas les disques, ne remplace pas Active Directory et ne fait pas d'inventaire logiciel.
+
+## D|Identity Security / Déploiement
+Où le capteur doit-il être déployé pour que la protection des identités analyse le trafic d'authentification Active Directory ?
++ Sur les contrôleurs de domaine (Kerberos, NTLM, LDAP).
+- Uniquement sur les postes des administrateurs, qui génèrent les authentifications privilégiées.
+- Uniquement sur les serveurs web exposés à Internet.
+- Sur les imprimantes réseau.
+> La protection des identités s'appuie sur le capteur Falcon installé sur les contrôleurs de domaine (avec les composants activés par la licence) pour observer l'activité d'authentification en temps réel. Couvrir tous les contrôleurs de domaine évite les angles morts.
+! Les postes des administrateurs, les serveurs web et les imprimantes ne voient pas l'ensemble des authentifications du domaine.
+
+## D|Cloud Security / CSPM
+Que désigne la gestion de la posture de sécurité cloud (CSPM) dans Falcon Cloud Security ?
++ L'évaluation continue des configurations cloud pour repérer les erreurs, comme un stockage public.
+- La protection antivirus des postes de travail Windows qui accèdent aux consoles d'administration des fournisseurs cloud.
+- La gestion des clés USB.
+- La rédaction des contrats avec les fournisseurs cloud.
+> Le CSPM inventorie les ressources cloud (AWS, Azure, Google Cloud) et signale les mauvaises configurations (Indicators of Misconfiguration) au regard de bonnes pratiques et de cadres de conformité. Il complète la protection des workloads.
+! Le CSPM ne protège pas directement les postes Windows, ne gère pas les périphériques USB et ne traite pas des contrats.
+
+## D|Cloud Security / Responsabilité partagée
+Dans le modèle de responsabilité partagée IaaS, qui est responsable de la configuration des groupes de sécurité et du système d'exploitation des machines virtuelles ?
++ Le client.
+- Uniquement le fournisseur cloud.
+- CrowdStrike.
+- L'éditeur du système d'exploitation.
+> Le fournisseur sécurise l'infrastructure physique et la virtualisation. Le client configure le réseau virtuel, les identités, le système d'exploitation et les applications. Falcon Cloud Security aide le client à surveiller et protéger sa part de responsabilité.
+! Le fournisseur, CrowdStrike et l'éditeur de l'OS ne sont pas responsables de la configuration du client.
+
+## I|Identity Security / Pass-the-hash
+Quel comportement la protection des identités peut-elle signaler comme indicateur de pass-the-hash ?
++ Des authentifications NTLM d'un compte privilégié depuis un hôte inhabituel, sans Kerberos cohérent.
+- Un utilisateur qui change son mot de passe après sa date d'expiration, puis se reconnecte depuis deux postes différents dans la journée.
+- Une ouverture de session interactive le matin sur le poste habituel.
+- Une mise à jour du capteur sur le contrôleur de domaine.
+> Le pass-the-hash (T1550.002) réutilise un hash NTLM sans connaître le mot de passe. L'analyse comportementale des authentifications (protocole, hôte source, historique du compte) permet de repérer ces usages anormaux.
+! Un changement de mot de passe, une connexion habituelle ou une mise à jour du capteur sont des événements normaux.
+
+## I|Identity Security / Politiques
+Un compte privilégié se connecte à un serveur critique depuis un poste jamais utilisé auparavant. Quelle capacité de la protection des identités permet d'exiger une vérification supplémentaire en temps réel ?
++ Une règle de politique imposant un MFA ou bloquant l'accès selon des conditions.
+- Une exclusion ML sur le serveur critique, combinée à une alerte e-mail.
+- Une politique USB Device Control.
+- La suppression du compte dans la console Falcon.
+> Les politiques de protection des identités peuvent autoriser, bloquer ou exiger un MFA selon des conditions (compte, hôte source et destination, protocole, niveau de risque). Ce contrôle d'accès conditionnel au niveau de l'authentification limite l'usage d'identifiants volés.
+! Une exclusion ML, une politique USB ou la suppression du compte dans Falcon ne contrôlent pas l'authentification.
+
+## I|Identity Security / Reconnaissance AD
+Un outil interroge massivement Active Directory pour cartographier les groupes, les sessions et les chemins d'attaque (comme le ferait BloodHound/SharpHound). Quelle détection est attendue ?
++ Une détection de reconnaissance LDAP rattachée au compte et à l'hôte source.
+- Une détection de ransomware.
+- Une alerte de licence expirée.
+- Une détection de PUP sur le contrôleur de domaine, puisque SharpHound est classé comme outil d'administration indésirable.
+> L'énumération massive d'objets AD (T1087, T1069, T1482) précède souvent l'élévation de privilèges. L'analyse des requêtes LDAP et des comportements de découverte permet de détecter cette reconnaissance et d'identifier l'origine.
+! Ce comportement n'est ni un ransomware, ni un problème de licence, ni un PUP.
+
+## I|Identity Security / Risque des comptes
+Pourquoi les comptes à privilèges dont le mot de passe n'expire jamais et qui sont inactifs depuis longtemps sont-ils signalés comme risqués ?
++ Parce qu'ils offrent une cible discrète et durable, aux droits élevés.
+- Parce qu'ils consomment des licences Falcon supplémentaires.
+- Parce qu'ils empêchent la réplication Active Directory entre sites lorsque leur mot de passe dépasse un an.
+- Parce qu'ils désactivent automatiquement le capteur.
+> L'hygiène des identités (comptes inactifs, mots de passe faibles ou anciens, privilèges excessifs, comptes de service exposés) réduit la surface d'attaque. Falcon identifie ces risques et aide à prioriser leur correction.
+! Ces comptes n'ont aucun effet sur les licences, la réplication ou le capteur.
+
+## I|Cloud Security / Workloads
+Comment Falcon Cloud Security protège-t-il des conteneurs exécutés dans un cluster Kubernetes ?
++ Par un capteur sur les nœuds (par exemple en DaemonSet) ou intégré aux workloads, pour l'exécution.
+- Par une analyse manuelle des fichiers YAML une fois par an.
+- Par la désactivation de toutes les images non signées dans le registre public, ce qui empêche toute attaque à l'exécution dans le cluster.
+- Par un pare-feu matériel installé devant le cluster.
+> La protection des workloads cloud (CWP) s'appuie sur le capteur adapté aux environnements de conteneurs pour fournir télémétrie, détection et prévention à l'exécution. Elle est complétée par l'évaluation des images et les contrôles d'admission Kubernetes selon la licence.
+! Une revue annuelle ou un pare-feu matériel ne couvrent pas la protection à l'exécution. Le capteur n'agit pas sur les registres publics.
+
+## I|Cloud Security / Images de conteneurs
+Pourquoi évaluer les images de conteneurs avant leur déploiement (image assessment) ?
++ Pour détecter vulnérabilités, secrets et malwares, et bloquer les images non conformes.
+- Pour réduire la taille des images en supprimant les journaux.
+- Pour accélérer le démarrage des nœuds Kubernetes.
+- Pour attribuer automatiquement un CID à chaque conteneur, afin qu'il apparaisse comme un hôte distinct dans la console Falcon.
+> L'évaluation des images s'inscrit dans une approche « shift left » : on identifie les risques avant l'exécution. Combinée à un contrôle d'admission, elle peut bloquer le déploiement d'images qui ne respectent pas la politique.
+! L'évaluation des images ne vise ni la taille, ni la performance, ni l'attribution d'identifiants.
+
+## A|Identity Security / Golden Ticket
+Une alerte de la protection des identités signale l'usage d'un ticket Kerberos aux caractéristiques anormales (durée de vie inhabituelle, compte inexistant ou incohérent) sur plusieurs serveurs. Quelle hypothèse privilégier ?
++ Un Golden Ticket forgé avec le hash KRBTGT.
+- Un simple décalage d'horloge entre les serveurs, qui modifie la durée de vie apparente des tickets.
+- Une mise à jour normale des politiques de groupe.
+- Une connexion RDP légitime d'un administrateur.
+> Un Golden Ticket (T1558.001) est un TGT forgé : il peut contenir des attributs incohérents avec l'annuaire et des durées de vie anormales. Sa présence implique que l'attaquant a obtenu le hash KRBTGT, ce qui exige une réponse de crise : double réinitialisation de KRBTGT et éviction coordonnée.
+! Un décalage d'horloge provoque des échecs d'authentification, pas des tickets anormaux. Les GPO et les connexions RDP légitimes ne produisent pas ces anomalies.
+
+## A|Identity Security / Kerberoasting
+Un compte utilisateur standard demande en quelques minutes des tickets de service pour des dizaines de comptes de service, avec un chiffrement RC4. Quelle attaque est probable et quelle remédiation durable recommander ?
++ Un Kerberoasting ; mots de passe longs ou gMSA, et AES plutôt que RC4.
+- Un Golden Ticket ; supprimer puis recréer le compte KRBTGT et redémarrer les contrôleurs.
+- Un DCSync ; désactiver la réplication AD.
+- Un password spraying ; désactiver Kerberos.
+> Le Kerberoasting (T1558.003) obtient des tickets chiffrés avec la clé dérivée du mot de passe du compte de service, puis les casse hors ligne. La robustesse des mots de passe de service et l'abandon de RC4 réduisent fortement le risque. La protection des identités détecte ce schéma de demandes.
+! Supprimer KRBTGT, désactiver la réplication ou Kerberos casserait le domaine. Les autres attaques citées ne correspondent pas au comportement observé.
+
+## A|Identity Security / Élévation de privilèges
+Un compte de support est ajouté au groupe « Domain Admins » à 2 h du matin par un compte de service qui ne fait jamais ce type d'opération. Quelle réponse est la plus appropriée ?
++ Une élévation suspecte : vérifier, retirer l'appartenance non autorisée, investiguer le compte de service.
+- Attendre la revue trimestrielle des droits, car les modifications de groupes sont toujours tracées dans l'annuaire et peuvent être annulées ensuite.
+- Ignorer l'événement, car les comptes de service sont toujours fiables.
+- Supprimer le groupe « Domain Admins ».
+> L'ajout à un groupe à hauts privilèges (T1098) est un indicateur critique, surtout s'il est inhabituel pour le compte qui l'effectue. La protection des identités et la télémétrie AD permettent de détecter et de contextualiser ce changement.
+! Attendre ou ignorer laisse un attaquant maître du domaine. Supprimer le groupe « Domain Admins » casserait l'administration du domaine.
+
+## A|Identity Security / MFA et identités cloud
+Un utilisateur a accepté une demande MFA après une série de demandes répétées, puis son compte a accédé à des applications sensibles depuis un pays inhabituel. Quelle conclusion et quelle action ?
++ Une MFA fatigue puis une prise de contrôle : révoquer les sessions, réinitialiser, renforcer le MFA.
+- Un comportement normal d'un utilisateur en voyage, dont le téléphone a renvoyé plusieurs demandes MFA à cause d'une mauvaise connexion.
+- Une panne du fournisseur MFA, à signaler à l'éditeur.
+- Une alerte de licence, à transmettre aux achats.
+> Le bombardement de demandes MFA (T1621) vise à obtenir une acceptation par lassitude. La combinaison avec un accès depuis une localisation inhabituelle confirme une prise de contrôle probable. Les intégrations d'identité cloud de Falcon aident à corréler ces signaux.
+! Le voyage n'explique pas les demandes MFA répétées. Ce n'est ni une panne, ni un problème de licence.
+
+## A|Identity Security / Segmentation par identité
+Pourquoi des politiques fondées sur l'identité peuvent-elles limiter le mouvement latéral plus finement qu'une segmentation réseau seule ?
++ Parce qu'elles contrôlent qui s'authentifie où et comment, même si le réseau l'autorise.
+- Parce qu'elles remplacent tous les pare-feux de l'entreprise par un filtrage au niveau du contrôleur de domaine.
+- Parce qu'elles désactivent le protocole Kerberos.
+- Parce qu'elles empêchent les utilisateurs de changer de mot de passe.
+> Un attaquant qui dispose d'identifiants valides traverse souvent les segments réseau autorisés. Des règles d'accès au niveau de l'authentification (par exemple interdire aux comptes de service les connexions interactives, ou exiger un MFA pour l'accès aux serveurs critiques) bloquent l'usage abusif des identifiants.
+! Ces politiques complètent les pare-feux sans les remplacer, ne désactivent pas Kerberos et n'agissent pas sur le changement de mot de passe.
+
+## A|Cloud Security / Indicateurs cloud
+Un journal d'activité cloud montre qu'une clé d'accès créée la veille a désactivé la journalisation d'audit, puis a modifié une politique de stockage pour la rendre publique. Quelle interprétation ?
++ Des identifiants cloud probablement compromis, puis évasion (journaux coupés) et exposition de données.
+- Une maintenance normale réalisée par le fournisseur cloud, qui crée des clés temporaires et suspend la journalisation pendant ses interventions.
+- Une mise à jour du capteur Falcon sur les workloads.
+- Un faux positif lié au fuseau horaire.
+> La désactivation de la journalisation (T1562.008) et l'exposition de données sont des signaux forts dans le plan de contrôle cloud. Falcon Cloud Security détecte ces comportements (IOA cloud) en plus des mauvaises configurations. La réponse implique de révoquer la clé, de rétablir la configuration et d'analyser les accès.
+! Le fournisseur n'utilise pas les clés du client. Le capteur et le fuseau horaire n'expliquent pas ces actions.
+
+## A|Cloud Security / CIEM
+Quel risque la gestion des droits d'identités cloud (CIEM) cherche-t-elle à réduire ?
++ Les permissions excessives ou inutilisées des identités cloud.
+- La consommation électrique des centres de données.
+- Le nombre de capteurs installés sur les postes de travail des administrateurs cloud.
+- Les erreurs de syntaxe dans les requêtes CQL.
+> Les environnements cloud accumulent des droits trop larges. Le CIEM analyse les permissions effectives, détecte les privilèges excessifs et aide à appliquer le moindre privilège, ce qui limite l'impact d'identifiants volés.
+! Le CIEM ne traite ni l'énergie, ni le nombre de capteurs, ni la syntaxe des requêtes.
+
+## A|Cloud Security / Agentless et agent
+Une équipe hésite entre une approche sans agent (connexion aux API cloud) et le déploiement du capteur sur les workloads. Quelle affirmation est la plus juste ?
++ Elles sont complémentaires : posture et plan de contrôle sans agent, protection à l'exécution par le capteur.
+- L'approche sans agent bloque les malwares à l'exécution dans les conteneurs.
+- Le capteur seul suffit à détecter toutes les mauvaises configurations du compte cloud, car il interroge les API du fournisseur depuis chaque workload.
+- Les deux approches sont incompatibles et ne peuvent pas coexister.
+> La connexion aux API cloud permet l'inventaire, l'évaluation de la posture et la détection d'événements du plan de contrôle sans installation. La protection à l'exécution (processus, fichiers, réseau dans les workloads) exige le capteur. Une stratégie complète combine les deux.
+! Sans agent, il n'y a pas de blocage à l'exécution. Le capteur ne voit pas toute la configuration du compte. Les deux approches coexistent.
+
+## A|Cloud Security / Contrôle d'admission
+Une image de conteneur contenant une vulnérabilité critique exploitée est poussée en production malgré la politique. Quel contrôle aurait pu bloquer ce déploiement dans Kubernetes ?
++ Un contrôleur d'admission Kubernetes bloquant les images non conformes.
+- Une politique de prévention Windows en mode Aggressive appliquée aux nœuds du cluster.
+- Une exclusion de visibilité du capteur sur le cluster.
+- Une politique Device Control sur les nœuds.
+> Le contrôle d'admission intervient au moment du déploiement : il peut refuser les pods dont l'image ne respecte pas la politique (vulnérabilités critiques, configuration à risque). Falcon propose cette capacité dans son offre Cloud Security selon la licence.
+! Une politique Windows ou Device Control ne s'applique pas au déploiement de conteneurs. Une exclusion de visibilité réduirait la protection.
+
+## A|Identity Security / Comptes de service
+Un compte de service utilisé uniquement par une application sur un serveur commence à ouvrir des sessions interactives sur des postes de travail. Quelle réponse est la plus adaptée ?
++ Le considérer compromis : bloquer ces accès, investiguer, renouveler ses identifiants avec l'équipe applicative.
+- Ignorer, car les comptes de service ont tous les droits par définition et ouvrent régulièrement des sessions pour les mises à jour applicatives.
+- Supprimer le serveur applicatif.
+- Désactiver la protection des identités sur les postes concernés.
+> Un compte de service a un comportement prévisible ; tout écart (connexions interactives, nouveaux hôtes) est suspect. Les politiques d'identité peuvent restreindre ces usages, et le renouvellement des identifiants doit être coordonné pour éviter une panne applicative.
+! Ignorer laisse l'attaquant opérer. Supprimer le serveur est disproportionné. Désactiver la protection supprime la visibilité.

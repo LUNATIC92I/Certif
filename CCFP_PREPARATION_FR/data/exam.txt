@@ -1,0 +1,451 @@
+# EXAMEN BLANC – 50 QUESTIONS
+
+## I|1|Architecture Falcon / Breakout time
+Que désigne le « breakout time » mesuré par CrowdStrike dans ses rapports sur les menaces ?
++ Le temps qu'il faut à un adversaire pour se déplacer latéralement après la compromission initiale.
+- Le temps qui s'écoule entre la compromission initiale d'un hôte et la première détection générée par le capteur sur cet hôte.
+- La durée moyenne d'une session RTR.
+- Le délai d'expiration d'un jeton d'API.
+> Le breakout time mesure la vitesse à laquelle un attaquant passe du premier hôte au reste de l'environnement. Il sert de référence pour les objectifs de détection et de réponse, comme la règle 1-10-60 : il faut agir avant que l'adversaire ne se propage.
+! Les autres propositions décrivent des durées techniques sans lien avec la progression de l'adversaire.
+
+## I|1|Charlotte AI / Actions
+Selon CrowdStrike, quel est le comportement par défaut de Charlotte AI vis-à-vis des actions de réponse ?
++ Il n'exécute pas d'action de réponse automatique par défaut : l'humain ou un workflow configuré décide.
+- Il confine automatiquement tout hôte présentant une détection de sévérité moyenne ou plus, puis rédige le rapport d'incident pour l'analyste.
+- Il désinstalle les logiciels qu'il juge inutiles.
+- Il modifie les politiques de prévention sans validation.
+> Charlotte AI est présenté comme un analyste IA agentique intégré à Falcon. CrowdStrike précise qu'il n'effectue pas d'actions de réponse automatiques par défaut, ce qui maintient le contrôle humain et s'inscrit dans une démarche d'IA responsable.
+! Les actions automatiques de confinement, de désinstallation ou de modification de politique ne sont pas son comportement par défaut.
+
+## I|4|Advanced Event Search / Affichage
+Après un filtre CQL, quelle fonction permet d'afficher les résultats sous forme de tableau avec des colonnes choisies ?
++ table([ComputerName, UserName, CommandLine])
+- groupBy([ComputerName, UserName, CommandLine], function=delete())
+- platform_name:'Windows'
+- head(ComputerName, UserName)
+> table() affiche les champs listés en colonnes, ce qui facilite la revue des événements filtrés. groupBy() agrège, head() limite le nombre de lignes, et platform_name:'Windows' est un filtre FQL.
+! delete() n'est pas une fonction d'agrégation. Un filtre FQL ne s'applique pas ici. head() ne prend pas des noms de champs en paramètres.
+
+## I|2|Endpoint Protection / PUP
+Une politique de prévention comporte un réglage distinct pour les logiciels potentiellement indésirables (adware et PUP). Quel est l'intérêt de le régler séparément des malwares ?
++ Régler la tolérance aux logiciels gênants non malveillants sans affaiblir la protection anti-malware.
+- Désactiver la détection des ransomwares sur les postes.
+- Autoriser automatiquement tous les logiciels non signés installés par les utilisateurs, considérés comme des PUP par défaut et donc sans danger.
+- Bloquer l'exécution des navigateurs web.
+> Les PUP ne sont pas toujours malveillants, mais ils présentent des risques (publicités, collecte de données, installation d'autres logiciels). Un réglage dédié permet de choisir le niveau de détection et de prévention adapté, indépendamment de la protection contre les malwares.
+! Ce réglage n'agit ni sur les ransomwares, ni sur les logiciels non signés en général, ni sur les navigateurs.
+
+## I|3|Insight XDR / Disposition
+Une détection indique que l'action de prévention a « tué le processus ». Quelle conclusion est correcte ?
++ Le processus est arrêté, mais il faut encore comprendre l'origine, les actions passées et les persistances.
+- L'incident est entièrement résolu et aucune analyse n'est nécessaire, car l'arrêt du processus annule aussi les actions qu'il a déjà réalisées.
+- Le capteur a été désinstallé de l'hôte.
+- L'hôte a été placé automatiquement en confinement réseau.
+> L'action de prévention (processus tué, bloqué, fichier mis en quarantaine) stoppe l'activité observée. Elle ne garantit pas que l'attaquant n'a rien fait avant, ni qu'il n'existe pas d'autres mécanismes. L'investigation reste nécessaire.
+! Le processus tué ne signifie ni résolution complète, ni désinstallation du capteur, ni confinement automatique.
+
+## I|6|Real Time Response / Fichiers récupérés
+Pourquoi les fichiers récupérés avec la commande get sont-ils fournis dans une archive protégée par mot de passe ?
++ Pour éviter une exécution accidentelle ou un blocage par l'antivirus du poste de l'analyste.
+- Pour chiffrer le fichier avec la clé du client et empêcher toute analyse en dehors de la console Falcon ou de Falcon Sandbox.
+- Pour réduire la taille du fichier à moins d'un kilo-octet.
+- Parce que les fichiers ne peuvent être ouverts que dans la console Falcon.
+> Les échantillons récupérés sont potentiellement malveillants. L'archive protégée empêche leur exécution par erreur et leur suppression automatique par un antivirus pendant le téléchargement. L'analyse doit se faire dans un environnement isolé.
+! L'archive n'empêche pas l'analyse, ne réduit pas drastiquement la taille et peut être ouverte hors de la console.
+
+## I|8|Identity Security / Honeytoken
+Quel est l'intérêt de désigner un compte Active Directory comme honeytoken dans la protection des identités ?
++ Tout usage de ce compte leurre, sans activité légitime, déclenche une alerte de haute fidélité.
+- Le compte permet aux utilisateurs de réinitialiser eux-mêmes leur mot de passe.
+- Le compte remplace le compte KRBTGT.
+- Le compte sert de compte de service privilégié pour les agents de sauvegarde, et sa surveillance renforcée protège les contrôleurs de domaine.
+> Un honeytoken est un compte attractif (nom évocateur, apparence de privilèges) qui n'est jamais utilisé légitimement. Toute authentification ou demande de ticket le concernant trahit un attaquant, avec très peu de faux positifs.
+! Un honeytoken n'a pas de fonction opérationnelle : ni sauvegarde, ni remplacement de KRBTGT, ni réinitialisation de mots de passe.
+
+## I|9|Exposure Management / Exploitation connue
+Parmi les vulnérabilités suivantes présentes sur le parc, laquelle traiter en premier ?
++ Une vulnérabilité activement exploitée (par exemple au catalogue KEV) sur des serveurs exposés.
+- Une vulnérabilité de sévérité moyenne sans exploit connu sur des postes de test.
+- Une vulnérabilité de sévérité faible sur une imprimante isolée.
+- Une vulnérabilité récente, sans aucune information d'exploitation, sur un poste hors service depuis six mois.
+> L'exploitation active et l'exposition de l'actif sont les facteurs de risque les plus déterminants. Les informations d'exploitation (intelligence, ExPRT.AI, catalogue KEV) permettent de concentrer l'effort sur ce qui est réellement utilisé par les attaquants.
+! Les autres vulnérabilités présentent un risque nettement moindre, du fait de leur faible exploitabilité ou de l'exposition limitée des actifs.
+
+## I|10|Administration / Cloud et API
+Une entreprise dont le tenant est hébergé sur le cloud EU-1 obtient des erreurs d'authentification lorsque son script appelle api.crowdstrike.com. Quelle est la cause la plus probable ?
++ Le script appelle l'URL du cloud US-1 au lieu de celle du tenant (api.eu-1.crowdstrike.com).
+- La licence Falcon Prevent a expiré.
+- Le capteur n'est pas installé sur le poste qui exécute le script, condition nécessaire pour obtenir un jeton OAuth2 valide.
+- L'API Falcon n'est pas disponible en Europe.
+> Chaque cloud CrowdStrike possède sa propre URL d'API. Un client API créé dans un tenant EU-1 doit appeler l'URL correspondante. Les SDK officiels (comme FalconPy ou PSFalcon) permettent de préciser ou de détecter le cloud.
+! La licence Prevent n'a pas de lien avec l'authentification API. Le capteur n'est pas nécessaire pour appeler l'API. L'API est disponible sur le cloud EU-1.
+
+## I|5|Threat Intelligence / Nomenclature
+Selon la nomenclature CrowdStrike, à quel pays est rattaché un adversaire dont le nom se termine par CHOLLIMA ?
++ La Corée du Nord.
+- La Russie (groupes étatiques).
+- L'Iran.
+- La Chine.
+> CHOLLIMA désigne les adversaires liés à la Corée du Nord (par exemple LABYRINTH CHOLLIMA ou FAMOUS CHOLLIMA). BEAR est associé à la Russie, KITTEN à l'Iran et PANDA à la Chine.
+! Les autres pays correspondent aux suffixes BEAR, KITTEN et PANDA.
+
+## A|1|Architecture Falcon / Phases d'adoption
+Une organisation a déployé le capteur sur 100 % de son parc avec des politiques en détection seule, sans processus de traitement des alertes. Selon la progression d'adoption décrite par le guide CCFP, quelle étape doit-elle consolider ?
++ Passer de la visibilité à une détection traitée (triage, investigation, réponse), puis opérationnaliser.
+- Désinstaller les capteurs pour revenir à une phase de planification.
+- Passer directement à l'automatisation complète de la réponse, sans processus humain, puisque la visibilité est totale sur le parc.
+- Considérer que l'adoption est terminée puisque tous les hôtes sont couverts.
+> Le déploiement complet apporte la visibilité, mais les résultats de sécurité dépendent ensuite de la capacité à détecter, investiguer et répondre, puis à opérationnaliser (processus, automatisation, amélioration continue). Des détections non traitées n'apportent aucune protection.
+! Désinstaller, automatiser sans processus ou considérer l'adoption terminée ignore les étapes de maturité.
+
+## A|11|Scénario / Injection de processus
+La télémétrie montre qu'un processus inconnu, lancé depuis %TEMP%, ouvre explorer.exe avec des droits d'écriture mémoire, y crée un thread distant, puis explorer.exe établit des connexions vers une IP externe inhabituelle. Quelle interprétation ?
++ Une injection de code dans explorer.exe pour cacher un C2.
+- Une mise à jour normale de l'explorateur Windows, livrée par un programme d'installation temporaire.
+- Un comportement standard d'un antivirus tiers.
+- Une ouverture de dossier réseau par l'utilisateur.
+> L'injection permet d'exécuter du code dans un processus de confiance, ce qui complique la détection fondée sur l'identité du processus. Les IOA de Falcon surveillent ces accès inter-processus. Une collecte mémoire du processus cible avant toute remédiation préserve la preuve.
+! Une mise à jour ou un dossier réseau ne produisent pas d'écriture mémoire inter-processus depuis %TEMP%. Un antivirus tiers légitime n'est pas lancé depuis un répertoire temporaire.
+
+## A|4|Threat Hunting / Masquerading
+Un chasseur veut trouver des processus nommés svchost.exe qui ne s'exécutent pas depuis C:\Windows\System32 ou SysWOW64. Quelle approche CQL est la plus adaptée ?
++ ProcessRollup2 filtré sur \svchost.exe, en excluant par regex System32 et SysWOW64, puis agrégé.
+- Filtrer DnsRequest sur le domaine svchost.exe.
+- Rechercher svchost.exe dans les journaux d'audit de la console.
+- Appliquer un filtre FQL platform_name:'Windows'+process_name:'svchost.exe'+path:!'C:\Windows\System32*' sur l'API Hosts.
+> Le masquerading (T1036.005) consiste à donner à un malware le nom d'un binaire système. Le chemin d'exécution trahit l'imposture. En CQL, on combine un filtre positif sur le nom et une exclusion des emplacements légitimes, puis une agrégation pour la revue.
+! DnsRequest, l'audit de la console et l'API Hosts ne contiennent pas les chemins d'exécution des processus.
+
+## A|6|Real Time Response / Vérification de persistance
+Pendant une session RTR, l'analyste veut vérifier les programmes lancés au démarrage pour tous les utilisateurs de la machine. Quelle commande en lecture seule est la plus directe ?
++ reg query sur HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run.
+- reg delete sur HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run.
+- kill sur le processus explorer.exe.
+- put d'un outil de nettoyage du registre.
+> La clé Run de HKLM s'applique à tous les utilisateurs. reg query permet de la lire sans la modifier, ce qui convient à l'investigation et aux rôles en lecture seule. Les clés HKCU, les services et les tâches planifiées doivent aussi être examinés.
+! reg delete modifie le registre, kill est destructif et put exige le rôle Administrator : aucune de ces actions n'est une lecture.
+
+## A|7|Incident Response / Persistance WMI
+Après éradication d'un implant, un processus PowerShell malveillant réapparaît, lancé par WmiPrvSE.exe environ toutes les heures, sans tâche planifiée ni clé Run associée. Quelle persistance rechercher ?
++ Un abonnement WMI permanent (filtre, consommateur, liaison).
+- Une valeur dans le fichier hosts.
+- Une règle de pare-feu Windows.
+- Un raccourci dans le dossier Documents de l'utilisateur, ouvert automatiquement par l'indexation Windows.
+> Les abonnements WMI permettent une persistance discrète, sans fichier de démarrage classique. Le processus parent WmiPrvSE.exe est un indice fort. L'éradication doit supprimer le filtre, le consommateur et la liaison.
+! Le fichier hosts, le pare-feu et un raccourci dans Documents ne relancent pas de code périodiquement.
+
+## A|8|Identity Security / DCSync
+La protection des identités signale qu'un poste de travail utilise le protocole de réplication d'annuaire pour demander les secrets de comptes du domaine. Quelle attaque est en cours ?
++ Une attaque DCSync visant les hashs du domaine, dont KRBTGT.
+- Une réplication normale, le poste de travail jouant le rôle de contrôleur de domaine en lecture seule pour sa filiale.
+- Une mise à jour de stratégie de groupe.
+- Une sauvegarde planifiée de l'annuaire.
+> Seuls les contrôleurs de domaine ont normalement besoin de répliquer l'annuaire. Une demande de réplication depuis un poste de travail indique un compte disposant de droits de réplication détournés. La réponse est critique : identifier le compte, confiner, puis réinitialiser les secrets exposés.
+! Un poste de travail n'est pas un contrôleur de domaine. Les GPO et les sauvegardes n'utilisent pas ce mécanisme depuis un poste.
+
+## A|2|Endpoint Protection / Linux et conteneurs
+Pourquoi le choix entre le mode noyau et le mode utilisateur du capteur Linux est-il important ?
++ Parce qu'il influe sur la compatibilité noyau, la dépendance aux mises à jour et certaines capacités.
+- Parce que le mode utilisateur désactive toute détection.
+- Parce que le mode noyau n'existe que sur macOS.
+- Parce que ce choix détermine le cloud CrowdStrike utilisé par le tenant et la région de stockage des événements Linux.
+> Le mode noyau dépend du support des versions de noyau par le capteur (sinon il bascule en fonctionnalité réduite). Le mode utilisateur, fondé sur des mécanismes modernes du noyau Linux, améliore la compatibilité. Les capacités exactes dépendent de la version et de la distribution.
+! Le mode utilisateur conserve la détection. Le mode noyau concerne bien Linux. Le cloud du tenant est indépendant de ce choix.
+
+## A|3|Insight XDR / Incident multi-hôtes
+Le score d'un incident augmente fortement : il regroupe désormais des détections sur cinq hôtes, avec vol d'identifiants, mouvement latéral et désactivation d'outils de sécurité. Quelle lecture en faire ?
++ Une attaque en progression, à traiter en priorité maximale de façon coordonnée.
+- Cinq incidents indépendants de faible importance, regroupés uniquement parce qu'ils ont eu lieu le même jour sur le même sous-réseau.
+- Un problème de licence qui fait varier le score.
+- Une erreur d'affichage de la console à ignorer.
+> Le regroupement en incident et son score reflètent la gravité et la progression d'une attaque. La combinaison de plusieurs tactiques (accès aux identifiants, mouvement latéral, contournement des défenses) indique un adversaire actif et avancé.
+! Les détections sont liées et non indépendantes. Le score ne dépend pas des licences. Ce n'est pas une erreur d'affichage.
+
+## A|5|Malware / Évasion de sandbox
+Un échantillon ne montre aucun comportement malveillant en sandbox, alors qu'il a déclenché un IOA sur un poste. Quelle explication est la plus plausible ?
++ L'échantillon détecte la sandbox ou attend un déclencheur, et n'agit qu'en environnement réel.
+- L'IOA était forcément un faux positif.
+- La sandbox a supprimé le code malveillant de l'échantillon.
+- Le hash calculé sur le poste est différent de celui de l'échantillon, car la sandbox recompile les exécutables avant de les lancer.
+> De nombreux malwares vérifient la présence de machines virtuelles, d'outils d'analyse ou d'interactions utilisateur, ou retardent leur exécution. L'absence de comportement en sandbox ne disculpe pas un échantillon qui a eu un comportement suspect en production.
+! L'IOA reste un signal valable. La sandbox ne modifie pas l'échantillon. Le même fichier a le même hash.
+
+## A|9|Device Control / Exécution depuis USB
+Malgré une politique bloquant l'exécution depuis les supports amovibles, un utilisateur copie un exécutable de la clé USB vers son bureau puis le lance. Quelle protection prend alors le relais ?
++ Les protections habituelles (ML, IOA, IOC) sur le fichier copié, et la télémétrie de la copie.
+- Device Control bloque aussi toute exécution de fichiers copiés depuis une clé, quel que soit le disque où ils se trouvent ensuite.
+- Aucune protection, car le fichier provient d'une clé autorisée en lecture.
+- Le capteur supprime automatiquement tous les fichiers copiés depuis une clé.
+> Le blocage de l'exécution porte sur les supports amovibles. Une fois le fichier copié sur le disque local, ce sont les protections standard de la politique de prévention qui s'appliquent. Si la copie de fichiers ne doit pas être permise, la politique doit restreindre l'accès (lecture seule ou blocage).
+! Device Control ne suit pas les fichiers sur le disque local. Les autres protections restent actives. Le capteur ne supprime pas systématiquement les fichiers copiés.
+
+## A|10|Administration / Automatisation de la réponse
+Une équipe veut un workflow Falcon Fusion SOAR qui confine automatiquement les postes de travail lors des détections critiques de ransomware. Quelle conception est la plus prudente ?
++ Cibler les postes de travail, exclure les serveurs critiques, notifier et garder une validation humaine.
+- Confiner automatiquement tous les hôtes, y compris les contrôleurs de domaine, pour toute détection, afin de ne laisser aucune chance à l'attaquant.
+- Désactiver la journalisation du workflow pour accélérer son exécution.
+- Supprimer automatiquement les comptes des utilisateurs concernés.
+> L'automatisation accélère la réponse, mais une action à fort impact sur un actif critique peut provoquer une panne. Cibler les groupes, définir des conditions précises, notifier et garder une validation humaine pour les cas sensibles équilibre vitesse et sécurité.
+! Confiner tout le parc, retirer la journalisation ou supprimer des comptes automatiquement sont des choix dangereux.
+
+## A|4|Threat Hunting / Persistance Linux
+Un chasseur veut détecter une persistance sur des serveurs Linux. Quelles cibles sont les plus pertinentes ?
++ Crontabs, services systemd, authorized_keys et scripts d'initialisation du shell.
+- Les clés Run du registre, telles qu'émulées sur Linux par les environnements de compatibilité.
+- Les tâches planifiées créées avec schtasks.exe.
+- Les abonnements WMI permanents.
+> La persistance Linux repose principalement sur cron (T1053.003), systemd (T1543.002), les clés SSH autorisées (T1098.004) et les fichiers d'initialisation du shell (T1546.004). La télémétrie des écritures de fichiers et des processus permet de les chasser.
+! Registre, schtasks et WMI sont des mécanismes Windows.
+
+## A|1|Falcon AIDR / Usage de l'IA
+Un développeur utilise un agent de codage IA qui, après avoir lu un fichier piégé d'un dépôt externe, tente d'exécuter des commandes pour envoyer des secrets vers un domaine inconnu. Quel type de capacité est conçu pour ce scénario ?
++ Une solution AIDR (comme Falcon AIDR / Falcon Guardian), qui gouverne et peut stopper les agents IA.
+- Une politique USB Device Control.
+- Le tableau de bord des vulnérabilités du parc, qui signale les agents IA non à jour et bloque leur exécution jusqu'à correction.
+- L'API Falcon Data Replicator.
+> Les agents IA peuvent être détournés par des injections de prompt, par exemple des instructions cachées dans un contenu lu par l'agent. Les solutions AIDR visent à découvrir ces agents, à gouverner leurs actions et à bloquer les comportements dangereux. Les intégrations disponibles évoluent rapidement.
+! Device Control, la gestion des vulnérabilités et FDR ne contrôlent pas le comportement des agents IA.
+
+## A|7|Incident Response / Confinement et DNS
+Un hôte confiné doit pouvoir joindre un serveur interne d'outillage forensique pour une collecte. Quelle approche est correcte ?
++ Autoriser temporairement l'adresse du serveur pendant le confinement.
+- Lever le confinement pendant toute la durée de la collecte, puis le réappliquer.
+- Désinstaller le capteur pour rétablir le réseau.
+- Créer une exclusion de visibilité sur l'outil forensique.
+> Falcon permet de définir des adresses joignables malgré le confinement. Cette exception ciblée maintient l'isolement face à l'attaquant tout en permettant les opérations de réponse. Elle doit rester temporaire et documentée.
+! Lever le confinement expose le réseau. Désinstaller le capteur supprime la réponse. Une exclusion de visibilité ne concerne pas le réseau.
+
+## A|5|Threat Intelligence / Enrichissement
+Une détection mentionne un domaine que l'intelligence CrowdStrike associe à l'infrastructure d'un adversaire de type SPIDER spécialisé dans le ransomware. Quelle conséquence pour la réponse ?
++ Anticiper un ransomware : chercher vol d'identifiants, mouvement latéral, exfiltration, et confiner vite.
+- Clore la détection, puisque l'adversaire est connu.
+- Attendre le chiffrement pour confirmer l'attribution.
+- Bloquer uniquement le domaine sans autre investigation, puisque l'infrastructure de l'adversaire est ainsi neutralisée sur tout le parc.
+> L'enrichissement par l'intelligence donne le contexte des intentions et du mode opératoire. Un acteur eCrime spécialisé dans le ransomware suit souvent une séquence connue, qu'il faut interrompre au plus tôt.
+! Clore ou attendre augmente le risque. Bloquer le domaine seul ne traite pas une compromission déjà installée.
+
+## A|11|Scénario / Abus d'outil RMM
+Plusieurs postes exécutent un outil légitime de prise de main à distance, installé hors du catalogue de l'entreprise, qui se connecte à un compte cloud inconnu de l'IT. Aucune détection de malware n'a été générée. Quelle démarche adopter ?
++ Traiter l'usage comme suspect : origine, désinstallation, blocage et chasse sur le parc.
+- Autoriser l'outil, puisqu'il est légitime, signé et largement utilisé par les équipes de support informatique des grandes entreprises.
+- Attendre qu'une détection de malware apparaisse.
+- Créer une exclusion ML pour l'outil afin de réduire le bruit.
+> Les attaquants abusent fréquemment d'outils RMM légitimes (T1219) pour garder un accès discret. L'inventaire applicatif et la chasse permettent de les repérer. Un compte cloud inconnu de l'IT est un signal fort de détournement.
+! Un outil légitime peut être utilisé de façon malveillante. Attendre ou exclure l'outil le rend plus dangereux.
+
+## A|3|Insight XDR / Ligne de commande obfusquée
+Une ligne de commande contient c^m^d /c "p^o^w^e^r^s^h^e^l^l -e…". Pourquoi ces caractères ^ sont-ils significatifs ?
++ Ils obfusquent la commande (échappement ignoré par cmd.exe) pour tromper les détections par chaîne.
+- Ils indiquent une commande exécutée par un administrateur.
+- Ils signalent une erreur de saisie de l'utilisateur.
+- Ils sont ajoutés automatiquement par le capteur dans la console pour neutraliser l'affichage de commandes potentiellement dangereuses.
+> L'insertion de caractères d'échappement (T1027, Obfuscated Files or Information) casse les signatures qui recherchent « powershell » ou « cmd ». Les détections comportementales et les règles qui normalisent ou tolèrent ces variations restent efficaces.
+! Ce n'est ni un marqueur administrateur, ni une erreur, ni un ajout du capteur.
+
+## A|6|Real Time Response / Put-and-run
+Quelle est la particularité de la commande put-and-run dans RTR ?
++ Elle dépose puis exécute un fichier de la bibliothèque, avec le rôle Administrator.
+- Elle récupère un fichier de l'hôte, le place dans la bibliothèque, puis le supprime de l'hôte.
+- Elle liste les processus puis tue le plus récent.
+- Elle est disponible pour le rôle en lecture seule.
+> put-and-run combine put et run : l'outil doit avoir été préalablement ajouté à la bibliothèque de fichiers de la console. Comme toutes les commandes d'exécution arbitraire, elle est réservée au rôle Administrator et soumise à la politique de réponse.
+! Elle ne récupère pas de fichier, ne tue pas de processus et n'est pas accessible en lecture seule.
+
+## A|8|Cloud Security / IOM et IOA
+Quelle est la différence entre un indicateur de mauvaise configuration (IOM) et un indicateur d'attaque (IOA) dans Falcon Cloud Security ?
++ L'IOM signale une configuration risquée ; l'IOA cloud, un comportement suspect en cours.
+- L'IOM concerne les postes de travail, l'IOA les imprimantes.
+- Les deux désignent la même chose avec une sévérité différente : l'IOM est informatif, l'IOA critique.
+- L'IOA est un hash de fichier, l'IOM une adresse IP.
+> Le CSPM combine une approche de posture (IOM : ce qui est mal configuré) et une approche de détection comportementale (IOA : ce qui se passe). Les deux sont nécessaires : une mauvaise configuration peut être exploitée, et une attaque peut survenir sur une configuration correcte.
+! Ces notions ne concernent ni les postes, ni les imprimantes. Elles ne sont pas synonymes et ne désignent ni des hashs ni des IP.
+
+## A|9|Exposure Management / Actif non géré critique
+L'inventaire révèle un serveur non géré, exposé sur Internet et exécutant un service avec une vulnérabilité critique exploitée. Quelle priorité ?
++ Immédiate : réduire l'exposition, rechercher une compromission, puis équiper et corriger.
+- Faible, car le serveur n'est pas géré par Falcon.
+- Moyenne, à traiter lors de la prochaine revue, car un serveur sans capteur n'apparaît pas dans le calcul du risque de l'organisation.
+- Nulle, puisque aucune détection n'a été générée.
+> Un actif exposé, vulnérable et non surveillé est une cible idéale. L'absence de capteur signifie justement l'absence de détection : il faut présumer une compromission possible et agir rapidement.
+! L'absence de gestion ou de détection augmente le risque au lieu de le diminuer.
+
+## A|2|Endpoint Protection / Faux positif ML et hash
+Un outil interne compilé par l'équipe DevOps est bloqué par le ML. Il est recompilé à chaque version. Quelle solution durable est la plus appropriée ?
++ Une exclusion ML sur le chemin précis, limitée aux groupes concernés, plutôt qu'un hash à recréer.
+- Une entrée IOC « Allow » sur le hash, renouvelée manuellement par l'équipe DevOps à chaque compilation et à chaque déploiement.
+- Une exclusion de visibilité sur C:\Program Files.
+- La désactivation du ML pour tout le parc.
+> Un hash change à chaque compilation : l'autorisation par hash devient une charge permanente et source d'erreurs. Une exclusion ML précise sur le chemin, associée à de bonnes pratiques (signature de code, contrôle des droits d'écriture sur ce chemin), est plus durable.
+! L'autorisation par hash n'est pas durable ici. Une exclusion de visibilité ou la désactivation du ML affaiblissent fortement la sécurité.
+
+## A|7|Digital Forensics / Mémoire et redémarrage
+Un utilisateur a redémarré son poste après une détection d'implant résident en mémoire. Quelle conséquence et quelle compensation ?
++ La mémoire est perdue : s'appuyer sur la télémétrie, le disque et la recherche de persistance.
+- Aucune conséquence : la mémoire de l'hôte est sauvegardée automatiquement dans le cloud par le capteur avant chaque redémarrage.
+- L'implant est définitivement supprimé, l'incident peut être clos.
+- Le capteur reconstruit automatiquement la mémoire d'avant le redémarrage.
+> La mémoire vive est volatile. La télémétrie collectée en temps réel par le capteur reste disponible dans le cloud et compense en partie cette perte. Un implant persistant peut s'être relancé au redémarrage : il faut vérifier les mécanismes de persistance.
+! La mémoire n'est pas sauvegardée et le capteur ne la reconstruit pas. Le redémarrage ne garantit pas la suppression de l'implant.
+
+## A|4|Threat Hunting / Pivot sur IP
+Une IP de commande et de contrôle est identifiée sur un hôte. Comment déterminer rapidement tous les hôtes du parc qui l'ont contactée ?
++ NetworkConnectIP4 filtré sur RemoteAddressIP4, agrégé par hôte et processus.
+- Rechercher l'IP dans le champ CommandLine de ProcessRollup2 uniquement.
+- Consulter la liste des fichiers en quarantaine.
+- Interroger l'API Hosts avec un filtre FQL sur l'adresse IP locale, qui renvoie aussi l'historique des connexions sortantes.
+> Les événements de connexion réseau contiennent l'adresse de destination et le processus émetteur. L'agrégation par hôte et processus délimite le périmètre et identifie l'implant sur chaque hôte.
+! La ligne de commande contient rarement l'IP. La quarantaine ne liste pas les connexions. L'API Hosts concerne l'adresse locale des hôtes, pas leurs connexions sortantes.
+
+## A|8|Identity Security / Mots de passe compromis
+La protection des identités signale que plusieurs comptes utilisent des mots de passe présents dans des fuites publiques. Quelle action prioriser ?
++ Réinitialiser ces mots de passe, comptes privilégiés d'abord, et renforcer politique et MFA.
+- Ignorer, car les fuites publiques concernent d'autres entreprises et les mots de passe du domaine sont protégés par la politique de complexité.
+- Supprimer immédiatement tous les comptes concernés.
+- Publier la liste des comptes concernés pour sensibiliser les employés.
+> Les mots de passe divulgués sont utilisés dans le credential stuffing et le password spraying. Les réinitialiser avant leur exploitation réduit fortement le risque. La priorité va aux comptes à privilèges ou accessibles depuis l'extérieur.
+! Un mot de passe réutilisé reste exploitable. La suppression des comptes est disproportionnée. Publier la liste exposerait davantage ces comptes.
+
+## A|11|Scénario / Activité nocturne d'un administrateur
+À 3 h du matin, le compte d'un administrateur en congé crée un nouvel utilisateur, l'ajoute au groupe des administrateurs du domaine et se connecte en RDP à un serveur de sauvegarde. Quelle réponse est la plus appropriée ?
++ Compte compromis : désactiver les deux comptes, confiner, protéger les sauvegardes, investiguer.
+- Attendre le retour de l'administrateur pour lui demander une explication, car il a pu planifier ces tâches avant son départ en congé.
+- Supprimer uniquement le nouvel utilisateur.
+- Ignorer, car l'administrateur dispose légitimement de ces droits.
+> Activité hors horaires, compte d'un employé absent, création de compte privilégié (T1136, T1098) et accès aux sauvegardes : tous ces signaux décrivent la préparation d'un ransomware. Il faut agir immédiatement et cibler aussi la protection des sauvegardes.
+! Attendre, traiter partiellement ou ignorer laisse l'attaquant poursuivre.
+
+## A|3|Insight XDR / Détection sur un serveur de build
+Un serveur d'intégration continue génère régulièrement des détections pour des compilateurs qui écrivent et exécutent des binaires temporaires. Comment réduire le bruit en conservant la sécurité ?
++ Des exclusions ciblées (ML ou IOA) sur les chemins de build, avec droits d'écriture restreints et surveillance réseau.
+- Exclure de la visibilité l'ensemble du serveur, qui ne contient que du code interne et ne présente donc aucun risque.
+- Désactiver le capteur pendant les compilations.
+- Clôturer automatiquement toutes les détections de ce serveur.
+> Les serveurs de build sont des cibles de choix pour les attaques sur la chaîne d'approvisionnement. Les exclusions doivent rester précises et compensées par d'autres contrôles (droits d'accès, surveillance réseau, intégrité des artefacts).
+! Exclure tout le serveur, désactiver le capteur ou clôturer automatiquement toutes ses détections créerait un angle mort sur un actif sensible.
+
+## A|5|Malware / Variante polymorphe
+Une campagne diffuse un malware dont chaque échantillon a un hash différent, mais qui crée toujours une tâche planifiée nommée selon le même motif et contacte des domaines générés algorithmiquement. Quelle stratégie de détection est la plus efficace ?
++ Détecter les comportements constants (motif de tâche, DGA) plutôt que les hashs.
+- Bloquer chaque hash au fur et à mesure de leur publication par les flux de renseignement, en automatisant l'import dans la gestion des IOC.
+- Bloquer tous les domaines de premier niveau inhabituels.
+- Désactiver les tâches planifiées sur tout le parc.
+> Le polymorphisme rend les IOC de type hash inefficaces. Les comportements stables (persistance, DGA) offrent des points de détection durables, via IOA personnalisés, règles de corrélation ou chasses régulières.
+! Bloquer les hashs un par un est une course perdue d'avance. Un blocage massif de domaines ou des tâches planifiées casserait l'activité légitime.
+
+## A|10|Administration / Revue des accès
+Lors d'une revue annuelle, on découvre que des comptes d'anciens prestataires disposent encore du rôle RTR Administrator. Quelle mesure corrective et préventive est la plus appropriée ?
++ Retirer ces accès, auditer leurs actions récentes et automatiser le désapprovisionnement via SSO.
+- Conserver les comptes au cas où les prestataires reviendraient, en vérifiant que le MFA reste activé sur chacun d'eux.
+- Réduire leurs droits au rôle Active Responder.
+- Changer uniquement leur mot de passe.
+> Les comptes orphelins à privilèges élevés sont un risque majeur. L'audit permet de vérifier l'absence d'abus. L'intégration SSO et des revues périodiques évitent la répétition du problème.
+! Conserver, réduire partiellement ou simplement changer le mot de passe laisse un accès non justifié.
+
+## A|9|Exposure Management / Logiciel en fin de vie
+L'inventaire montre un système d'exploitation en fin de support sur des postes de production industrielle qui ne peuvent pas être mis à jour. Quelle stratégie adopter ?
++ Des mesures compensatoires (segmentation, contrôle USB, surveillance) et un plan de remplacement.
+- Ignorer, car ces postes fonctionnent correctement.
+- Supprimer immédiatement ces postes de la production.
+- Autoriser l'accès Internet pour permettre des mises à jour automatiques, ces systèmes recevant encore des correctifs de sécurité étendus.
+> Les systèmes en fin de vie ne reçoivent plus de correctifs. Lorsqu'ils sont indispensables, il faut réduire leur exposition et augmenter la détection, en attendant leur remplacement. La compatibilité du capteur avec les anciennes versions doit être vérifiée.
+! Ignorer laisse un risque non traité. Supprimer brutalement interrompt la production. Ouvrir Internet augmente l'exposition sans apporter de correctifs.
+
+## A|6|Real Time Response / Hôte macOS
+Un analyste doit investiguer un hôte macOS via RTR. Quelle affirmation est correcte ?
++ RTR prend en charge macOS, avec des commandes adaptées (pas de registre, par exemple).
+- RTR n'est disponible que sur Windows.
+- Les commandes reg query et eventlog fonctionnent à l'identique sur macOS, car le capteur émule le registre et les journaux Windows.
+- L'investigation macOS exige un accès physique au poste.
+> RTR est disponible sur Windows, macOS et Linux, avec un jeu de commandes adapté à chaque système. Sur macOS, la persistance se recherche par exemple dans les LaunchAgents et LaunchDaemons plutôt que dans le registre.
+! RTR n'est pas limité à Windows. Le registre et les journaux d'événements Windows n'existent pas sur macOS. L'accès physique n'est pas nécessaire.
+
+## A|7|Incident Response / Persistance macOS
+Sur un Mac compromis, quel emplacement vérifier en priorité pour une persistance au niveau de l'utilisateur ?
++ ~/Library/LaunchAgents, qui contient les fichiers plist lancés à l'ouverture de session de l'utilisateur.
+- La clé HKCU\Software\Microsoft\Windows\CurrentVersion\Run de la session utilisateur.
+- Le dossier C:\Windows\Tasks.
+- Le fichier /etc/crontab de Windows.
+> Les LaunchAgents (utilisateur) et LaunchDaemons (système) sont des mécanismes de persistance courants sur macOS (T1543.001, T1543.004). Un plist récent pointant vers un exécutable dans un emplacement inhabituel est suspect.
+! Les autres emplacements sont propres à Windows, ou mélangent des concepts Windows et Linux.
+
+## A|11|Scénario / Pare-feu et confinement partiel
+Falcon Firewall Management est déployé. Lors d'une compromission, l'équipe veut bloquer uniquement les connexions SMB sortantes des postes d'un service, sans les confiner totalement. Quelle approche est adaptée ?
++ Une politique de pare-feu gérée bloquant le SMB sortant pour ce groupe.
+- Utiliser une exclusion IOA sur le port 445.
+- Placer tout le service en confinement réseau, car Falcon ne permet pas de bloquer un protocole précis sur un groupe d'hôtes.
+- Modifier la politique de mise à jour du capteur.
+> Falcon Firewall Management gère centralement les règles du pare-feu des hôtes via des politiques attribuées aux groupes. Il permet un confinement partiel, plus fin que le confinement réseau complet, utile pour freiner un mouvement latéral sans arrêter l'activité.
+! Les exclusions IOA ne filtrent pas le réseau. Un blocage partiel est possible avec ce module. La politique de mise à jour du capteur ne gère pas les flux.
+
+## A|4|Threat Hunting / Fréquence des commandes
+Un chasseur veut identifier les lignes de commande PowerShell exécutées sur un seul hôte du parc durant les 30 derniers jours. Quelle logique CQL est la plus adaptée ?
++ Agréger les lignes de commande PowerShell par décompte distinct des aid et garder celles d'un seul hôte.
+- Trier toutes les exécutions par heure et lire les dix premières, qui correspondent aux commandes les plus rares de la période.
+- Compter le nombre total d'exécutions de PowerShell sur le parc.
+- Rechercher les lignes de commande contenant « Get-Help » uniquement.
+> La rareté par hôte est un excellent filtre : les scripts d'administration sont exécutés sur de nombreux hôtes, alors que l'activité d'un attaquant reste souvent localisée. Le décompte distinct des hôtes par ligne de commande fait ressortir ces cas.
+! Un tri chronologique ou un total global ne mettent pas en évidence la rareté. Rechercher « Get-Help » est arbitraire.
+
+## A|2|Endpoint Protection / Sécurité de LSASS
+Quelle combinaison de contrôles réduit le plus le risque de vol d'identifiants dans LSASS sur des serveurs Windows protégés par Falcon ?
++ Les IOA de Falcon, la protection LSA (RunAsPPL), Credential Guard et moins de sessions privilégiées.
+- La seule désactivation de PowerShell sur les serveurs.
+- Une exclusion de visibilité sur lsass.exe pour améliorer les performances, compensée par la journalisation Windows des accès à LSASS.
+- L'autorisation par hash de tous les outils d'administration.
+> La défense en profondeur combine la détection comportementale (accès à LSASS, création de dumps) et des protections natives du système qui rendent l'extraction plus difficile. Limiter les sessions de comptes privilégiés réduit les secrets présents en mémoire.
+! Désactiver PowerShell ne protège pas LSASS. Une exclusion sur lsass.exe ouvrirait une faille. Autoriser tous les outils supprime des contrôles.
+
+## A|8|Cloud Security / Conteneurs sans accès aux nœuds
+Une application tourne sur un service de conteneurs serverless où l'équipe n'a pas accès aux nœuds sous-jacents. Comment obtenir une protection à l'exécution avec Falcon ?
++ Avec le capteur prévu pour ces environnements, intégré aux tâches ou aux images.
+- En installant le capteur Windows standard sur le poste du développeur.
+- En comptant uniquement sur le CSPM, qui bloque les processus malveillants dans les conteneurs à partir des API du fournisseur.
+- C'est impossible : les environnements serverless ne peuvent pas être protégés.
+> Lorsque les nœuds ne sont pas accessibles, le capteur est intégré à la charge de travail elle-même. CrowdStrike documente des méthodes adaptées à certains services serverless de conteneurs. Les plateformes et méthodes supportées évoluent : consultez la documentation à jour.
+! Le capteur sur le poste du développeur ne protège pas le cloud. Le CSPM évalue la configuration sans bloquer les processus. Une protection est possible avec la bonne méthode.
+
+## A|3|Insight XDR / Phishing et clic
+Une détection montre que le navigateur a téléchargé un fichier .zip contenant un .lnk, exécuté par l'utilisateur, qui a lancé mshta.exe avec une URL distante. Quelle étape d'investigation est la plus utile pour mesurer l'étendue de la campagne ?
++ Identifier l'URL et le domaine, puis rechercher les mêmes DNS, téléchargements et mshta sur le parc.
+- Réinstaller uniquement le poste concerné.
+- Bloquer mshta.exe sur ce seul poste par une règle IOC, puis surveiller pendant une semaine s'il réapparaît ailleurs.
+- Supprimer le fichier .zip du dossier Téléchargements.
+> La chaîne archive, raccourci, binaire système avec URL distante (T1218.005) est typique d'un accès initial. Le domaine et l'URL sont les meilleurs pivots pour trouver les autres victimes et bloquer la campagne.
+! Les actions limitées au seul poste ne mesurent pas l'étendue de la campagne.
+
+## A|10|Administration / Changement de politique risqué
+Un administrateur a désactivé par erreur la prévention comportementale dans la politique par défaut de Windows un vendredi soir. Comment détecter et limiter ce type d'erreur ?
++ Alerter sur les modifications sensibles de politiques via l'audit et le SIEM, avec une validation à deux.
+- Interdire toute modification de politique, en toutes circonstances, y compris lors d'un incident.
+- Supprimer la politique par défaut.
+- Désactiver les journaux d'audit pour éviter le bruit.
+> Les modifications de politiques sont journalisées. Les transmettre au SIEM et alerter sur les changements sensibles (désactivation de protections, nouvelles exclusions larges) permet une détection rapide. Une validation à deux réduit le risque d'erreur ou d'abus.
+! Interdire tout changement bloque l'exploitation. La politique par défaut est indispensable. Désactiver l'audit supprime la détection.
+
+## A|5|Threat Intelligence / Opérationnalisation
+Un rapport d'intelligence décrit les TTP d'un acteur ciblant votre secteur. Quelle exploitation produit le plus de valeur pour le SOC ?
++ Comparer les TTP à la couverture, combler les lacunes et préparer des playbooks.
+- Archiver le rapport pour la conformité.
+- Diffuser le rapport en TLP:CLEAR sur Internet.
+- Ajouter le nom de l'acteur et ses indicateurs dans un tableau de bord dédié, consulté chaque matin par les analystes Tier 1.
+> L'intelligence n'a de valeur que si elle modifie les décisions et les capacités : couverture de détection, chasses, préparation de la réponse. La correspondance entre TTP et ATT&CK facilite cet exercice.
+! L'archivage, la diffusion inappropriée ou un simple affichage n'améliorent pas la défense.
+
+## A|1|Architecture Falcon / Charlotte AI et données
+Un RSSI s'interroge sur les risques d'un assistant d'IA dans le SOC. Quel point relève d'une démarche d'IA responsable ?
++ Encadrer l'usage (droits, traçabilité, validation humaine), former aux limites et mesurer les gains.
+- Donner à l'assistant les droits d'administration complets pour éviter tout blocage.
+- Désactiver la journalisation des interactions pour protéger la vie privée des analystes et éviter la conservation de données sensibles du tenant.
+- Considérer ses réponses comme des preuves recevables sans vérification.
+> Le guide CCFP insiste sur les bénéfices et les risques de l'IA : vitesse et réduction de la charge, mais aussi erreurs, biais et dépendance excessive. Une gouvernance (droits, traçabilité, contrôle humain) maximise les bénéfices tout en maîtrisant les risques.
+! Des droits illimités, l'absence de traçabilité ou une confiance aveugle contredisent une démarche responsable.
+
+## A|11|Scénario / Postes et serveur de fichiers chiffrés
+Les fichiers d'un serveur de partage sont chiffrés, mais aucun processus de chiffrement n'est visible sur le serveur. Sur un poste utilisateur, Falcon montre un processus inconnu qui accède massivement à ce partage via SMB. Quelle conclusion et quelle action ?
++ Le chiffrement vient du poste, à travers le partage : contenir ce poste en priorité.
+- Le serveur de fichiers est la source du chiffrement, le processus étant masqué par un rootkit : il doit être réinstallé immédiatement.
+- Le chiffrement est un comportement normal de la synchronisation SMB.
+- Il faut désactiver le protocole SMB dans toute l'entreprise de façon permanente.
+> Certains ransomwares chiffrent les partages réseau depuis un poste compromis. Le serveur ne montre alors que des écritures de fichiers. Identifier et contenir l'hôte source stoppe le chiffrement. La télémétrie Falcon du poste relie le processus aux accès réseau.
+! Le serveur n'est pas la source dans ce scénario. SMB ne chiffre pas les fichiers. Une désactivation permanente de SMB est disproportionnée.

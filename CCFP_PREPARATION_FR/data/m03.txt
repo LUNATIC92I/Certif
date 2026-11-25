@@ -1,0 +1,271 @@
+# MODULE 3 – Falcon Insight XDR / EDR
+
+## D|Insight XDR / EDR
+Quelle capacité est la raison d'être d'un EDR comme Falcon Insight ?
++ Enregistrer en continu l'activité des endpoints pour détecter, investiguer et répondre, y compris après un contournement de la prévention.
+- Remplacer le pare-feu périmétrique de l'entreprise.
+- Gérer les correctifs du système d'exploitation et des applications sur les postes, puis vérifier leur installation effective dans la console.
+- Chiffrer les disques des ordinateurs portables.
+> L'EDR part du principe que certaines attaques réussiront à passer la prévention. Il collecte en continu processus, fichiers, connexions réseau, registre et authentifications. Ces données permettent de détecter des comportements, de reconstituer une attaque et d'agir à distance.
+! Le pare-feu, la gestion des correctifs et le chiffrement des disques relèvent d'autres outils.
+
+## D|Insight XDR / XDR
+En quoi Falcon Insight XDR étend-il un EDR classique ?
++ En corrélant l'endpoint avec d'autres domaines (identité, cloud, sources tierces) contre les attaques transverses.
+- En supprimant la nécessité d'un capteur sur les endpoints.
+- En se limitant à la détection sur les serveurs de messagerie.
+- En remplaçant les analystes par des réponses entièrement automatiques sur tous les domaines, sans intervention humaine ni validation préalable.
+> Le « X » d'XDR désigne l'extension de la détection et de la réponse au-delà de l'endpoint. Falcon Insight XDR s'appuie sur le capteur et intègre des données d'autres modules Falcon et de partenaires pour offrir une vue unifiée de l'attaque.
+! L'XDR ne supprime pas le capteur, ne se limite pas à la messagerie et n'élimine pas le rôle des analystes.
+
+## D|Insight XDR / Contenu d'une détection
+Quelle information une détection Falcon fournit-elle pour aider le triage ?
++ La sévérité, le mapping MITRE ATT&CK, l'hôte, l'utilisateur, l'arbre de processus et la ligne de commande.
+- Uniquement le nom de l'hôte et l'heure de l'événement.
+- Uniquement le hash du fichier, sans contexte d'exécution.
+- La liste complète des fichiers présents sur le disque de l'hôte, avec leur hash et leur date de création, pour comparaison avec la base de réputation.
+> Une détection fournit le contexte nécessaire au triage : sévérité, mapping MITRE ATT&CK (tactique et technique), objectif de l'IOA, hôte, utilisateur, processus et parents, ligne de commande, hashs et actions de prévention appliquées.
+! Les propositions limitées à l'hôte ou au hash ne permettent pas de qualifier l'alerte. Falcon ne liste pas le contenu complet du disque dans une détection.
+
+## D|Insight XDR / MITRE ATT&CK
+Dans une détection Falcon, la mention « Tactic: Credential Access, Technique: OS Credential Dumping » signifie :
++ La tactique est l'objectif (obtenir des identifiants), la technique le moyen employé pour l'atteindre.
+- La tactique est le nom du malware et la technique son hash.
+- La tactique indique le niveau de sévérité calculé par Falcon, et la technique le score de confiance attribué à la détection par le machine learning.
+- La tactique désigne l'utilisateur ciblé et la technique l'hôte.
+> MITRE ATT&CK distingue les tactiques (le « pourquoi », l'objectif de l'adversaire) et les techniques (le « comment »). Falcon associe ses détections à cette matrice pour donner un langage commun et aider à situer l'étape de l'attaque.
+! Une tactique n'est ni un nom de malware, ni une sévérité, ni un utilisateur.
+
+## D|Insight XDR / Arbre de processus
+Pourquoi l'arbre de processus est-il central dans l'investigation d'une détection ?
++ Il montre la chaîne parent-enfant : comment l'activité a été lancée et ce qu'elle a déclenché.
+- Il indique la liste des logiciels autorisés sur le poste, classés selon leur ordre d'installation et leur éditeur.
+- Il affiche uniquement les processus système de Windows.
+- Il remplace l'analyse des connexions réseau.
+> L'arbre de processus révèle les relations anormales (par exemple un navigateur ou Office qui lance un interpréteur de commandes) et la séquence d'actions de l'attaquant. Il est le point de départ de la plupart des investigations dans Falcon.
+! Il ne s'agit ni d'une liste d'autorisation, ni d'une vue limitée aux processus système. Il complète l'analyse réseau sans la remplacer.
+
+## D|Insight XDR / Alert fatigue
+Comment Falcon contribue-t-il à réduire l'« alert fatigue » des analystes ?
++ En produisant des détections contextualisées qui regroupent les activités liées, au lieu d'une alerte par événement.
+- En supprimant automatiquement les détections de sévérité moyenne ou faible, afin que les analystes ne voient que les alertes critiques et élevées.
+- En limitant le nombre d'hôtes surveillés à 100.
+- En désactivant les détections la nuit.
+> La plateforme analyse les séquences d'événements dans le cloud et produit des détections riches en contexte, regroupées par attaque ou incident, avec priorité et mapping MITRE. Les analystes traitent ainsi moins d'alertes, mais plus pertinentes.
+! Supprimer des détections, limiter la couverture ou couper la surveillance la nuit augmenterait le risque au lieu de réduire le bruit.
+
+## I|Insight XDR / Triage
+Lors du triage d'une détection, quelle première étape est la plus pertinente ?
++ Qualifier la détection (malveillante, légitime ou à approfondir) à partir de l'arbre de processus et du contexte.
+- Isoler systématiquement tous les hôtes du parc.
+- Clôturer la détection si la prévention l'a bloquée, sans autre vérification, puisque l'action de l'attaquant a échoué et ne présente plus de risque.
+- Désinstaller le capteur pour réinitialiser l'état de l'hôte.
+> Le triage consiste à qualifier rapidement l'alerte et à décider de la suite : clôture documentée, investigation approfondie ou réponse. Une détection bloquée peut révéler un attaquant actif qui essaiera d'autres méthodes : il faut comprendre ce qui s'est passé avant et après.
+! Isoler tout le parc est disproportionné. Clore sans analyse peut masquer une intrusion. Désinstaller le capteur détruit la visibilité.
+
+## I|Insight XDR / Gestion des détections
+Pourquoi est-il important d'attribuer une détection à un analyste et de mettre à jour son statut ?
++ Pour assurer le suivi, éviter les doublons, mesurer les délais et tracer les décisions.
+- Pour déclencher automatiquement la désinstallation du capteur.
+- Pour supprimer la détection de la base CrowdStrike une fois traitée, afin d'alléger la console et les rapports.
+- Pour modifier la politique de prévention de l'hôte.
+> L'attribution et le statut (nouvelle, en cours, clôturée avec un verdict comme vrai ou faux positif, selon la version de la console) structurent le workflow du SOC. Ils permettent la collaboration, la mesure du MTTR et l'audit des décisions.
+! Le changement de statut n'agit ni sur le capteur, ni sur la conservation des données, ni sur les politiques.
+
+## I|Insight XDR / Incidents
+Quelle est la différence entre une détection et un incident dans Falcon ?
++ La détection vise une activité précise ; l'incident regroupe des détections liées en une attaque plus large.
+- Une détection concerne les serveurs, un incident concerne les postes de travail.
+- Un incident est une détection confirmée par un analyste, alors qu'une détection n'est qu'une alerte non encore qualifiée par le SOC.
+- Il n'existe aucune différence : les deux termes sont interchangeables.
+> Falcon regroupe les détections et événements corrélés (sur un ou plusieurs hôtes) en incidents, avec un score et une chronologie. L'analyste dispose ainsi d'une vision d'ensemble de l'attaque. La présentation exacte (par exemple la vue des incidents et le CrowdScore) dépend de la version de la console.
+! La distinction ne dépend ni du type d'hôte ni du verdict. Les deux notions ne sont pas équivalentes.
+
+## I|Insight XDR / Investigation d'hôte
+Un analyste veut visualiser toute l'activité récente d'un hôte (processus, connexions, connexions d'utilisateurs, détections) sans écrire de requête. Quelle approche utiliser ?
++ Les vues d'investigation de l'hôte (recherche d'hôte, détails, chronologie).
+- La politique de mise à jour du capteur de l'hôte, qui conserve son historique.
+- La page de téléchargement du capteur.
+- Le rapport de licence du tenant.
+> Falcon propose des vues d'investigation guidées : recherche d'hôte, détails, chronologie des événements, détections associées, connexions d'utilisateurs. Elles permettent une première analyse rapide avant de passer, si nécessaire, à des requêtes dans Advanced Event Search.
+! Les politiques, la page de téléchargement et les rapports de licence ne contiennent pas la télémétrie de l'hôte.
+
+## I|Insight XDR / IOC investigation
+Un rapport externe signale un domaine malveillant. Comment vérifier rapidement si un hôte du parc l'a contacté ?
++ Rechercher le domaine dans les outils d'indicateurs ou dans Advanced Event Search (DNS).
+- Ajouter le domaine à une exclusion ML.
+- Consulter la politique de prévention par défaut.
+- Redémarrer tous les hôtes pour forcer une nouvelle résolution DNS, puis observer les connexions dans la console.
+> La télémétrie DNS des capteurs permet de retrouver les hôtes qui ont résolu un domaine, avec le processus à l'origine de la requête. Les recherches d'indicateurs de la console et Advanced Event Search (par exemple sur l'événement DnsRequest) répondent à cette question.
+! Une exclusion ML n'a aucun rapport avec un domaine. Une politique ne contient pas d'historique. Redémarrer les hôtes n'apporte aucune information.
+
+## I|Insight XDR / Télémétrie
+Quels types de données le capteur Falcon remonte-t-il en télémétrie, en plus des détections ?
++ Des événements de processus, de fichiers, de réseau, de DNS, de registre et d'authentification.
+- Uniquement les fichiers mis en quarantaine.
+- Uniquement les journaux Windows Security et Sysmon de l'hôte, copiés tels quels et transmis au cloud toutes les heures.
+- Le contenu complet de chaque fichier ouvert par l'utilisateur.
+> Le capteur collecte des événements comportementaux même en l'absence de détection. C'est ce qui permet de reconstituer une attaque, de chasser les menaces et de répondre à des questions rétrospectives.
+! La télémétrie ne se limite pas aux fichiers en quarantaine. Ce n'est pas une copie des journaux Windows. Elle ne contient pas le contenu de tous les fichiers ouverts.
+
+## I|Insight XDR / Sévérité
+Deux détections arrivent simultanément : une détection « Critical » de vol d'identifiants sur un contrôleur de domaine et une détection « Low » de PUP sur un poste. Comment prioriser ?
++ La détection critique du contrôleur de domaine, compte tenu de la sévérité et de la valeur de l'actif.
+- Traiter d'abord la détection la plus ancienne, quelle que soit la sévérité, afin de respecter l'ordre d'arrivée défini par le SLA.
+- Traiter d'abord la détection du poste, car elle est plus rapide à clôturer.
+- Ignorer les deux, car Falcon a peut-être déjà bloqué l'activité.
+> La priorisation combine la sévérité de la détection et la valeur de l'actif. Un vol d'identifiants sur un contrôleur de domaine peut mener à la compromission de tout le domaine : c'est la priorité absolue.
+! L'ordre d'arrivée ou la facilité de traitement ne reflètent pas le risque. Supposer un blocage sans vérification est dangereux.
+
+## I|Insight XDR / Rôle de l'analyste
+Selon le guide CCFP, quelle relation existe entre détection, investigation et réponse ?
++ Un cycle continu : investigation et réponse améliorent la détection.
+- Ce sont trois étapes indépendantes, gérées par des outils et des équipes distincts, sans retour de l'une vers l'autre.
+- La réponse doit toujours précéder la détection.
+- L'investigation n'est nécessaire que pour les détections de sévérité « Low ».
+> Le guide CCFP insiste sur le caractère cyclique du processus. Chaque investigation produit des enseignements (faux positifs à exclure, indicateurs à bloquer, nouvelles hypothèses de chasse) qui renforcent la détection.
+! Les étapes sont liées et traitées dans la même plateforme. On ne répond pas avant d'avoir détecté. L'investigation concerne surtout les détections importantes.
+
+## I|Insight XDR / Hash d'un processus
+Pendant l'investigation, l'analyste veut savoir si le même exécutable malveillant a été lancé sur d'autres hôtes. Quel élément utiliser comme pivot ?
++ Le hash SHA256 du fichier exécuté.
+- Le nom de l'hôte où la détection a eu lieu.
+- La sévérité de la détection.
+- La date de dernière mise à jour du capteur.
+> Le SHA256 identifie un fichier de façon quasi unique, quel que soit son nom ou son chemin. Une recherche par hash montre tous les hôtes où il a été écrit ou exécuté, ce qui permet de délimiter le périmètre de l'incident.
+! Le nom d'hôte ne trouve pas d'autres hôtes. La sévérité et la version du capteur ne permettent pas de suivre un fichier.
+
+## A|Insight XDR / Chaîne d'attaque
+L'arbre de processus d'une détection montre : outlook.exe → winword.exe → cmd.exe → powershell.exe -enc … → rundll32.exe avec une DLL dans %APPDATA%. Quelle interprétation est la plus juste ?
++ Une pièce jointe Office malveillante lance une chaîne qui télécharge puis charge une DLL via rundll32.
+- Une mise à jour légitime d'Office qui installe ses composants dans le profil de l'utilisateur, via un script PowerShell encodé pour des raisons de sécurité.
+- Un comportement normal d'Outlook lors de la synchronisation des pièces jointes.
+- Une impression de document, car winword.exe lance toujours cmd.exe pour communiquer avec l'imprimante.
+> La séquence est typique : phishing (T1566.001), exécution d'un document malveillant, commande PowerShell encodée (T1059.001), puis exécution d'une DLL par rundll32 (T1218.011) depuis un répertoire utilisateur. L'analyste doit contenir l'hôte si nécessaire, récupérer le document et la DLL, puis rechercher les indicateurs sur le parc.
+! Office ne s'installe pas via cmd.exe et PowerShell encodé. Outlook et l'impression ne produisent pas une telle chaîne.
+
+## A|Insight XDR / Détection bloquée
+Une détection indique « Process blocked » pour un outil de dump de mémoire LSASS sur un serveur. Quelle est la meilleure suite à donner ?
++ Considérer l'attaquant présent : origine de l'outil, compte utilisé, autres actions, puis confinement si nécessaire.
+- Clore immédiatement la détection, puisque la prévention a fonctionné et que l'outil n'a pu extraire aucun identifiant de la mémoire de LSASS.
+- Créer une exclusion IOA pour éviter que la détection se reproduise.
+- Réduire la sévérité de la détection à « Informational ».
+> Un blocage réussi ne signifie pas que l'incident est terminé. La présence d'un outil de vol d'identifiants indique un acteur ayant déjà des privilèges élevés sur l'hôte. Il faut reconstituer l'activité, rechercher d'autres hôtes touchés et réinitialiser les identifiants potentiellement exposés.
+! Clore, exclure ou déclasser la détection ignorerait un signal fort de compromission active.
+
+## A|Insight XDR / Plusieurs hôtes
+Trois détections sur trois hôtes différents impliquent le même compte de service exécutant PsExec à quelques minutes d'intervalle. Comment traiter ces détections ?
++ Une seule activité liée (mouvement latéral probable), à investiguer depuis le premier hôte et le compte utilisé.
+- Les traiter séparément par trois analystes sans échange d'information.
+- Les clore, car PsExec est un outil d'administration Microsoft légitime, couramment utilisé par les comptes de service pour le déploiement.
+- Désactiver le compte de service sans aucune investigation.
+> La corrélation entre hôtes, compte et chronologie suggère un mouvement latéral (T1021.002, T1569.002). L'analyse doit identifier l'origine (premier hôte et source des identifiants), puis contenir les hôtes et le compte, après vérification de l'impact métier.
+! Traiter séparément fait perdre la vision d'ensemble. PsExec est souvent détourné par les attaquants. Désactiver un compte de service sans analyse peut interrompre la production sans régler la cause.
+
+## A|Insight XDR / Faux positif récurrent
+Une détection comportementale se déclenche plusieurs fois par jour sur un outil interne légitime, toujours avec la même ligne de commande. Après validation, quelle action réduit le bruit sans affaiblir la sécurité ?
++ Une exclusion IOA précise (image et ligne de commande), limitée aux groupes concernés et documentée.
+- Créer une exclusion de visibilité du capteur sur le répertoire de l'outil, pour supprimer à la source toutes les détections et la télémétrie associées.
+- Désactiver la protection comportementale dans la politique de prévention.
+- Ignorer chaque nouvelle détection sans changer la configuration.
+> L'exclusion IOA cible exactement le comportement validé, sans toucher aux autres détections. La documentation et une revue périodique évitent que l'exclusion devienne une faille si l'outil est détourné.
+! Une exclusion de visibilité aveuglerait le capteur. Désactiver la protection comportementale affaiblit tout le parc. Ignorer les détections entretient l'alert fatigue.
+
+## A|Insight XDR / Ligne de commande
+Une détection montre la commande : vssadmin.exe delete shadows /all /quiet lancée par un exécutable inconnu dans C:\Users\Public. Quel objectif probable et quelle priorité ?
++ La destruction des points de restauration avant chiffrement : priorité maximale, confinement et recherche sur le parc.
+- Une maintenance normale de l'espace disque, déclenchée par un outil de nettoyage tiers installé dans un répertoire public pour tous les utilisateurs.
+- Une sauvegarde planifiée qui crée de nouveaux clichés instantanés.
+- Une mise à jour de Windows qui nettoie les anciennes versions.
+> La suppression des clichés instantanés (T1490, Inhibit System Recovery) précède souvent le chiffrement (T1486). Lancée par un binaire inconnu depuis un répertoire public, elle exige une réaction immédiate pour limiter la propagation.
+! Une maintenance ou une sauvegarde ne supprime pas tous les clichés en mode silencieux depuis un exécutable inconnu.
+
+## A|Insight XDR / Contexte utilisateur
+Une détection signale l'exécution de whoami, net group "domain admins" /domain et nltest /dclist par le compte d'une comptable, depuis cmd.exe lancé par un processus inconnu. Quelle conclusion ?
++ Une reconnaissance interne atypique pour ce profil, probablement menée par un attaquant.
+- Une activité normale d'une comptable qui vérifie ses droits sur le domaine avant d'accéder à une application financière.
+- Une tâche automatique de Windows Update.
+- Un script de connexion légitime toujours exécuté au démarrage.
+> Ces commandes caractérisent la tactique Discovery (TA0007). Leur exécution par un profil non technique, via un processus parent inconnu, est un indicateur fort de compromission. Il faut analyser le processus parent, son origine et la connectivité réseau associée.
+! Une comptable n'a pas besoin de lister les contrôleurs de domaine. Windows Update et les scripts de connexion n'exécutent pas cette séquence depuis un processus inconnu.
+
+## A|Insight XDR / Investigation réseau
+L'investigation d'un hôte montre un processus inconnu établissant une connexion toutes les 60 secondes vers la même adresse IP externe sur le port 443. Quelle hypothèse privilégier et comment la confirmer ?
++ Un beaconing C2, à confirmer par la réputation de la destination, le processus et la recherche sur le parc.
+- Une synchronisation d'horloge NTP normale.
+- Une navigation web de l'utilisateur.
+- Un échange normal entre le capteur Falcon et le cloud CrowdStrike, qui utilise un processus auxiliaire pour envoyer ses événements toutes les minutes.
+> Une connexion régulière d'un processus inconnu vers une même destination est un indicateur classique de C2 (T1071). La télémétrie réseau de Falcon relie chaque connexion au processus émetteur, ce qui facilite la confirmation et le pivot vers d'autres hôtes.
+! NTP utilise UDP 123. La navigation web n'est pas aussi régulière. Les communications du capteur sont émises par le processus Falcon, pas par un processus inconnu.
+
+## A|Insight XDR / Charlotte AI et triage
+Un analyste demande à Charlotte AI d'expliquer une détection complexe et de résumer l'activité de l'hôte. Quelle limite doit-il garder à l'esprit ?
++ Ses réponses accélèrent l'analyse mais doivent être vérifiées avant toute décision importante.
+- Charlotte AI exécute systématiquement des actions de confinement sans validation.
+- Charlotte AI n'a accès à aucune donnée du tenant et répond uniquement à partir d'Internet.
+- Les réponses de l'assistant remplacent la documentation de l'incident.
+> Charlotte AI s'appuie sur les données de la plateforme pour résumer, expliquer et proposer des étapes. Selon CrowdStrike, il n'effectue pas d'actions de réponse automatiques par défaut. L'analyste reste responsable de la vérification et des décisions, et la documentation de l'incident reste nécessaire.
+! Les autres propositions décrivent mal l'outil : pas d'actions automatiques par défaut, accès aux données du tenant, et aucun remplacement de la documentation.
+
+## A|Insight XDR / Détection sans malware
+Un attaquant utilise uniquement des outils natifs (PowerShell, WMI, comptes valides) sans déposer de fichier malveillant. Pourquoi Falcon peut-il néanmoins le détecter ?
++ Parce que les IOA évaluent les séquences d'actions et leur contexte, sans dépendre d'un fichier malveillant.
+- Parce que Falcon bloque toute utilisation de PowerShell par défaut.
+- Parce que les comptes valides sont automatiquement désactivés après 24 heures.
+- Parce que Falcon compare chaque commande PowerShell et WMI exécutée à une liste de signatures mise à jour en continu par CrowdStrike.
+> Les attaques « living off the land » échappent aux approches fondées sur les fichiers. Falcon détecte des comportements : enchaînements anormaux, arguments suspects, relations parent-enfant inhabituelles, usages anormaux d'identifiants. Le Threat Graph et OverWatch (selon la souscription) complètent cette détection.
+! PowerShell n'est pas bloqué par défaut. Les comptes ne sont pas désactivés automatiquement. Les signatures ne détectent pas l'usage malveillant d'outils légitimes.
+
+## A|Insight XDR / Clôture
+Une détection s'avère être un test autorisé de l'équipe Red Team. Comment la clôturer correctement ?
++ La clôturer avec le bon verdict et la référence de l'exercice, sans exclusion permanente.
+- Créer une exclusion permanente pour tous les outils de la Red Team afin d'éviter les escalades inutiles lors des prochains exercices.
+- Supprimer la détection et l'hôte de la console.
+- Laisser la détection ouverte indéfiniment.
+> Les exercices autorisés doivent être tracés : verdict, référence de l'exercice, preuve de l'autorisation. Les exclusions permanentes pour des outils offensifs seraient exploitables par de vrais attaquants. La coordination préalable (périmètre, horaires) évite les escalades inutiles.
+! L'exclusion permanente crée un angle mort. Supprimer l'hôte fait perdre la visibilité. Laisser la détection ouverte fausse les indicateurs du SOC.
+
+## A|Insight XDR / Données manquantes
+Un hôte impliqué dans un incident n'a remonté aucun événement pendant six heures, alors que l'utilisateur affirme avoir travaillé. Quelle hypothèse vérifier en priorité ?
++ Une perte de communication ou une falsification du capteur : vérifier son dernier contact et son état.
+- L'utilisateur a forcément menti sur son activité.
+- Le capteur n'enregistre pas l'activité des utilisateurs standard.
+- La politique de prévention supprime automatiquement les événements des sessions utilisateur au-delà de trois heures d'inactivité du réseau.
+> Un trou dans la télémétrie peut provenir d'une coupure réseau, d'un proxy, d'un capteur dégradé ou d'une action malveillante visant à aveugler la sécurité. Le dernier contact et l'état du capteur, visibles dans la gestion des hôtes, ainsi que les événements de falsification, doivent être examinés.
+! On ne peut pas conclure au mensonge sans preuve. Le capteur enregistre l'activité de tous les utilisateurs. Les politiques de prévention ne suppriment pas la télémétrie.
+
+## A|Insight XDR / Mapping et couverture
+Le responsable du SOC veut savoir quelles techniques ATT&CK ont été observées dans les détections du dernier trimestre. Quelle approche est la plus efficace ?
++ Agréger le mapping MITRE ATT&CK des détections dans des tableaux de bord ou par requête.
+- Relire manuellement chaque ligne de commande de chaque détection du trimestre et la classer dans une feuille de calcul.
+- Consulter la politique de mise à jour du capteur.
+- Compter les hôtes par système d'exploitation.
+> Chaque détection Falcon est associée à des tactiques et techniques ATT&CK. Agréger ces champs permet d'identifier les techniques les plus fréquentes, d'orienter les chasses et de prioriser les améliorations de détection.
+! La relecture manuelle ne passe pas à l'échelle. Les politiques de capteur et les statistiques par OS ne renseignent pas les techniques observées.
+
+## A|Insight XDR / Escalade
+Un analyste Tier 1 identifie une détection de haute sévérité indiquant un mouvement latéral vers des serveurs critiques, en dehors des heures ouvrées. Quelle décision est la plus appropriée ?
++ Escalader immédiatement, documenter et, si la procédure l'autorise, contenir l'hôte source.
+- Attendre le lendemain matin pour en discuter avec l'équipe, car une décision prise de nuit par un Tier 1 risque d'être disproportionnée.
+- Clore la détection, car aucun fichier malveillant n'a été identifié.
+- Redémarrer les serveurs critiques pour interrompre l'activité.
+> Un mouvement latéral vers des actifs critiques exige une réaction rapide. Les procédures d'escalade et les droits de confinement définis par le SOC guident l'action du Tier 1. La documentation horodatée facilite la reprise par le niveau supérieur.
+! Attendre augmente le dwell time. L'absence de fichier ne signifie pas absence de menace. Redémarrer les serveurs détruit des preuves sans traiter la cause.
+
+## A|Insight XDR / Hiérarchie des processus Falcon
+En investiguant des événements, l'analyste remarque que l'identifiant de processus Falcon d'un processus parent (TargetProcessId) correspond au ParentProcessId de plusieurs autres événements de création de processus. Qu'en déduire ?
++ Ce sont des enfants du même processus : ces identifiants reconstituent l'arbre de processus.
+- Ces processus ont été créés sur des hôtes différents au même moment, car l'identifiant de processus Falcon est partagé à l'échelle du tenant.
+- Le capteur a dupliqué des événements par erreur.
+- Ces identifiants correspondent aux numéros de port réseau utilisés.
+> Dans la télémétrie Falcon, chaque processus reçoit un identifiant unique (TargetProcessId dans l'événement de création ProcessRollup2). Les événements des enfants référencent leur parent via ParentProcessId, et les autres événements (DNS, réseau, fichiers) via ContextProcessId. C'est la base des jointures de reconstitution.
+! Ces identifiants ne désignent ni des hôtes différents, ni des doublons, ni des ports.
+
+## A|Insight XDR / OverWatch
+Une détection de la console indique qu'elle provient de Falcon OverWatch. Qu'est-ce que cela implique pour l'équipe SOC ?
++ Des chasseurs CrowdStrike ont repéré une activité suspecte par chasse managée : à traiter en priorité.
+- La détection est générée par un test automatique de la console et peut être ignorée.
+- La détection signale uniquement un capteur hors ligne depuis plus de sept jours.
+- OverWatch a déjà remédié l'incident à distance, et l'équipe SOC n'a plus qu'à clôturer la détection dans la console.
+> Falcon OverWatch est un service de threat hunting managé (sous licence) : des analystes CrowdStrike chassent dans la télémétrie des clients et signalent les intrusions, souvent des activités discrètes qui échappent aux détections automatiques. Sauf souscription à un service managé de réponse comme Falcon Complete, la réponse reste à la charge du client.
+! Il ne s'agit ni d'un test, ni d'une alerte de santé du capteur. OverWatch détecte et alerte, il ne remédie pas l'incident à la place du client.

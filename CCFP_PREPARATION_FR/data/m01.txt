@@ -1,0 +1,226 @@
+# MODULE 1 – CrowdStrike Falcon Platform Architecture
+
+## D|Architecture Falcon / Modèle cloud-native
+Quel principe décrit le mieux l'architecture de la plateforme CrowdStrike Falcon ?
++ Un capteur léger unique sur chaque endpoint, relié à une plateforme cloud-native qui analyse et corrèle la télémétrie.
+- Un serveur de gestion installé sur site, qui distribue chaque nuit des signatures et des règles à plusieurs agents spécialisés par fonction.
+- Plusieurs agents distincts par module (antivirus, EDR, inventaire) administrés depuis des consoles séparées.
+- Une appliance réseau placée en coupure, qui inspecte le trafic des postes sans aucun agent local.
+> Falcon repose sur un agent unique et léger (le Falcon sensor) et sur une plateforme SaaS cloud-native. L'analyse lourde (corrélation dans le Threat Graph, intelligence, machine learning cloud) est réalisée dans le cloud, et une seule console donne accès à tous les modules activés par licence.
+! L'architecture sur site avec signatures quotidiennes correspond aux antivirus traditionnels. Falcon n'empile pas plusieurs agents : les modules s'activent sur le même capteur. Enfin, Falcon n'est pas une appliance réseau en coupure.
+
+## D|Architecture Falcon / Threat Graph
+Quel est le rôle du CrowdStrike Threat Graph ?
++ Corréler à l'échelle du cloud les événements collectés par les capteurs afin d'identifier les relations entre processus, fichiers, réseau et utilisateurs.
+- Stocker uniquement les fichiers mis en quarantaine par la politique de prévention.
+- Représenter graphiquement la topologie réseau de l'entreprise à partir des tables ARP.
+- Héberger la base des signatures antivirales et des listes de réputation téléchargées chaque nuit par les capteurs avant leur analyse locale.
+> Le Threat Graph est la base de données graphe de CrowdStrike, hébergée dans le cloud. Il relie les événements des endpoints (processus, connexions, fichiers, comptes) pour détecter des comportements et fournir le contexte d'investigation. Le machine learning de la plateforme s'appuie aussi sur ces données à grande échelle.
+! Le Threat Graph n'est ni un dépôt de quarantaine, ni une cartographie réseau, ni une base de signatures. Falcon ne repose pas sur des téléchargements nocturnes de signatures.
+
+## D|Architecture Falcon / Identifiants
+Dans la console Falcon, à quoi correspondent respectivement le CID et l'AID ?
++ Le CID identifie le tenant client ; l'AID identifie de façon unique chaque capteur installé sur un hôte.
+- Le CID identifie l'hôte ; l'AID identifie l'administrateur ayant installé le capteur.
+- Le CID est la clé d'API du client ; l'AID est le mot de passe de désinstallation du capteur.
+- Le CID et l'AID sont deux noms du même identifiant, affiché différemment selon le système d'exploitation.
+> Le CID (Customer ID), fourni avec une somme de contrôle (CCID) sur la page de téléchargement du capteur, rattache le capteur au bon tenant lors de l'installation. L'AID (Agent ID) est généré par le capteur et identifie l'hôte dans la console, les recherches et les API.
+! Le CID ne désigne ni un hôte ni une clé d'API. Le jeton de maintenance protège la désinstallation, ce n'est pas l'AID. Les deux identifiants ont des rôles différents.
+
+## D|Architecture Falcon / Modules
+Quel module Falcon fournit la protection antivirus de nouvelle génération (NGAV) ?
++ Falcon Prevent.
+- Falcon Insight XDR.
+- Falcon Discover.
+- Falcon Fusion SOAR.
+> Falcon Prevent apporte la prévention NGAV : machine learning, indicateurs d'attaque (IOA), protection contre les exploits et blocage des malwares connus et inconnus.
+! Falcon Insight XDR fournit les capacités EDR/XDR de détection, d'investigation et de réponse. Falcon Discover concerne l'hygiène IT (inventaire des actifs, applications et comptes). Falcon Fusion SOAR automatise les workflows.
+
+## D|Architecture Falcon / Console
+Un analyste veut retrouver rapidement un hôte, un hash ou une page de la console à partir d'une seule zone de saisie. Quelle fonctionnalité de navigation utiliser ?
++ La recherche universelle de la console Falcon.
+- Le menu principal des politiques de prévention et d'exclusions.
+- Le journal d'audit des utilisateurs.
+- La page de téléchargement du capteur.
+> La recherche universelle (universal search) permet de saisir un nom d'hôte, un indicateur ou un nom de fonctionnalité et d'y accéder directement. Avec les favoris (bookmarks) et le menu principal, elle fait partie des fonctions de navigation de base évaluées par le CCFP.
+! Les politiques de prévention, le journal d'audit et la page de téléchargement sont des pages spécialisées. Elles ne servent pas de point d'entrée de recherche global.
+
+## D|Architecture Falcon / Dwell time
+Que désigne le « dwell time » dans le vocabulaire de la détection et de la réponse ?
++ La durée pendant laquelle un adversaire reste présent dans l'environnement avant d'être détecté et neutralisé.
+- Le temps nécessaire au capteur pour s'installer sur un poste.
+- Le délai de réplication des politiques et des exclusions entre la console et les capteurs du parc.
+- La durée de rétention des événements dans la console Falcon.
+> Le dwell time mesure la durée de présence non maîtrisée de l'attaquant. Plus il est long, plus l'adversaire peut se déplacer, voler des identifiants ou exfiltrer des données. Réduire le dwell time est un objectif central de l'architecture Falcon : détection en temps réel, corrélation cloud et réponse à distance.
+! Les autres propositions décrivent des durées techniques (installation, synchronisation, rétention) sans lien avec la présence de l'adversaire.
+
+## I|Architecture Falcon / Multi-tenant
+Quel avantage opérationnel une architecture SaaS multi-tenant comme Falcon offre-t-elle par rapport à une solution mono-tenant déployée chez chaque client ?
++ Les détections et l'intelligence issues de toute la base clients profitent vite à chaque tenant, sans mise à niveau locale.
+- Chaque client peut modifier librement le code des moteurs de détection de la plateforme.
+- Les données de tous les clients sont visibles dans une console commune pour faciliter la collaboration.
+- Le client doit dimensionner et maintenir ses propres serveurs de corrélation, ce qui garantit l'isolation stricte de ses données.
+> Dans un modèle multi-tenant, la plateforme est mutualisée tout en isolant logiquement les données de chaque client. Les améliorations de détection, les modèles de ML et l'intelligence (par exemple, une technique observée chez un client) sont déployés de façon centralisée. Il n'y a ni serveur à maintenir ni mise à niveau à orchestrer.
+! Le multi-tenant n'implique ni accès au code, ni visibilité croisée entre clients, qui sont strictement isolés. La maintenance de serveurs locaux caractérise au contraire le modèle mono-tenant sur site.
+
+## I|Architecture Falcon / Communication capteur-cloud
+Comment le capteur Falcon communique-t-il avec le cloud CrowdStrike ?
++ Par des connexions sortantes chiffrées en TLS sur le port 443, initiées par le capteur, éventuellement via un proxy.
+- Par des connexions entrantes initiées par le cloud vers le poste sur un port dédié qu'il faut ouvrir sur le pare-feu de chaque site.
+- Par des transferts SMB vers un serveur relais interne qui centralise les événements.
+- Par des requêtes DNS encodées, afin de traverser les pare-feux restrictifs.
+> Le capteur initie des connexions sortantes chiffrées (TLS, port 443) vers le cloud CrowdStrike correspondant à son tenant. Aucune ouverture de port entrant n'est nécessaire. Si un proxy est requis, il peut être déclaré à l'installation ou dans la configuration du capteur.
+! Le cloud n'initie pas de connexions entrantes vers les endpoints. Falcon n'utilise pas de relais SMB interne obligatoire et ne fait pas de tunneling DNS.
+
+## I|Architecture Falcon / Clouds CrowdStrike
+Une entreprise européenne souhaite que ses données soient hébergées dans un cloud CrowdStrike situé en Europe. Quel élément doit-elle prendre en compte ?
++ Le tenant est rattaché à un cloud CrowdStrike donné (par exemple EU-1), dont dépendent la console et l'URL de l'API.
+- Il suffit de changer la langue de la console en français pour héberger les données en Europe.
+- Les capteurs choisissent automatiquement à chaque démarrage le cloud CrowdStrike le plus proche géographiquement de l'hôte.
+- Les données sont toujours répliquées dans tous les clouds CrowdStrike, sans choix possible.
+> CrowdStrike opère plusieurs clouds régionaux (notamment US-1, US-2, EU-1 et US-GOV-1). Le tenant d'un client est rattaché à un cloud précis, qui détermine l'URL de la console et l'URL de base de l'API (par exemple api.eu-1.crowdstrike.com). Le choix doit être fait lors du provisionnement, en fonction des exigences de localisation des données.
+! La langue de l'interface n'a aucun effet sur l'hébergement. Les capteurs ne changent pas de cloud dynamiquement, et les données ne sont pas répliquées dans tous les clouds.
+
+## I|Architecture Falcon / Falcon Data Replicator
+Quel est l'usage principal de Falcon Data Replicator (FDR) ?
++ Fournir les événements bruts des capteurs dans un bucket de type S3, pour ingestion dans un SIEM ou un data lake.
+- Répliquer automatiquement les politiques de prévention, les exclusions et les groupes d'hôtes entre deux tenants Falcon d'une même entreprise.
+- Sauvegarder le système de fichiers des endpoints protégés.
+- Dupliquer les capteurs sur les machines virtuelles clonées.
+> FDR fournit un flux des données d'événements brutes (les mêmes événements que ceux exploités par la plateforme) via un bucket de type AWS S3 et des notifications de file d'attente. Le client peut ainsi conserver ou analyser la télémétrie complète dans ses propres outils. Ce service est soumis à licence.
+! FDR ne synchronise pas de politiques, ne sauvegarde pas les endpoints et n'a aucun rôle dans le clonage de capteurs.
+
+## I|Architecture Falcon / Event Streams
+Un SIEM tiers doit recevoir en quasi temps réel les détections Falcon et les événements d'audit (connexions à la console, sessions RTR). Quelle interface est la plus adaptée ?
++ L'API Event Streams (directement ou via le connecteur SIEM CrowdStrike).
+- Falcon Data Replicator, qui transmet uniquement les détections et les événements d'audit de la console.
+- L'export CSV manuel de la page des détections.
+- Le journal Windows Application de chaque endpoint.
+> L'API Event Streams diffuse un flux d'événements de la plateforme : résumés de détection, événements d'audit utilisateur, sessions Real Time Response, etc. Le SIEM Connector de CrowdStrike consomme ce flux et le convertit vers des formats comme CEF ou LEEF.
+! FDR transmet la télémétrie brute des endpoints, pas seulement les détections. Un export manuel n'est pas temps réel. Le journal Windows local ne contient pas les détections Falcon.
+
+## I|Architecture Falcon / Capteur hors ligne
+Un ordinateur portable protégé par Falcon est utilisé dans un avion, sans connexion Internet. Quelle affirmation est correcte ?
++ Les protections locales (ML sur capteur, IOA comportementaux) restent actives ; seules les fonctions cloud sont indisponibles.
+- Le capteur se désactive totalement jusqu'au retour de la connexion.
+- Seules les signatures téléchargées lors de la dernière connexion peuvent encore bloquer un malware, jusqu'au retour du réseau.
+- Le poste est automatiquement placé en confinement réseau par la console.
+> Le capteur embarque des capacités de prévention locales : un modèle de machine learning sur capteur et une logique comportementale. Le cloud ML, l'intelligence en temps réel et la réponse à distance nécessitent en revanche la connectivité.
+! Le capteur ne se désactive pas hors ligne et ne repose pas sur des signatures quotidiennes. Le confinement réseau est une action déclenchée par un analyste, pas une conséquence automatique de la perte de connexion.
+
+## I|Architecture Falcon / Falcon Next-Gen SIEM
+Quel est le rôle de Falcon Next-Gen SIEM dans la plateforme ?
++ Centraliser la télémétrie Falcon et des données tierces (pare-feux, identité, cloud) pour la recherche, la détection et la réponse.
+- Remplacer le capteur Falcon par une collecte exclusivement basée sur Syslog, afin d'alléger les endpoints et de centraliser les journaux de sécurité.
+- Fournir uniquement l'inventaire des applications installées sur les postes.
+- Gérer les licences et la facturation des différents modules Falcon.
+> Falcon Next-Gen SIEM, basé sur la technologie LogScale, ingère les données natives Falcon et des sources tierces. Il permet la recherche, les règles de corrélation, les tableaux de bord et l'automatisation dans la même console que l'EDR.
+! Le SIEM ne remplace pas le capteur, qui reste la source de télémétrie endpoint. L'inventaire applicatif relève de l'Exposure Management et la gestion des licences n'est pas une fonction SIEM.
+
+## I|Architecture Falcon / Adoption de la plateforme
+Selon l'approche progressive d'adoption de Falcon, quel ordre reflète l'évolution des résultats de sécurité ?
++ Visibilité, puis détection, investigation, réponse et opérationnalisation.
+- Réponse, puis visibilité, détection, opérationnalisation (processus, automatisation) et enfin investigation.
+- Opérationnalisation, puis réponse, investigation, détection et enfin visibilité.
+- Détection, puis opérationnalisation, visibilité, réponse et enfin investigation.
+> Le guide d'examen CCFP décrit une progression allant de la visibilité initiale (capteurs déployés, télémétrie disponible) à la détection, l'investigation, la réponse, puis l'opérationnalisation, où les processus sont industrialisés et automatisés. Chaque étape s'appuie sur la précédente.
+! On ne peut pas répondre efficacement sans avoir d'abord de la visibilité et des détections fiables. Les autres ordres inversent cette logique de maturité.
+
+## A|Architecture Falcon / Images maîtres et VDI
+Une équipe crée une image maître Windows avec le capteur Falcon pour un parc VDI. Après le clonage, plusieurs machines apparaissent sous un seul hôte dans la console. Quelle est la cause la plus probable ?
++ Le capteur a démarré sur l'image maître et y a généré un AID, recopié sur tous les clones ; l'image devait être préparée selon la procédure dédiée.
+- Le CID utilisé lors de l'installation était erroné, ce qui pousse la console à regrouper sous un même hôte toutes les machines dont l'enregistrement a échoué.
+- La politique de prévention était en mode « Aggressive », ce qui fusionne les machines identiques.
+- Les machines VDI ne sont pas prises en charge par le capteur Falcon.
+> L'AID est généré lors du premier démarrage du capteur. Si l'image maître contient déjà un AID, tous les clones partagent le même identifiant, ce qui fausse la visibilité et la réponse. CrowdStrike documente des paramètres d'installation dédiés aux images maîtres et aux environnements VDI (par exemple NO_START=1 ou VDI=1 sous Windows). Vérifiez la syntaxe exacte dans la documentation de votre version.
+! Un CID erroné empêche l'enregistrement du capteur dans le bon tenant, il ne fusionne pas des hôtes. Le niveau de prévention n'a aucun lien avec l'identité des hôtes. Les environnements VDI sont pris en charge avec la bonne procédure.
+
+## A|Architecture Falcon / Reduced Functionality Mode
+Un serveur Linux apparaît en « Reduced Functionality Mode » (RFM) dans la console après une mise à jour du noyau. Quelle interprétation et quelle action sont les plus appropriées ?
++ Le capteur ne prend pas en charge ce noyau dans son mode actuel : vérifier la compatibilité, mettre à jour le capteur ou passer en mode utilisateur.
+- Le serveur est compromis : le RFM est déclenché quand le capteur détecte une modification malveillante du noyau, il faut donc isoler immédiatement l'hôte du réseau.
+- Le mode RFM est un mode d'économie d'énergie sans impact sur la sécurité.
+- La licence Falcon Prevent a expiré et doit être renouvelée.
+> Le RFM signale qu'un capteur fonctionne avec des capacités limitées, typiquement parce que le noyau Linux n'est pas (encore) supporté par la version du capteur en mode noyau. L'action consiste à consulter la matrice de compatibilité, mettre à jour le capteur ou basculer vers le mode de fonctionnement en espace utilisateur lorsqu'il est disponible.
+! Le RFM n'est pas un indicateur de compromission ni un mode d'économie d'énergie, et il n'est pas lié à l'expiration d'une licence.
+
+## A|Architecture Falcon / Protection contre la désinstallation
+Lors d'un incident, un attaquant disposant des droits administrateur local tente de désinstaller le capteur Falcon. Quel mécanisme l'en empêche ?
++ La protection contre la désinstallation et la maintenance, activée dans la politique de mise à jour du capteur, qui exige un jeton de maintenance.
+- Le confinement réseau, qui bloque toute modification logicielle.
+- La politique USB Device Control, qui empêche l'exécution de tout programme de désinstallation lancé depuis un support amovible ou un compte local.
+- Le mode Reduced Functionality Mode, qui verrouille le capteur.
+> Lorsque l'option « Uninstall and maintenance protection » est activée dans la sensor update policy, la désinstallation ou la modification du capteur nécessite un jeton de maintenance propre à l'hôte (ou un jeton global). Cela empêche un attaquant, même administrateur local, de supprimer la protection.
+! Le confinement réseau isole l'hôte mais ne protège pas le capteur contre une désinstallation locale. Device Control gère les périphériques USB. Le RFM est un état de compatibilité, pas une protection.
+
+## A|Architecture Falcon / Choix d'intégration
+Une équipe veut conserver deux ans de télémétrie brute des endpoints pour des enquêtes rétrospectives, alors que la rétention standard de la console est plus courte. Quelle solution est la plus adaptée ?
++ Exporter la télémétrie brute via FDR vers un stockage maîtrisé, ou souscrire une rétention étendue dans Next-Gen SIEM.
+- Augmenter la durée de rétention de la télémétrie de chaque groupe d'hôtes en modifiant le réglage correspondant de la politique de prévention.
+- Exporter quotidiennement en CSV la page des détections.
+- Activer le confinement réseau sur les hôtes pour conserver leurs événements localement.
+> La rétention des événements dans la plateforme dépend du module et de la licence. Pour des besoins longs, on exporte les données brutes (FDR) vers un stockage contrôlé ou on souscrit une rétention adaptée dans Next-Gen SIEM. Les durées exactes dépendent du contrat.
+! Les politiques de prévention ne règlent pas la rétention. Les détections ne représentent qu'une petite partie de la télémétrie. Le confinement n'a aucun rapport avec le stockage des événements.
+
+## A|Architecture Falcon / Charlotte AI
+Un analyste Tier 1 utilise Charlotte AI pour obtenir un résumé d'une détection et une proposition de prochaines étapes. Quelle pratique est conforme à un usage responsable de l'IA dans le SOC ?
++ Utiliser la synthèse pour accélérer le triage, vérifier les conclusions dans la télémétrie et garder la validation humaine pour les actions à fort impact.
+- Appliquer automatiquement toutes les recommandations sans vérification, puisque l'IA est entraînée sur les données CrowdStrike.
+- Interdire tout usage de l'IA, qui produit nécessairement des conclusions erronées.
+- Fournir à l'assistant des mots de passe administrateur pour qu'il puisse agir seul sur les hôtes.
+> Charlotte AI est l'assistant d'IA générative et agentique de Falcon. Il peut résumer des détections, répondre à des questions en langage naturel et aider au triage. Le guide CCFP insiste sur l'IA responsable : gains de rapidité, mais aussi risques (erreurs, hallucinations, dépendance excessive). La supervision humaine reste nécessaire, notamment pour les actions de réponse.
+! L'application aveugle des recommandations ignore le risque d'erreur. L'interdiction totale prive l'équipe d'un gain réel. Partager des secrets avec un assistant contrevient aux bonnes pratiques.
+
+## A|Architecture Falcon / IA et adversaires
+Selon le guide CCFP, pourquoi l'IA est-elle considérée comme ayant un « double rôle » en cybersécurité ?
++ Elle accélère les opérations des adversaires (phishing, automatisation) tout en aidant les défenseurs à détecter et répondre.
+- Elle remplace désormais intégralement les analystes humains, aussi bien chez les attaquants que chez les défenseurs, grâce aux agents autonomes.
+- Elle n'est utilisée que par les défenseurs, car les adversaires n'y ont pas accès.
+- Elle sert uniquement à générer des rapports pour la direction.
+> L'IA abaisse la barrière d'entrée pour les attaquants (ingénierie sociale plus convaincante, développement plus rapide, opérations plus rapides). Côté défense, elle alimente le machine learning de détection, l'aide au triage (Charlotte AI) et l'automatisation des workflows.
+! L'IA ne remplace pas les humains, les adversaires y ont largement accès et ses usages dépassent de loin le reporting.
+
+## A|Architecture Falcon / Falcon AIDR
+À quel besoin répond principalement Falcon AIDR dans le portefeuille CrowdStrike ?
++ La détection et la réponse aux menaces liées à l'usage de l'IA : agents, interactions avec les modèles, injections de prompt.
+- La gestion des sauvegardes des contrôleurs de domaine Active Directory.
+- L'analyse antivirale par intelligence artificielle des pièces jointes reçues par les serveurs de messagerie sur site, avant leur remise aux utilisateurs.
+- La mise à jour automatique des capteurs Linux vers le dernier noyau.
+> Falcon AIDR (AI Detection and Response) fait partie des modules listés dans le guide d'examen CCFP ; CrowdStrike le commercialise notamment sous le nom Falcon Guardian. Il vise à découvrir, gouverner et sécuriser les systèmes et activités d'IA : agents IA, interactions avec les modèles, abus comme l'injection de prompt ou la fuite de données sensibles. Le périmètre exact dépend de l'offre et évolue rapidement.
+! Les autres propositions décrivent des fonctions sans rapport : sauvegarde AD, antivirus de messagerie, mise à jour de capteurs.
+
+## A|Architecture Falcon / Proxy et déploiement
+Après le déploiement du capteur dans un site où tout le trafic Internet passe par un proxy authentifiant avec inspection TLS, les hôtes n'apparaissent pas dans la console. Quelle est la cause la plus probable ?
++ Le proxy empêche la session TLS du capteur : autoriser les domaines CrowdStrike et les exclure de l'inspection TLS.
+- Le capteur nécessite l'ouverture d'un port entrant sur le pare-feu du site pour que le cloud puisse enregistrer chaque nouvel hôte lors de sa première connexion.
+- La politique de prévention bloque l'enregistrement des nouveaux hôtes.
+- Les hôtes doivent être ajoutés manuellement à la console avant leur première connexion.
+> Le capteur utilise une connexion TLS protégée (épinglage de certificat). Une inspection TLS qui remplace le certificat ou un proxy exigeant une authentification non gérée empêche la communication. CrowdStrike recommande d'autoriser ses domaines cloud et de les exclure du déchiffrement.
+! Aucun port entrant n'est requis. Les politiques de prévention ne bloquent pas l'enregistrement, et les hôtes apparaissent automatiquement après leur première connexion réussie.
+
+## A|Architecture Falcon / Règle 1-10-60
+CrowdStrike promeut la règle « 1-10-60 ». À quels objectifs correspond-elle ?
++ Détecter une intrusion en 1 minute, l'investiguer en 10 minutes et la contenir ou la remédier en 60 minutes.
+- Déployer 1 capteur, 10 politiques et 60 exclusions par tenant.
+- Conserver les événements bruts 1 jour, les détections 10 jours et les incidents clôturés 60 jours dans la console du tenant.
+- Analyser 1 alerte, en escalader 10 et en clore 60 par heure et par analyste.
+> La règle 1-10-60 est un objectif opérationnel pour devancer le temps de « breakout » des adversaires (le temps nécessaire pour se déplacer latéralement après la compromission initiale). Elle illustre l'intérêt d'une plateforme qui réduit le temps entre détection, investigation et réponse.
+! Les autres propositions inventent des quotas de configuration, de rétention ou de productivité qui ne correspondent pas à cette règle.
+
+## A|Architecture Falcon / Visibilité multi-OS
+Une équipe constate que certains hôtes macOS génèrent beaucoup moins d'événements que les autres et n'ont déclenché aucune détection depuis leur déploiement. Quelle vérification est prioritaire ?
++ Vérifier l'approbation de l'extension système et des autorisations requises (accès complet au disque), idéalement par MDM.
+- Vérifier que les hôtes macOS disposent bien du même CID que les hôtes Windows, faute de quoi leurs événements sont filtrés par la console du tenant.
+- Passer la politique de prévention en mode « Extra Aggressive » pour générer plus d'événements.
+- Désinstaller le capteur, car macOS n'est pas pris en charge par Falcon.
+> Sur macOS, le capteur s'appuie sur des extensions système et des autorisations de confidentialité. Si elles ne sont pas approuvées, le capteur fonctionne avec une visibilité réduite. Le déploiement par MDM avec les profils de configuration fournis par CrowdStrike évite ce problème. L'état du capteur doit être surveillé dans la console.
+! Un CID différent empêcherait l'enregistrement dans le tenant, il ne réduirait pas le volume d'événements. Le niveau de prévention n'augmente pas la télémétrie collectée. macOS est bien pris en charge.
+
+## A|Architecture Falcon / Choix des modules
+Un RSSI veut couvrir trois besoins : détecter les attaques par identifiants volés sur Active Directory, connaître les vulnérabilités exploitables de son parc, et centraliser les journaux de ses pare-feux avec la télémétrie endpoint. Quelle combinaison de modules Falcon correspond à ces besoins ?
++ Falcon Next-Gen Identity Security, Falcon Exposure Management et Falcon Next-Gen SIEM.
+- Falcon Prevent, Falcon Device Control et Falcon Firewall Management.
+- Falcon Insight XDR seul, qui couvre nativement ces trois besoins sans module complémentaire.
+- Falcon Cloud Security, Falcon Data Replicator et Charlotte AI.
+> Next-Gen Identity Security (qui inclut l'ancienne offre Falcon Identity Protection) détecte et bloque les attaques sur les identités. Exposure Management couvre l'inventaire des actifs et les vulnérabilités (anciennement Spotlight et Discover, entre autres). Next-Gen SIEM centralise les journaux tiers avec les données Falcon. Les noms commerciaux évoluent : vérifiez les intitulés de votre contrat.
+! Prevent, Device Control et Firewall Management protègent l'endpoint mais ne répondent pas à ces trois besoins. Insight XDR ne couvre pas seul les vulnérabilités ni les journaux tiers. Cloud Security, FDR et Charlotte AI répondent à d'autres usages.
