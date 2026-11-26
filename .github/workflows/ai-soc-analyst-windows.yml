@@ -63,7 +63,7 @@ jobs:
           $env:AI_SOC_HOME = "$PWD\dist\scenario_home"
           $out = @()
           foreach ($d in Get-ChildItem tests\data\scenarios -Directory) {
-            $files = Get-ChildItem $d.FullName -File | Where-Object { $_.Name -ne "expected.json" } | ForEach-Object { $_.FullName }
+            $files = @(Get-ChildItem $d.FullName -File | Where-Object { $_.Name -ne "expected.json" } | ForEach-Object { $_.FullName })
             $json = & dist\AI_SOC_ANALYST\AI_SOC_ANALYST_cli.exe analyze @files 2>$null | Out-String
             $r = $json | ConvertFrom-Json
             $exp = Get-Content (Join-Path $d.FullName "expected.json") -Raw | ConvertFrom-Json

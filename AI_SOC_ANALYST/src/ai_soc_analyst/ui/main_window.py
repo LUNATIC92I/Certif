@@ -12,7 +12,7 @@ from ..core.logging_setup import get_logger
 from ..core.paths import resource_dir
 from ..core.security import verify_password
 from . import theme
-from .i18n import t
+from .i18n import apply_translation, t
 from .pages_core import DashboardPage, HistoryPage, NewInvestigationPage, QueuePage
 from .pages_intel import DetectionPage, HuntingPage, IOCPage, MitrePage
 from .pages_ops import ReportsPage, ResponsePage, SettingsPage
@@ -125,6 +125,7 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(f"Données : {state.ctx.paths.home}")
         self._menus()
         self._update_mode()
+        apply_translation(self)
 
     def _menus(self) -> None:
         m = self.menuBar().addMenu("&Fichier")

@@ -133,3 +133,24 @@ def test_settings_privacy_blocks_remote_ai(win, qtbot):
     s.test_ai()
     qtbot.waitUntil(lambda: s.btn_test.isEnabled(), timeout=10000)
     assert errors and "Privacy" in errors[0]
+
+
+def test_english_interface(home, qtbot, monkeypatch):
+    from ai_soc_analyst.core.paths import AppPaths
+    from ai_soc_analyst.core.settings import Settings, save_settings
+
+    paths = AppPaths(home).ensure()
+    save_settings(Settings(language="en"), paths.settings_file)
+    from ai_soc_analyst.ui import i18n
+    from ai_soc_analyst.ui.app import build
+
+    _app, w, _ = build(["test"])
+    qtbot.addWidget(w)
+    try:
+        assert w.nav.item(0).text().endswith("Dashboard")
+        assert w.pages["new"].btn_run.text() == "Run investigation"
+        assert w.pages["settings"].btn_save.text() == "Save"
+        assert w.pages["workspace"].tabs.tabText(2) == "Events"
+    finally:
+        i18n.set_language("fr")
+        w.state.ctx.db.dispose()
