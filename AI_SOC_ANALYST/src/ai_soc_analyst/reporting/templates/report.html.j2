@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ meta.incident_id }} – {{ meta.level }}</title>
+<style>
+  :root { --bg:#0B1118; --panel:#111A24; --text:#E6EDF3; --muted:#8B98A5; --accent:#1E90FF; --teal:#00C2B8; --line:#22303D; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI", Roboto, Arial, sans-serif; background:var(--bg); color:var(--text); font-size:14px; }
+  header { padding:24px 32px; background:linear-gradient(90deg,#0E1621,#112437); border-bottom:2px solid var(--teal); }
+  header .k { color:var(--teal); font-weight:700; letter-spacing:.08em; font-size:12px; }
+  h1 { margin:6px 0 0; font-size:24px; }
+  main { padding:24px 32px; max-width:1400px; }
+  .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-bottom:24px; }
+  .meta div { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+  .meta b { display:block; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
+  section { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px 20px; margin-bottom:16px; }
+  h2 { color:var(--accent); font-size:17px; margin:0 0 10px; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; margin:8px 0; }
+  th { background:#0E1621; color:#fff; text-align:left; border-bottom:2px solid var(--teal); padding:7px; }
+  td { border-bottom:1px solid var(--line); padding:6px 7px; vertical-align:top; word-break:break-word; }
+  tr:nth-child(even) td { background:#0F1822; }
+  .sev { display:inline-block; padding:2px 10px; border-radius:12px; color:#0B1118; font-weight:700; }
+  footer { color:var(--muted); font-size:12px; padding:16px 32px 32px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="k">AI SOC ANALYST · {{ meta.level }} · {{ meta.tlp }}</div>
+  <h1>{{ meta.incident_name }}</h1>
+</header>
+<main>
+  <div class="meta">
+    <div><b>Incident</b>{{ meta.incident_id }}</div>
+    <div><b>Date</b>{{ meta.date }}</div>
+    <div><b>Analyste</b>{{ meta.analyst }}</div>
+    <div><b>Sévérité</b><span class="sev" style="background:{{ sev_colors.get(meta.severity, '#999') }}">{{ meta.severity }}</span></div>
+    <div><b>Verdict</b>{{ meta.verdict }}</div>
+    <div><b>Confiance</b>{{ meta.confidence }}</div>
+    <div><b>Risque</b>{{ meta.risk_score }}</div>
+    <div><b>Statut</b>{{ meta.status }}</div>
+    <div><b>Sources des preuves</b>{{ meta.evidence_sources }}</div>
+  </div>
+  {% for s in report.sections %}
+  <section>
+    <h2>{{ s.title }}</h2>
+    {% for b in s.blocks %}
+      {% if b.type == "p" %}<p>{{ b.text }}</p>
+      {% elif b.type == "bullets" %}<ul>{% for it in b["items"] %}<li>{{ it }}</li>{% endfor %}</ul>
+      {% elif b.type == "kv" %}<table>{% for k, v in b.rows %}<tr><td style="width:28%;color:var(--muted)">{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}</table>
+      {% elif b.type == "table" %}
+        {% if b.rows %}<table><thead><tr>{% for h in b.headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for r in b.rows %}<tr>{% for c in r %}<td>{{ c }}</td>{% endfor %}</tr>{% endfor %}</tbody></table>
+        {% else %}<p style="color:var(--muted)">(aucune donnée)</p>{% endif %}
+      {% endif %}
+    {% endfor %}
+  </section>
+  {% endfor %}
+</main>
+<footer>Généré par {{ meta.generator }} le {{ meta.date }} – document confidentiel ({{ meta.tlp }}).</footer>
+</body>
+</html>

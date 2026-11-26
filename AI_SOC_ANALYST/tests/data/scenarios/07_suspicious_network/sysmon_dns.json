@@ -1,0 +1,156 @@
+[
+ {
+  "UtcTime": "2026-03-08T10:00:00.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "ujzde8gxd6ncf10e.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ },
+ {
+  "UtcTime": "2026-03-08T10:00:20.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "pf91dhodzdoc9is0.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ },
+ {
+  "UtcTime": "2026-03-08T10:00:40.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "j8ht9lgmxg9edn58.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ },
+ {
+  "UtcTime": "2026-03-08T10:01:00.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "1u33xtplpft75v2s.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ },
+ {
+  "UtcTime": "2026-03-08T10:01:20.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "eh60kvj50ce9uvw5.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ },
+ {
+  "UtcTime": "2026-03-08T10:01:40.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "3efr4edt2sywb3wk.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ },
+ {
+  "UtcTime": "2026-03-08T10:02:00.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "h5dnsipzz5fk2z9r.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ },
+ {
+  "UtcTime": "2026-03-08T10:02:20.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "i19r0wyojfljooa5.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ },
+ {
+  "UtcTime": "2026-03-08T10:02:40.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "lqsaj08xui6d39zz.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ },
+ {
+  "UtcTime": "2026-03-08T10:03:00.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "zzg4zdmen2khvdga.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ },
+ {
+  "UtcTime": "2026-03-08T10:03:20.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "j8gxbenyjqwx4hh5.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ },
+ {
+  "UtcTime": "2026-03-08T10:03:40.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "344tfjgvq4k7bn7x.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ },
+ {
+  "UtcTime": "2026-03-08T10:04:00.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "j8b7tfq7xkwo886v.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ },
+ {
+  "UtcTime": "2026-03-08T10:04:20.000Z",
+  "EventID": 22,
+  "Provider": "Microsoft-Windows-Sysmon",
+  "Computer": "WS-MKT-044",
+  "Image": "C:\\Users\\cbernard\\AppData\\Local\\Temp\\upd.exe",
+  "ProcessId": 5555,
+  "QueryName": "ompzom75wbbr4qmw.info",
+  "QueryStatus": "9003",
+  "QueryResults": ""
+ }
+]

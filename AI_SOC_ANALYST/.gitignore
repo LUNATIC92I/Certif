@@ -1,0 +1,7 @@
+.venv/
+build/
+dist/
+dist-freeze.txt
+__pycache__/
+*.pyc
+*.spec.bak

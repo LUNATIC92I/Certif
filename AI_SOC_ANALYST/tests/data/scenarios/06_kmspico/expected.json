@@ -1,0 +1,25 @@
+{
+  "description": "Installation de KMSpico : exclusion Defender, service KMSELDI, tâche AutoPico.",
+  "verdict_in": [
+    "Confirmed"
+  ],
+  "severity_in": [
+    "Medium",
+    "High"
+  ],
+  "mitre_must_include": [
+    "T1685",
+    "T1543.003",
+    "T1053.005"
+  ],
+  "rules_must_include": [
+    "R-PUA-001",
+    "R-DEF-001",
+    "R-PER-003",
+    "R-PER-002"
+  ],
+  "incident_type_contains": "KMS",
+  "sources_must_include": [
+    "Windows"
+  ]
+}

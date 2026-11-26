@@ -1,0 +1,132 @@
+# Build, tests et validation Windows d'AI SOC ANALYST (exécutable, version portable, programme d'installation)
+name: AI SOC ANALYST – build Windows
+
+on:
+  push:
+    paths:
+      - "AI_SOC_ANALYST/**"
+      - ".github/workflows/ai-soc-analyst-windows.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: AI_SOC_ANALYST
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Dépendances verrouillées
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt -c requirements-lock.txt
+          python -m pip freeze > dist-freeze.txt
+
+      - name: Tests (unitaires, intégration, e2e – Qt offscreen)
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          python -m pytest tests -q -rA --junitxml=dist/test-results.xml
+
+      - name: Build PyInstaller
+        run: python -m PyInstaller --noconfirm --clean --distpath dist --workpath build packaging/AI_SOC_ANALYST.spec
+
+      - name: Autotest de l'exécutable console
+        run: |
+          $p = Start-Process -FilePath "dist\AI_SOC_ANALYST\AI_SOC_ANALYST_cli.exe" -ArgumentList "--selftest","--selftest-out","dist\selftest_cli.json" -Wait -PassThru -NoNewWindow
+          Get-Content dist\selftest_cli.json
+          if ($p.ExitCode -ne 0) { throw "Autotest console en échec ($($p.ExitCode))" }
+
+      - name: Autotest de l'exécutable graphique (AI_SOC_ANALYST.exe)
+        run: |
+          $p = Start-Process -FilePath "dist\AI_SOC_ANALYST\AI_SOC_ANALYST.exe" -ArgumentList "--selftest","--selftest-out","dist\selftest_gui.json" -Wait -PassThru
+          Get-Content dist\selftest_gui.json
+          if ($p.ExitCode -ne 0) { throw "Autotest GUI en échec ($($p.ExitCode))" }
+
+      - name: Analyse des 8 scénarios avec l'exécutable gelé
+        run: |
+          $env:AI_SOC_HOME = "$PWD\dist\scenario_home"
+          $out = @()
+          foreach ($d in Get-ChildItem tests\data\scenarios -Directory) {
+            $files = Get-ChildItem $d.FullName -File | Where-Object { $_.Name -ne "expected.json" } | ForEach-Object { $_.FullName }
+            $json = & dist\AI_SOC_ANALYST\AI_SOC_ANALYST_cli.exe analyze @files 2>$null | Out-String
+            $r = $json | ConvertFrom-Json
+            $exp = Get-Content (Join-Path $d.FullName "expected.json") -Raw | ConvertFrom-Json
+            $ok = ($exp.verdict_in -contains $r.verdict) -and ($exp.severity_in -contains $r.severity)
+            foreach ($t in $exp.mitre_must_include) { if ($r.mitre -notcontains $t) { $ok = $false } }
+            $out += "{0} {1} {2} {3} {4}" -f ($(if ($ok) {"OK  "} else {"FAIL"})), $d.Name, $r.verdict, $r.severity, ($r.mitre -join ",")
+            if (-not $ok) { $script:failed = $true }
+          }
+          $out | Tee-Object dist\frozen_scenarios.txt
+          if ($script:failed) { throw "Scénario(s) en échec avec l'exécutable gelé" }
+
+      - name: Version portable
+        run: |
+          $portable = "dist\portable\AI_SOC_ANALYST"
+          New-Item -ItemType Directory -Force $portable | Out-Null
+          Copy-Item -Recurse dist\AI_SOC_ANALYST\* $portable
+          Set-Content -Path "$portable\portable.ini" -Value "[portable]" -Encoding UTF8
+          Copy-Item docs\*.md $portable
+          Compress-Archive -Path $portable -DestinationPath dist\AI_SOC_ANALYST_1.0.0_portable_win64.zip -Force
+          $p = Start-Process -FilePath "$portable\AI_SOC_ANALYST_cli.exe" -ArgumentList "--selftest","--no-gui-test" -Wait -PassThru -NoNewWindow
+          if ($p.ExitCode -ne 0) { throw "Autotest portable en échec" }
+
+      - name: Programme d'installation (Inno Setup 6)
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress }
+          & $iscc packaging\AI_SOC_ANALYST.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC en échec" }
+          Get-ChildItem dist\installer
+
+      - name: Installation silencieuse, autotest de la version installée, désinstallation
+        run: |
+          $setup = Get-ChildItem dist\installer\*.exe | Select-Object -First 1
+          $dir = "$env:RUNNER_TEMP\AISOC_install"
+          $p = Start-Process $setup.FullName -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/CURRENTUSER","/DIR=`"$dir`"" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Installation en échec ($($p.ExitCode))" }
+          if (-not (Test-Path "$dir\AI_SOC_ANALYST.exe")) { throw "AI_SOC_ANALYST.exe absent après installation" }
+          $p = Start-Process "$dir\AI_SOC_ANALYST_cli.exe" -ArgumentList "--selftest","--selftest-out","dist\selftest_installed.json" -Wait -PassThru -NoNewWindow
+          Get-Content dist\selftest_installed.json
+          if ($p.ExitCode -ne 0) { throw "Autotest de la version installée en échec" }
+          $p = Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait -PassThru
+          Start-Sleep -Seconds 3
+          if (Test-Path "$dir\AI_SOC_ANALYST.exe") { throw "Désinstallation incomplète" }
+          "Installation / autotest / désinstallation : OK" | Tee-Object dist\installer_test.txt
+
+      - name: Empreintes SHA256
+        run: |
+          Get-ChildItem dist\AI_SOC_ANALYST\AI_SOC_ANALYST*.exe, dist\*.zip, dist\installer\*.exe | Get-FileHash -Algorithm SHA256 | Format-Table -AutoSize | Out-String -Width 300 | Tee-Object dist\SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AI_SOC_ANALYST_1.0.0_installer
+          path: AI_SOC_ANALYST/dist/installer/*.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AI_SOC_ANALYST_1.0.0_portable_win64
+          path: AI_SOC_ANALYST/dist/AI_SOC_ANALYST_1.0.0_portable_win64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AI_SOC_ANALYST_1.0.0_exe
+          path: AI_SOC_ANALYST/dist/AI_SOC_ANALYST/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: AI_SOC_ANALYST_test_reports
+          path: |
+            AI_SOC_ANALYST/dist/*.json
+            AI_SOC_ANALYST/dist/*.xml
+            AI_SOC_ANALYST/dist/*.txt
+            AI_SOC_ANALYST/dist-freeze.txt

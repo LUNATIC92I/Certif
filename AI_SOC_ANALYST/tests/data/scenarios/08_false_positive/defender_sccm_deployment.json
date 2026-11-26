@@ -1,0 +1,40 @@
+[
+ {
+  "Timestamp": "2026-03-09T13:00:00.000Z",
+  "DeviceName": "WS-COMPTA-003",
+  "ActionType": "ProcessCreated",
+  "FileName": "powershell.exe",
+  "FolderPath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+  "ProcessCommandLine": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"C:\\Windows\\CCM\\SystemTemp\\Install-AcrobatUpdate.ps1\"",
+  "InitiatingProcessFileName": "CcmExec.exe",
+  "InitiatingProcessFolderPath": "C:\\Windows\\CCM",
+  "ProcessId": 4410,
+  "InitiatingProcessId": 2100,
+  "AccountName": "system",
+  "SHA256": "1ece1c29e25a8253646a4d4e475fd3643fd82867a5d5475943328579c791561d"
+ },
+ {
+  "Timestamp": "2026-03-09T13:00:20.000Z",
+  "DeviceName": "WS-COMPTA-003",
+  "ActionType": "ProcessCreated",
+  "FileName": "schtasks.exe",
+  "FolderPath": "C:\\Windows\\System32\\schtasks.exe",
+  "ProcessCommandLine": "schtasks.exe /create /tn \"Adobe Acrobat Update Task\" /tr \"C:\\Program Files (x86)\\Common Files\\Adobe\\ARM\\1.0\\AdobeARM.exe\" /sc daily /st 12:00 /f",
+  "InitiatingProcessFileName": "CcmExec.exe",
+  "ProcessId": 4500,
+  "InitiatingProcessId": 2100,
+  "AccountName": "system"
+ },
+ {
+  "Timestamp": "2026-03-09T13:00:40.000Z",
+  "DeviceName": "WS-COMPTA-003",
+  "ActionType": "ConnectionSuccess",
+  "RemoteIP": "10.0.0.25",
+  "RemotePort": 443,
+  "InitiatingProcessFileName": "powershell.exe",
+  "InitiatingProcessId": 4410,
+  "ProcessId": 4410,
+  "FileName": "powershell.exe",
+  "AccountName": "system"
+ }
+]

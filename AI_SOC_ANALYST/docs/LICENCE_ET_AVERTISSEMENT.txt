@@ -1,0 +1,23 @@
+AI SOC ANALYST 1.0.0 – Intelligent Security Investigation & Incident Response Platform
+
+AVERTISSEMENT D'UTILISATION
+
+1. AI SOC ANALYST est un outil d'aide à l'investigation. Ses conclusions (verdicts, niveaux de confiance, associations
+   MITRE ATT&CK, recommandations) doivent être validées par un analyste qualifié avant toute décision.
+2. Les fichiers importés sont copiés en quarantaine en lecture seule et ne sont JAMAIS exécutés.
+3. Aucune action de réponse (isolement, blocage, désactivation de compte…) n'est exécutée par l'application : les
+   actions sont uniquement proposées et leurs décisions consignées.
+4. Mode Privacy Protection actif par défaut : aucune donnée n'est transmise à un service externe (IA distante, threat
+   intelligence) tant que l'utilisateur ne l'a pas explicitement désactivé et configuré ses propres clés d'API.
+   L'utilisateur est responsable du respect de la politique de son organisation et des conditions d'utilisation des
+   services tiers qu'il configure.
+5. Les données (base, rapports, quarantaine, journaux) sont stockées localement dans %LOCALAPPDATA%\AI_SOC_ANALYST
+   (ou .\data pour la version portable) et ne sont pas supprimées par la désinstallation.
+
+COMPOSANTS TIERS
+- MITRE ATT&CK® (STIX, © The MITRE Corporation, licence d'utilisation ATT&CK : https://attack.mitre.org/resources/legal-and-branding/terms-of-use/)
+- Qt / PySide6 (LGPLv3), SQLAlchemy (MIT), Pydantic (MIT), ReportLab (BSD), python-docx (MIT), Jinja2 (BSD),
+  cryptography (Apache-2.0/BSD), httpx (BSD), openpyxl (MIT), pypdf (BSD), python-evtx (Apache-2.0),
+  extract-msg (GPL-3.0), PyYAML (MIT), pefile (MIT), yara-python (Apache-2.0), polices DejaVu (licence Bitstream Vera).
+
+LE LOGICIEL EST FOURNI « EN L'ÉTAT », SANS GARANTIE D'AUCUNE SORTE.

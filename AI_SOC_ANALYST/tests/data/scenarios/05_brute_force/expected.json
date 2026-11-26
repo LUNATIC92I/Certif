@@ -1,0 +1,24 @@
+{
+  "description": "36 échecs SSH depuis une même IP sur deux comptes puis connexion réussie au compte admin.",
+  "verdict_in": [
+    "Likely",
+    "Confirmed"
+  ],
+  "severity_in": [
+    "High",
+    "Medium"
+  ],
+  "mitre_must_include": [
+    "T1110.001",
+    "T1078"
+  ],
+  "rules_must_include": [
+    "R-AUTH-001"
+  ],
+  "iocs_must_include": [
+    "198.51.100.66"
+  ],
+  "sources_must_include": [
+    "Linux Syslog"
+  ]
+}

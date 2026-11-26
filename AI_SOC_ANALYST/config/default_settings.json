@@ -1,0 +1,39 @@
+{
+  "language": "fr",
+  "analyst_name": "Analyste SOC",
+  "privacy_mode": true,
+  "ai": {
+    "provider": "local",
+    "openai_model": "gpt-4o-mini",
+    "anthropic_model": "claude-sonnet-5-5",
+    "azure_endpoint": "",
+    "azure_deployment": "",
+    "azure_api_version": "2024-10-21",
+    "ollama_url": "http://127.0.0.1:11434",
+    "ollama_model": "llama3.1",
+    "timeout_seconds": 60.0,
+    "max_events_in_prompt": 60
+  },
+  "ti": {
+    "enabled": {
+      "virustotal": false,
+      "abuseipdb": false,
+      "otx": false,
+      "urlhaus": false,
+      "malwarebazaar": false,
+      "threatfox": false
+    },
+    "timeout_seconds": 20.0,
+    "cache_hours": 24
+  },
+  "limits": {
+    "max_file_mb": 200,
+    "max_zip_total_mb": 1024,
+    "max_zip_entries": 5000,
+    "max_zip_ratio": 150,
+    "max_zip_depth": 2,
+    "max_events_per_file": 500000
+  },
+  "password_hash": "",
+  "backups_to_keep": 7
+}

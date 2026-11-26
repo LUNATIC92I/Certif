@@ -1,0 +1,25 @@
+{
+  "description": "Binaire signé copié dans C:\\Users\\Public chargeant une version.dll non signée, puis persistance et beaconing.",
+  "verdict_in": [
+    "Confirmed"
+  ],
+  "severity_in": [
+    "High",
+    "Critical"
+  ],
+  "mitre_must_include": [
+    "T1574.001",
+    "T1547.001"
+  ],
+  "rules_must_include": [
+    "R-DLL-001",
+    "R-NET-002"
+  ],
+  "iocs_must_include": [
+    "203.0.113.200",
+    "C:\\Users\\Public\\Libraries\\OneUpdate\\version.dll"
+  ],
+  "sources_must_include": [
+    "Elastic Security"
+  ]
+}

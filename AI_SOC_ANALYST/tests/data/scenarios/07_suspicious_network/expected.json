@@ -1,0 +1,26 @@
+{
+  "description": "Communications périodiques (300 s) vers 203.0.113.77:8443 et résolutions DNS pseudo-aléatoires en échec.",
+  "verdict_in": [
+    "Likely",
+    "Suspicious"
+  ],
+  "severity_in": [
+    "High",
+    "Medium"
+  ],
+  "mitre_must_include": [
+    "T1071.001",
+    "T1568.002"
+  ],
+  "rules_must_include": [
+    "R-NET-002",
+    "R-DNS-001"
+  ],
+  "iocs_must_include": [
+    "203.0.113.77"
+  ],
+  "sources_must_include": [
+    "Firewall Logs",
+    "Sysmon"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "description": "Suppression des clichés instantanés et sauvegardes puis chiffrement massif (.lockdsim) et note de rançon.",
+  "verdict_in": [
+    "Confirmed"
+  ],
+  "severity_in": [
+    "Critical"
+  ],
+  "mitre_must_include": [
+    "T1490",
+    "T1486"
+  ],
+  "rules_must_include": [
+    "R-RAN-001",
+    "R-RAN-003"
+  ],
+  "incident_type_contains": "Ransomware",
+  "sources_must_include": [
+    "Sysmon"
+  ]
+}

@@ -1,0 +1,8 @@
+# Outils de développement, de test et de packaging (versions verrouillées)
+-r requirements.txt
+pytest==8.3.4
+pytest-qt==4.4.0
+pyinstaller==6.11.1
+pyinstaller-hooks-contrib==2026.10
+pySigma==2.1.2
+pysigma-backend-splunk==3.0.1

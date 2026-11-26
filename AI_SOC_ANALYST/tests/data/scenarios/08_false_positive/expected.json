@@ -1,0 +1,17 @@
+{
+  "description": "Déploiement logiciel SCCM légitime : PowerShell -ExecutionPolicy Bypass et tâche planifiée lancés par CcmExec.",
+  "verdict_in": [
+    "False Positive"
+  ],
+  "severity_in": [
+    "Informational"
+  ],
+  "mitre_must_include": [],
+  "rules_must_include": [
+    "R-PS-001",
+    "R-PER-002"
+  ],
+  "sources_must_include": [
+    "Microsoft Defender XDR"
+  ]
+}
