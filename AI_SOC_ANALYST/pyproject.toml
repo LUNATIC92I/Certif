@@ -23,7 +23,7 @@ dependencies = [
     "python-evtx==0.8.1",
     "extract-msg==0.52.0",
     "PyYAML==6.0.4",
-    "pefile==2024.8.26",
+    "pefile==2023.2.7",
     "yara-python==4.5.4",
 ]
 

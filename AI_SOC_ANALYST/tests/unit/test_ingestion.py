@@ -187,3 +187,10 @@ def test_source_detection_examples(intake, tmp_path):
                                                    "Image": "C:\\a.exe", "Computer": "PC"}))
     rec = intake.import_path(sysmon)
     assert "Sysmon" in rec.detected_source
+
+
+def test_xml_entities_refused(intake, tmp_path):
+    xml = ('<?xml version="1.0"?><!DOCTYPE l [<!ENTITY a "aaaaaaaaaa"><!ENTITY b "&a;&a;&a;&a;&a;&a;&a;&a;">]>'
+           "<Events><Event><System><EventID>1</EventID></System><EventData><Data Name='x'>&b;</Data></EventData></Event></Events>")
+    rec = intake.import_path(write(tmp_path, "xxe.xml", xml))
+    assert rec.status in ("error", "rejected") and "XXE" in rec.message

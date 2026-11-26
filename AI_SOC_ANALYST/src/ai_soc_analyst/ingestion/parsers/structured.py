@@ -121,8 +121,10 @@ def windows_event_xml_to_dict(elem: ET.Element) -> dict:
 
 def parse_xml(path: Path) -> list[dict]:
     text = read_text(path)
+    if re.search(r"<!(DOCTYPE|ENTITY)", text[:65536], re.I):  # XXE / « billion laughs » : DTD refusées
+        raise ValueError("XML refusé : les déclarations DOCTYPE/ENTITY ne sont pas acceptées (protection XXE).")
     try:
-        root = ET.fromstring(text.encode("utf-8") if not text.lstrip().startswith("<?xml") else text.encode("utf-8"))
+        root = ET.fromstring(text.encode("utf-8"))
     except ET.ParseError:
         # Fichier contenant plusieurs <Event> sans racine (export wevtutil /f:xml)
         root = ET.fromstring(("<Events>" + re.sub(r"<\?xml[^>]*\?>", "", text) + "</Events>").encode("utf-8"))
